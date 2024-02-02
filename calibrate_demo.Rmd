@@ -1,0 +1,424 @@
+---
+title: "Calibration demo"
+output:
+  html_document: default
+  pdf_document: default
+date: '2023-08-09'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## data
+Generate covariate, treatment, outcome data-structure
+
+```{r}
+set.seed(12345)
+n <- 2000
+# covariate
+W <- runif(n, -1, 1)
+
+# treatment
+pi <- plogis(0.5*W)
+A <- rbinom(n, size = 1, pi)
+
+# outcome regression and cate
+mu0 <- plogis(W)
+mu1 <- plogis(1 + 2*W)
+cate <- mu1 - mu0
+
+# potential outcomes
+Y0 <- rbinom(n, size = 1, mu0)
+Y1 <- rbinom(n, size = 1, plogis(1 + 2*W))
+ 
+# observed outcome
+Y <- ifelse(A==1, Y1, Y0)
+```
+
+
+## train initial predictor and make calibration plot (predictor vs CATE)
+
+
+```{r, echo = TRUE}
+
+# use machine learning to obtain initial predictor of ITE Y_1 - Y_0
+# for simplicity, we define our predictor tau.hat as a fixed function.
+
+tau.hat <- plogis(1 + W  ) - 0.45
+  
+```
+
+Lets plot the predictor, the BLP, and the true CATE as a function of the covariate.
+
+```{r, echo = FALSE}
+library(ggplot2)
+
+# predictor is misspecified but not that badly
+p <- ggplot(data = data.frame(tau.hat, cate), aes(x = tau.hat, y = cate)) +
+  geom_point(color = "blue") +
+  labs(x = "predictor", y = "cate") +
+  geom_smooth(method = 'lm', formula = y ~ x, color = "red") +
+  theme_minimal()
+
+cor_tau <-  cor(tau.hat, cate)
+# Calculate the regression coefficients
+fit <- lm(cate ~ tau.hat, data = data.frame(tau.hat, cate))
+intercept <- coef(fit)[1]
+slope <- coef(fit)[2]
+
+tau.BLP.oracle <- intercept + tau.hat * slope
+
+p <- ggplot(data = data.frame( tau.hat, tau.BLP.oracle, cate, W), aes(y = tau.hat, x = W)) +
+  geom_line(aes(color = "Original Predictor"), show.legend = TRUE, size = 1) +
+  labs(x = "Covariate", y = "Predictor") +
+  geom_line(aes(y = tau.BLP.oracle, color = "Best Linear Meta-Predictor"), show.legend = TRUE, size = 0.7, alpha = 0.75) +
+   geom_line(aes(y = cate, color = "True CATE"), show.legend = TRUE, size = 0.7, alpha = 0.75) +
+  scale_color_manual(
+    name = "Legend",
+    values = c("Original Predictor" = "blue", "Best Linear Meta-Predictor" = "red",
+               "True CATE" = "grey")
+  ) +
+  theme_minimal()
+ 
+
+p
+
+```
+
+Now, lets make a calibrate plot. This is a scatter plot of the true CATE values vs the predicted CATE values. 
+
+```{r, echo = FALSE}
+# plot best linear predictor (oracle)
+p <- ggplot(data = data.frame( tau.hat, tau.BLP.oracle, cate), aes(y = tau.hat, x = cate)) +
+  geom_point(aes(color = "Original Predictor"), show.legend = TRUE) +
+  labs(y = "Predictor", x = "CATE") +
+  geom_point(aes(y = tau.BLP.oracle, color = "Best Linear Meta-Predictor"), show.legend = TRUE) +
+  scale_color_manual(
+    name = "Legend",
+    values = c("Original Predictor" = "blue", "Best Linear Meta-Predictor" = "red")
+  ) +
+  theme_minimal()
+ 
+
+
+# Add the slope and intercept to the plot
+p <- p +
+  annotate(
+    "text", x = 0.05, y = max(tau.hat), label = paste("Slope:", round(slope, 2)),
+    hjust = 0, vjust = 1, color = "black"
+  ) +
+  annotate(
+    "text", x = 0.05, y = max(tau.hat)- 0.05, label = paste("Intercept:", round(intercept, 2)),
+    hjust = 0, vjust = 0.9, color = "black"
+  ) +
+  annotate(
+    "text", x = 0.05, y = max(tau.hat)- 0.1, label = paste("Correlation:", round(cor_tau, 2)),
+    hjust = 0, vjust = 0.9, color = "black"
+  )
+
+# Display the plot
+print(p)
+
+
+
+```
+
+
+
+## Linear calibration with Victor's BLP method 
+
+Now lets use Victor's BLP method to linearly calibrate our original predictor.
+
+
+```{r}
+# unbiased surrogate outcome for CATE/ITE
+pseudo_outcome <- cate + (A/pi) * (Y - mu1) - ((1-A)/(1-pi)) * (Y - mu0)
+
+# fit best linear predictor of tau.hat of the surrogate outcome
+# provides estimat of BLP of ITE/CATE
+fit <- lm(pseudo_outcome ~ tau.hat, data = data.frame(tau.hat, pseudo_outcome))
+intercept <- coef(fit)[1]
+slope <- coef(fit)[2]
+
+# get linear calibrated predictor, i.e. BLP given tau.hat
+tau.BLP.hat <- intercept + slope * tau.hat
+
+
+
+
+
+cor_tau <-  cor(tau.BLP.hat, cate)
+# Calculate the regression coefficients
+fit <- lm(cate ~ tau.hat, data = data.frame(tau.hat, cate))
+intercept <- coef(fit)[1]
+slope <- coef(fit)[2]
+
+tau.BLP.oracle <- intercept + tau.hat * slope
+```
+
+
+Plot as a function of the covariate.
+
+
+```{r, echo = FALSE}
+
+
+tau.iso.oracle <- as.stepfun(isoreg(tau.hat, cate))(tau.hat)
+
+p <- ggplot(data = data.frame(tau.BLP.hat, tau.hat, tau.BLP.oracle, W, cate), aes(x = W, y = tau.BLP.hat)) +
+  geom_line(aes(color = "Linearly Calibrated Predictor"), show.legend = TRUE, size = 1) +
+  labs(x = "Covariate", y = "Predictor") +
+  geom_line(aes(y = tau.BLP.oracle, color = "Best Linear Meta-Predictor"), show.legend = TRUE, alpha = 0.75,  size = 0.7)+ 
+  geom_line(aes(y = tau.hat, color = "Original Predictor"), show.legend = TRUE, alpha = 1,  size = 1)+ 
+  geom_line(aes(y = cate, color = "True CATE"), show.legend = TRUE, alpha = 0.75,  size = 0.7)+  
+  scale_color_manual(
+    name = "Legend",
+    values = c("Linearly Calibrated Predictor" = "red", 
+               "Best Linear Meta-Predictor" = "#006633",
+               "Original Predictor" = "blue",
+               "True CATE" = "black")
+  ) +
+  theme_minimal()
+p
+
+ 
+```
+
+
+
+We see that the linearly calibrated predictor is a linear transformation of the original predictor.
+
+```{r, echo = FALSE}
+
+ 
+p <- ggplot(data = data.frame(tau.BLP.hat, tau.hat, tau.BLP.oracle), aes(x = tau.hat, y = tau.BLP.hat)) +
+  geom_line(aes(color = "Linearly Calibrated Predictor"), show.legend = TRUE, size = 1) +
+  labs(x = "Original Predictor", y = "Calibrated Predictor") +
+  geom_line(aes(y = tau.BLP.oracle, color = "Best Linear Meta-Predictor"), show.legend = TRUE, alpha = 0.75,  size = 0.7)+ 
+  scale_color_manual(
+    name = "Legend",
+    values = c(
+               "Best Linear Meta-Predictor" = "#006633",
+               "Linearly Calibrated Predictor" = "red")
+  ) +
+  theme_minimal()
+p
+
+
+
+ 
+```
+ 
+
+
+### Check calibration of BLP-corrected predictor
+
+Lets check the new calibration plot of the linearly calibrated predictor.
+
+The following plot shows how the treatment effect predictions assigned to individuals (y-axis) varies as a function of the actual conditional average treatment effect of the individuals.
+
+
+
+ 
+```{r, echo = FALSE}
+
+ 
+
+ cor_tau <-  cor(tau.BLP.hat, cate)
+# Calculate the regression coefficients
+fit <- lm(cate ~ tau.BLP.hat, data = data.frame(tau.BLP.hat, cate))
+intercept <- coef(fit)[1]
+slope <- coef(fit)[2]
+
+ 
+
+p <- ggplot(data = data.frame(tau.BLP.hat, tau.hat,  tau.BLP.oracle, cate), aes(y = tau.BLP.hat, x = cate)) +
+  geom_point(aes(color = "Linearly Calibrated Predictor"), show.legend = TRUE, size = 1) +
+  labs(y = "Calibrated Predictor", x = "CATE") +
+  geom_point(aes(y = tau.BLP.oracle, color = "Best Linear Meta-Predictor"), show.legend = TRUE, alpha = 0.75,  size = 0.7)+ 
+  scale_color_manual(
+    name = "Legend",
+    values = c("Linearly Calibrated Predictor" = "red", 
+               "Best Linear Meta-Predictor" = "#006633")
+  ) +
+  theme_minimal()
+ 
+
+
+
+ 
+
+# Add the slope and intercept to the plot
+p <- p +
+  annotate(
+    "text", x = 0.05, y = max(cate), label = paste("Slope:", round(slope, 2)),
+    hjust = 0, vjust = 1, color = "black"
+  ) +
+  annotate(
+    "text", x = 0.05, y = max(cate)- 0.025, label = paste("Intercept:", round(intercept, 2)),
+    hjust = 0, vjust = 0.9, color = "black"
+  ) +
+  annotate(
+    "text", x = 0.05, y = max(cate)- 0.05, label = paste("Correlation:", round(cor_tau, 2)),
+    hjust = 0, vjust = 0.9, color = "black"
+  )
+
+# Display the plot
+print(p)
+
+
+```
+
+
+We see now that the linearly calibrated predictor is well calibrated in a linear sense. The fit cannot be improved by fitting a linear model on top of the predictor.
+We have correctly estimated the BLP.
+
+However, we see that the BLP approach is unable to correct for the poor calibration (flattening) at the end regions. This is because BLP is parametric and can only calibrate by applying linear transformations to the predictor. A more nonparametric approach can correct for nonlinear transformation.
+
+
+
+
+
+## Causal isotonic calibration
+
+Now lets use causal isotonic calibration to nonparametrically calibrate our original predictor. Causal isotonic calibration is able to correct for any monotone transformations of the original predictor. Since linear transformations (with positive slope) are monotone, this method is strictly more powerful than the BLP approach.
+
+
+```{r}
+# unbiased surrogate outcome for CATE/ITE
+pseudo_outcome <- cate + (A/pi) * (Y - mu1) - ((1-A)/(1-pi)) * (Y - mu0)
+# fit isotonic regression of pseudo outcome
+tau.iso.hat <- as.stepfun(isoreg(tau.hat, pseudo_outcome))(tau.hat)
+# note isotonic regression overfits at very end boundaries of tau.hat
+# tmp fix: bound predictions into range of cate.
+tau.iso.hat <- pmin(pmax(tau.iso.hat, min(cate)), max(cate))
+ 
+
+```
+
+Plot as a function of the covariate.
+
+```{r, echo = FALSE}
+
+
+tau.iso.oracle <- as.stepfun(isoreg(tau.hat, cate))(tau.hat)
+
+p <- ggplot(data = data.frame(tau.iso.hat, tau.hat, tau.iso.oracle, tau.BLP.oracle, W, cate), aes(x = W, y = tau.iso.hat)) +
+  geom_line(aes(color = "Isotonic Calibrated Predictor"), show.legend = TRUE, size = 1) +
+  labs(x = "Covariate", y = "Predictor") +
+  geom_line(aes(y = tau.iso.oracle, color = "Best Isotonic Meta-Predictor", alpha = 0.75), show.legend = TRUE, alpha = 0.75, size = 0.7) +
+  geom_line(aes(y = tau.BLP.oracle, color = "Best Linear Meta-Predictor"), show.legend = TRUE, alpha = 0.75,  size = 0.7)+ 
+  geom_line(aes(y = tau.hat, color = "Original Predictor"), show.legend = TRUE, alpha = 1,  size = 1)+ 
+  geom_line(aes(y = cate, color = "True CATE"), show.legend = TRUE, alpha = 0.75,  size = 0.7)+  
+  scale_color_manual(
+    name = "Legend",
+    values = c("Isotonic Calibrated Predictor" = "red", 
+               "Best Isotonic Meta-Predictor" = "purple",
+               "Best Linear Meta-Predictor" = "#006633",
+               "Original Predictor" = "blue",
+               "True CATE" = "black")
+  ) +
+  theme_minimal()
+p
+
+ 
+```
+
+A benefit of isotonic calibration is that it automatically does data-driven heterogeneous treatment effect subgroup identification.
+The piece-wise constant values of the calibrated predictor defines subgroups (or bins) of individuals. Individuals with a given bin have conditional treatment effects that are quantitatively similar (given only information provided by the original predictor). Moreover, the conditional treatment effect of a given subgroup is meaningfully different form those of other subgroups.
+
+
+
+
+
+We see that the isotonic calibrated predictor is a monotone piece-wise constant transformation of the original predictor.
+
+
+
+```{r, echo = FALSE}
+
+
+tau.iso.oracle <- as.stepfun(isoreg(tau.hat, cate))(tau.hat)
+
+p <- ggplot(data = data.frame(tau.iso.hat, tau.hat, tau.iso.oracle, tau.BLP.oracle), aes(x = tau.hat, y = tau.iso.hat)) +
+  geom_line(aes(color = "Isotonic Calibrated Predictor"), show.legend = TRUE, size = 1) +
+  labs(x = "Original Predictor", y = "Calibrated Predictor") +
+  geom_line(aes(y = tau.iso.oracle, color = "Best Isotonic Meta-Predictor", alpha = 0.75), show.legend = TRUE, alpha = 0.75, size = 0.7) +
+  geom_line(aes(y = tau.BLP.oracle, color = "Best Linear Meta-Predictor"), show.legend = TRUE, alpha = 0.75,  size = 0.7)+ 
+  scale_color_manual(
+    name = "Legend",
+    values = c("Isotonic Calibrated Predictor" = "red", 
+               "Best Isotonic Meta-Predictor" = "purple",
+               "Best Linear Meta-Predictor" = "#006633",
+               "Original Predictor" = "blue",
+               "True CATE" = "black")
+  ) +
+  theme_minimal()
+p
+
+ 
+```
+
+
+
+ 
+ 
+
+
+
+### Check calibration of isotonic-corrected predictor
+
+Lets check the new calibration plot of the isotonic calibrated predictor.
+
+The following plot shows how the treatment effect predictions assigned to individuals (y-axis) varies as a function of the actual conditional average treatment effect of the individuals.
+
+ 
+```{r, echo = FALSE}
+
+p <- ggplot(data = data.frame(tau.iso.hat, cate), aes(x = cate, y = tau.iso.hat)) +
+  geom_point(color = "blue") +
+  labs(x = "predictor", y = "cate") +
+  geom_smooth(method = 'lm', formula = y ~ x, color = "red") +
+  theme_minimal()
+
+p <- ggplot(data = data.frame(tau.iso.hat, tau.hat, tau.iso.oracle, tau.BLP.oracle, cate), aes(y = tau.iso.hat, x = cate)) +
+  geom_point(aes(color = "Isotonic Calibrated Predictor"), show.legend = TRUE, size = 1) +
+  labs(x = "CATE", y = "Calibrated Predictor") +
+  geom_point(aes(y = tau.iso.oracle, color = "Best Isotonic Meta-Predictor", alpha = 0.75), show.legend = TRUE, alpha = 0.75, size = 0.7) +
+  geom_point(aes(y = tau.BLP.oracle, color = "Best Linear Meta-Predictor"), show.legend = TRUE, alpha = 0.75,  size = 0.7)+ 
+  scale_color_manual(
+    name = "Legend",
+     values = c("Isotonic Calibrated Predictor" = "red", 
+               "Best Isotonic Meta-Predictor" = "purple",
+               "Best Linear Meta-Predictor" = "#006633",
+               "Original Predictor" = "blue",
+               "True CATE" = "black")
+  ) +
+  theme_minimal()
+ 
+
+
+cor_tau <-  cor(tau.iso.hat, cate)
+# Calculate the regression coefficients
+fit <- lm(cate ~ tau.iso.hat, data = data.frame(tau.iso.hat, cate))
+intercept <- coef(fit)[1]
+slope <- coef(fit)[2]
+
+ 
+
+# Display the plot
+print(p)
+
+
+```
+
+
+We see now that the linearly calibrated predictor is well calibrated in a linear sense. The fit cannot be improved by fitting a linear model on top of the predictor.
+We have correctly estimated the BLP.
+
+However, we see that the BLP approach is unable to correct for the poor calibration (flattening) at the end regions. This is because BLP is parametric and can only calibrate by applying linear transformations to the predictor. A more nonparametric approach can correct for nonlinear transformation.
+
+
+
+

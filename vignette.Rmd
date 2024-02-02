@@ -1,0 +1,313 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+
+---
+title: "Vignette: causal machine learning with `hte3`"
+output:
+pdf_document: default
+html_document: default
+date: '2023-08-06'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+```
+
+
+# hte3: causal machine learning of heterogeneous treatment effects
+
+## Configuring an `hte3` learning task and nuisance function estimation
+
+
+### Generate point-treatment data structure
+Suppose we conduct an observational or experimental study where we observe baseline covariates `W`, a treatment `A`, and an outcome `Y`. We can generate such a dataset as follows:
+
+
+```{r}
+library(data.table)
+n <- 3000
+W1 <- runif(n, -1 , 1)
+W2 <- runif(n, -1 , 1)
+W3 <- runif(n, -1 , 1)
+W <- data.table(W1, W2, W3)
+pi1 <- plogis((W1 + W2 + W3)/2)
+pi0 <- 1 - pi1
+quantile(pi1)
+A <- rbinom(n, 1 ,  pi1)
+cate <- 1 + rowSums(as.matrix(W)) + rowSums(sin(5*as.matrix(W)))
+mu0 <- 0.5*(W1 + W2 + W3) + sin(5*W1) + sin(5*W2) + sin(5*W3) + 1/(W1 + 1.2) + 1/(W2 + 1.2) + 1/(W3 + 1.2)
+mu1 <- mu0 + cate
+Y <- rnorm(n, mu0 + A*cate, 1)
+
+ 
+
+# R-learner nuisance functions
+m <- mu1 * pi1 + mu0 * pi0
+e <- pi1
+
+data <- data.table(W1, W2, W3, A, Y)
+```
+
+
+In `hte3`, R and DR-type causal learners utilize estimates of the following nuisance functions:
+
+- Outcome Regression: `mu(A=a,W=w) := E[Y | A = a, W = w]` (DR-only)
+- Propensity Score: `pi(A=a | W=w) := P(A = a | W = w)` (DR-only)
+- Conditional Mean of Outcome: `m(W=w) := E[Y | W = w]` (R-only)
+- Conditional Mean of Treatment: `e(W=w) := E[A | W = w]` (R-only)
+
+
+### `hte3_Task` objects and nuisance function estimation with `sl3` 
+
+To perform training and prediction for `hte3` learners, including both DR-learners and R-learners, you need to specify an `hte3_Task`. The `hte3_Task` object contains relevant training data, encodes causal relationships between variables, and stores estimates of nuisance functions. An `hte3_task` can be conveniently instantiated using the `make_hte3_Task_tx` constructor function.
+
+
+While the integration of `hte3` with the `sl`3 ecosystem facilitates ensemble machine learning for estimating nuisance functions utilizing any of the supported `sl3` learning algorithms, users can also directly supply estimates for the relevant nuisance functions. In cases where neither nuisance estimates nor learners are specified, all nuisance functions are automatically estimated utilizing an `sl3` learning ensemble that incorporates methods such as lasso (via glmnet), generalized additive models (via mgcv), multivariate adaptive regression splines (via earth), random forests (via ranger), and gradient boosted trees with varying maximum tree depths (via xgboost).
+
+Here are three potential approaches to generating an `hte3_Task` tailored to the point-treatment data structure.
+
+```{r}
+# Specify variable names
+modifiers <- c("W1", "W2", "W3") # or modifiers <-  c("W1")
+confounders <- c("W1", "W2","W3")
+treatment <- "A"
+outcome <- "Y"
+
+# Create the task with true nuisances
+hte3_task <- make_hte3_Task_tx(data, modifiers, confounders, treatment, outcome,
+                               pi.hat = cbind(pi0, pi1),
+                               mu.hat = cbind(mu0, mu1),
+                               m.hat = m)
+
+
+# Create the task with custom sl3 learners
+library(sl3)
+hte3_task_custom_sl3 <- make_hte3_Task_tx(data, modifiers, confounders, treatment, outcome,
+                                          learner_pi = Lrnr_gam$new( ),
+                                          learner_mu = Lrnr_glmnet$new( ))
+
+# Create the task with auto-machine learning default
+hte3_task_autoML <- make_hte3_Task_tx(data, modifiers, confounders, treatment, outcome)
+```
+
+Note, formally, `hte3_Task` is an R6 object inherits attributes from the `sl3_Task` and `tmle3_Task` objects of the `sl3` and `tmle3` packages of the `tlverse` ecosystem, respectively. An `hte3_Task` is an `sl3_Task` with additional attributes: a list `npsem` specifying causal structure and a `Likelihood` object from the `tmle3` package for nuisance estimates.
+
+
+Notably, `hte3_Task` contains the functions `get_tmle_node` and `get_nuisance_estimates`, which can be used to extract data and nuisance function estimates.
+
+```{r}
+# get specific variables
+head(data.table(modifiers = hte3_task$get_tmle_node("modifiers"), 
+                confounders = hte3_task$get_tmle_node("confounders")))
+
+# pi and mu provide a matrix of estimates for each treatment level.
+data.table(pi = hte3_task$get_nuisance_estimates("pi"),
+           mu = hte3_task$get_nuisance_estimates("mu"),
+           e = hte3_task$get_nuisance_estimates("e"),
+           m = hte3_task$get_nuisance_estimates("m"))
+
+# we see that user supplied estimates are close to the learned ones.
+
+data.table(pi = hte3_task_custom_sl3$get_nuisance_estimates("pi"),
+           mu = hte3_task_custom_sl3$get_nuisance_estimates("mu"),
+           e = hte3_task_custom_sl3$get_nuisance_estimates("e"),
+           m = hte3_task_custom_sl3$get_nuisance_estimates("m"))
+```
+
+
+
+
+
+
+
+
+
+
+
+## `hte3` meta-learners for heterogeneous treatment effect estimation
+
+### conditional average treatment effect (cate) estimation with `hte3` meta-learners
+Building on top of the `sl3` framework, the `hte3` package provides a general and highly customizable implementation of many meta-learners for estimation of heterogeneous treatment effects (HTEs). Formally, `hte3` meta-learners are learner objects that inherit from the template learner class `Lrnr_hte` (which itself inherits from the `Lrnr_base` object of `sl3`).
+
+Through the `base_learner` argument meta-learners inheriting from `Lrnr_hte`, you can specify the base supervised learning algorithm utilized by the meta-learner. This argument accepts any `sl3` learner inheriting from `Lrnr_base`. When the meta-learner is trained, the `base_learner` is fit on an `sl3_Task` object with covariates being the effect `modifiers`, weights being method-specific `pseudo-weights`, and outcome being method-specific `pseudo-outcomes`. For the DR-learner of the cate, `base_learner` should perform regression for continuous pseudo-outcomes, whereas for the R-learner, `base_learner` should perform pseudo-weighted regression with pseudo-outcomes. NOTE: While almost all `sl3` learners are compatible with continuous pseudo-outcomes, some learners do not use/accept weights.
+
+By convention, meta-learners for estimating the conditional average treatment effect (cate) have names of the form `Lrnr_cate_method`, where `method` encodes the meta-learning strategy used for cate estimation. `hte3` currently supports the following meta-learners:
+- DR-learner via `Lrnr_cate_DR` ()
+- R-learner via `Lrnr_cate_R` (Wager)
+- T-learner via `Lrnr_cate_T`
+
+For an overview of the DR-learner and R-learner algorithms, see ??? and ???, respectively. For other examples of meta-learners, see ???.
+
+We note, when `modifiers` are equal to `confounders`, both the DR-learner and R-learner estimate the cate function `E(Y_1 - Y_0 | confounders)`. However, if `modifiers` differs from `confounders`, the R-learner and DR-learner generally estimate different measures of effect modification. In particular, the DR-learner provides estimates of the marginal cate `E(Y_1 - Y_0 | modifiers)`, which marginalizes over all `confounders` not included in `modifiers`. In contrast, the R-learner provides estimates of the `e(W)(1-e(W))`-weighted projection of the cate `E(Y_1 - Y_0 | confounders)` onto functions of the effect `modifiers`.For further details on the differences between R-learners and DR-learners, see ???.
+
+Here's a practical illustration of how to train a DR-learner of the cate using generalized additive models (GAMs) as base supervised learning algorithm:
+
+
+```{r}
+n <- 3000
+W1 <- runif(n, -1 , 1)
+W2 <- runif(n, -1 , 1)
+W3 <- runif(n, -1 , 1)
+W <- data.table(W1, W2, W3)
+pi1 <- plogis((W1 + W2 + W3)/2)
+pi0 <- 1 - pi1
+quantile(pi1)
+A <- rbinom(n, 1 ,  pi1)
+mu <- plogis(W1 + W2 + W3 + A * (W1 + W2 + W3))
+Y <- rbinom(n, 1 ,  mu)
+LRR <- log(plogis(W1 + W2 + W3 + 1 * (W1 + W2 + W3))) - log(plogis(W1 + W2 + W3 + 0 * (W1 + W2 + W3)))
+
+data <- data.table(W, A, Y)
+modifiers <- c("W1", "W2", "W3") # or modifiers <-  c("W1")
+confounders <- c("W1", "W2","W3")
+treatment <- "A"
+outcome <- "Y"
+
+
+hte3_task <- make_hte3_Task_tx(data, modifiers, confounders, treatment, outcome,
+                               learner_pi = Lrnr_gam$new(),
+                               learner_mu = Lrnr_xgboost$new(max_depth=4),
+                               learner_m = Lrnr_xgboost$new(max_depth=4))
+```
+
+```{r}
+lrnr <- Lrnr_crate_EP$new(Lrnr_ranger$new(family = binomial()), sieve_num_basis = 300, screen_basis_with_lasso = T)
+lrnr_trained <- lrnr$train(hte3_task)
+plot(lrnr_trained$predict(hte3_task), LRR)
+
+lrnr <- Lrnr_crate_IPW$new(Lrnr_ranger$new(family = binomial()))
+lrnr_trained <- lrnr$train(hte3_task)
+plot(lrnr_trained$predict(hte3_task), LRR)
+
+lrnr <- Lrnr_crate_T$new(Lrnr_ranger$new(family = poisson()))
+lrnr_trained <- lrnr$train(hte3_task)
+plot(lrnr_trained$predict(hte3_task), LRR)
+```
+```{r}
+lrnr <- Lrnr_crate_EP$new(Lrnr_gam$new(family = quasibinomial() ))
+  
+ 
+lrnr_cv <- cross_validate_crate(lrnr, hte3_task) 
+ 
+```
+
+```{r}
+ 
+lrnr_xg_stack <- Stack$new(Lrnr_xgboost$new(max_depth = 1, min_child_weight = 20),
+                      Lrnr_xgboost$new(max_depth = 2, min_child_weight = 20),
+                      Lrnr_xgboost$new(max_depth = 3, min_child_weight = 20),
+                      Lrnr_xgboost$new(max_depth = 4, min_child_weight = 20),
+                      Lrnr_xgboost$new(max_depth = 5, min_child_weight = 20))
+lrnr_rf <- Lrnr_ranger$new(max.depth = 10)
+lrnr_gam <- Lrnr_gam$new()
+lrnr_earth <-  Lrnr_earth$new()
+
+#train CV-EP-learners
+ep_lrnr_xg <- cross_validate(make_ep_stack(lrnr_xg_stack, hte3_task), hte3_task)
+ep_lrnr_ranger <- cross_validate(make_ep_stack(lrnr_rf, hte3_task), hte3_task)
+ep_lrnr_earth <- cross_validate(make_ep_stack(lrnr_earth, hte3_task), hte3_task)
+ep_lrnr_gam <- cross_validate(make_ep_stack(lrnr_gam, hte3_task), hte3_task)
+
+#train DR-learners
+dr_lrnr_xg <- cross_validate(Lrnr_cate_DR$new(lrnr_xg_stack), hte3_task)
+dr_lrnr_ranger <- Lrnr_cate_DR$new(lrnr_rf)$train(hte3_task)
+dr_lrnr_earth <- Lrnr_cate_DR$new(lrnr_earth)$train(hte3_task)
+dr_lrnr_gam <- Lrnr_cate_DR$new(lrnr_gam)$train(hte3_task)
+
+#train R-learners
+r_lrnr_xg <- cross_validate(Lrnr_cate_R$new(lrnr_xg_stack), hte3_task)
+r_lrnr_ranger <- Lrnr_cate_R$new(lrnr_rf)$train(hte3_task)
+r_lrnr_gam <- Lrnr_cate_R$new(lrnr_gam)$train(hte3_task)
+
+
+# train T-learners
+t_lrnr_xg <- cross_validate(Lrnr_cate_T$new(lrnr_xg_stack), hte3_task)
+t_lrnr_ranger <- Lrnr_cate_T$new(lrnr_rf)$train(hte3_task)
+t_lrnr_earth <- Lrnr_cate_T$new(lrnr_earth)$train(hte3_task)
+t_lrnr_gam <- Lrnr_cate_T$new(lrnr_gam)$train(hte3_task)
+
+
+
+
+ 
+  
+  
+
+ep_learner <- Lrnr_cate_EP$new(base_learner = Stack$new(Lrnr_gam$new(), Lrnr_earth$new()), sieve_basisN  = 5, sieve_type = "polytri",
+                               treatment_level = 1, control_level = 0, include_ridge_penalty = FALSE)
+dr_learner <- Lrnr_cate_DR$new(base_learner = Lrnr_earth$new(), treatment_level = 1, control_level = 0)
+
+cv_ep_learner <- cross_validate(list(ep_learner, dr_learner), hte3_task)
+    cv_ep_learner$coefficients
+cv_ep_learner$predict(hte3_task)
+
+ 
+
+ mu <- hte3_task$get_nuisance_estimates("mu")
+cate.hat <- apply(mu, 1 , diff)
+
+
+
+                           
+ 
+
+
+
+ep_learner_trained <- ep_learner$train(hte3_task)
+plot(cate, ep_learner_trained$predict(hte3_task))
+
+
+dr_learner_trained <- dr_learner$train(hte3_task)
+plot(cate, dr_learner_trained$predict(hte3_task))
+
+sqrt(mean((cate -  cate.hat)^2))
+sqrt(mean((cate -  ep_learner_trained$predict(hte3_task))^2))
+sqrt(mean((cate -  dr_learner_trained$predict(hte3_task))^2))
+
+
+
+```
+
+```{r}
+# CV works internally
+# 
+
+
+dr_learner <- Lrnr_cate_DR$new(base_learner = Lrnr_gam$new(), treatment_level = 1, control_level = 0)
+r_learner <- Lrnr_cate_R$new(base_learner = Lrnr_gam$new())
+
+dr_learner_trained <- dr_learner$train(hte3_task)
+plot(cate, dr_learner_trained$predict(hte3_task))
+r_learner_trained <- r_learner$train(hte3_task)
+plot(cate, r_learner_trained$predict(hte3_task))
+
+
+cor(cate, dr_learner_trained$predict(hte3_task))
+```
+
+
+```{r}
+# Specify a cate DR-learner with generalized additive models (GAMs) as the supervised learning algorithm
+lrnr_cate_dr <- Lrnr_cate_DR$new(base_learner = Lrnr_gam$new(), treatment_level = 1, control_level = 0)
+
+# Train the cate DR-learner on the hte3_task
+trained_lrnr_cate_dr <- lrnr_cate_dr$train(hte3_task)
+
+# Predict using the trained cate DR-learner on the hte3_task
+predictions <- trained_lrnr_cate_dr$predict(hte3_task)
+
+# Calculate the correlation between predicted cate and true cate
+correlation <- cor(predictions, cate)
+
+# Plot the predictions vs. the true cate values
+plot(predictions, cate)
+```
+
+### conditional relative average treatment effect (CRATE) estimation with `hte3` meta-learners
+
+## References

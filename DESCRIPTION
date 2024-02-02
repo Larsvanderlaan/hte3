@@ -1,0 +1,49 @@
+Package: hte3
+Type: Package
+Title: supervised causal machine learning for heterogeneous treatment effects
+Version: 0.1.0
+Author: Lars van der Laan
+Maintainer: Lars van der Laan <lvdlaan@uw.edu>
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.2.3
+Imports: 
+  Sieve,
+  tmle3,
+  causalutils,
+  hal9001,
+  sl3,
+  stats,
+  data.table,
+  R6,
+  stringr,
+  origami,
+  delayed,
+  future,
+  fastglm,
+  doMC,
+  glmnet
+Depends:
+  tmle3,
+  causalutils,
+  hal9001,
+  sl3,
+  stats,
+  data.table,
+  R6,
+  stringr,
+  origami,
+  delayed,
+  future,
+  earth,
+  fastglm,
+  doMC,
+  glmnet
+Remotes: 
+  github::Larsvanderlaan/causaltoolbox/causalutils,
+  github::tlverse/hal9001@screeningHAL, 
+  github::tlverse/tmle3@devel, 
+  github::tlverse/sl3@Larsvanderlaan-patch-1
