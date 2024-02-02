@@ -2,11 +2,11 @@
 
 # hte3: Supervised Causal Machine Learning of Heterogeneous Treatment Effects using `sl3`
 
-The `hte3` package, a core component of the Causal Toolbox, equips users with tools for supervised causal machine learning of heterogeneous treatment effects, leveraging the `sl3` package. This package emphasizes precision, robustness, and distribution-free theoretical guarantees.
+The `hte3` package equips users with tools for supervised causal machine learning of heterogeneous treatment effects, leveraging the `sl3` package. This package emphasizes precision, robustness, and distribution-free theoretical guarantees.
 
 ## Key Features
 
-- **Highly Customizable Meta-learners of HTEs:** Any supervised machine learning algorithm supported by the `sl3` package can be turned into a meta-learner for heterogeneous treatment effects, including the DR-learner, R-learner, T-learner, and EP-learner of the CATE.
+- **Highly Customizable Meta-learners of HTEs:** Any supervised machine learning algorithm supported by the `sl3` package can be turned into a meta-learner for heterogeneous treatment effects, including the DR-learner, R-learner, T-learner, and EP-learner of the CATE. For details on the usage of the `sl3` R package, we refer to `https://github.com/tlverse/sl3`.
 
 - **Novel Meta-learners of the CRR:** Implements novel EP-learners of the log conditional relative risk (CRR).
 
