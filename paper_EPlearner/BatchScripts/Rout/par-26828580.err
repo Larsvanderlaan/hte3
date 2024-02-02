@@ -1,3 +1,0 @@
-Error in library(data.table) : there is no package called ‘data.table’
-Calls: source -> withVisible -> eval -> eval -> library
-Execution halted
