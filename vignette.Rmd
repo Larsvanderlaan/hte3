@@ -59,7 +59,6 @@ In `hte3`, R and DR-type causal learners utilize estimates of the following nuis
 - Outcome Regression: `mu(A=a,W=w) := E[Y | A = a, W = w]` (DR-only)
 - Propensity Score: `pi(A=a | W=w) := P(A = a | W = w)` (DR-only)
 - Conditional Mean of Outcome: `m(W=w) := E[Y | W = w]` (R-only)
-- Conditional Mean of Treatment: `e(W=w) := E[A | W = w]` (R-only)
 
 
 ### `hte3_Task` objects and nuisance function estimation with `sl3` 
@@ -108,12 +107,14 @@ head(data.table(modifiers = hte3_task$get_tmle_node("modifiers"),
 
 # pi and mu provide a matrix of estimates for each treatment level.
 data.table(pi = hte3_task$get_nuisance_estimates("pi"),
-           mu = hte3_task$get_nuisance_estimates("mu"))
+           mu = hte3_task$get_nuisance_estimates("mu"),
+           m = hte3_task$get_nuisance_estimates("m"))
 
 # we see that user supplied estimates are close to the learned ones.
 
 data.table(pi = hte3_task_custom_sl3$get_nuisance_estimates("pi"),
-           mu = hte3_task_custom_sl3$get_nuisance_estimates("mu"))
+           mu = hte3_task_custom_sl3$get_nuisance_estimates("mu"),
+           m = hte3_task$get_nuisance_estimates("m"))
 ```
 
 

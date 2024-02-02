@@ -1,0 +1,90 @@
+LOADING R
+R LOADED
+[1] 1
+[1] "simsEP_n=500_pos=FALSE_hard=TRUE_base_learner=xg_sim_type=CATElow_nsims=1"
+[1] 500   4
+[1] 500   7
+[1] 500  10
+[1] 500  16
+[1] 500  25
+[1] 400   4
+[1] 400   7
+[1] 400  10
+[1] 400  16
+[1] 400  25
+[1] 400   4
+[1] 400   7
+[1] 400  10
+[1] 400  16
+[1] 400  25
+[1] 400   4
+[1] 400   7
+[1] 400  10
+[1] 400  16
+[1] 400  25
+[1] 400   4
+[1] 400   7
+[1] 400  10
+[1] 400  16
+[1] 400  25
+[1] 400   4
+[1] 400   7
+[1] 400  10
+[1] 400  16
+[1] 400  25
+[1] 500  35
+[1] 400  34
+[1] 400  34
+[1] 400  36
+[1] 400  26
+[1] 400  33
+ Lrnr_cate_EP_3_3_FALSE_1_0_Lrnr_xgboost_20_1_1_5 
+                                         2.629724 
+ Lrnr_cate_EP_3_3_FALSE_1_0_Lrnr_xgboost_20_1_2_5 
+                                         2.787375 
+ Lrnr_cate_EP_3_3_FALSE_1_0_Lrnr_xgboost_20_1_3_5 
+                                         2.852508 
+ Lrnr_cate_EP_3_3_FALSE_1_0_Lrnr_xgboost_20_1_4_5 
+                                         2.843154 
+ Lrnr_cate_EP_3_3_FALSE_1_0_Lrnr_xgboost_20_1_5_5 
+                                         2.879322 
+ Lrnr_cate_EP_6_3_FALSE_1_0_Lrnr_xgboost_20_1_1_5 
+                                         2.628732 
+ Lrnr_cate_EP_6_3_FALSE_1_0_Lrnr_xgboost_20_1_2_5 
+                                         2.841345 
+ Lrnr_cate_EP_6_3_FALSE_1_0_Lrnr_xgboost_20_1_3_5 
+                                         2.852882 
+ Lrnr_cate_EP_6_3_FALSE_1_0_Lrnr_xgboost_20_1_4_5 
+                                         2.899899 
+ Lrnr_cate_EP_6_3_FALSE_1_0_Lrnr_xgboost_20_1_5_5 
+                                         2.868835 
+ Lrnr_cate_EP_9_3_FALSE_1_0_Lrnr_xgboost_20_1_1_5 
+                                         2.672894 
+ Lrnr_cate_EP_9_3_FALSE_1_0_Lrnr_xgboost_20_1_2_5 
+                                         2.857487 
+ Lrnr_cate_EP_9_3_FALSE_1_0_Lrnr_xgboost_20_1_3_5 
+                                         2.950592 
+ Lrnr_cate_EP_9_3_FALSE_1_0_Lrnr_xgboost_20_1_4_5 
+                                         2.912398 
+ Lrnr_cate_EP_9_3_FALSE_1_0_Lrnr_xgboost_20_1_5_5 
+                                         2.970802 
+Lrnr_cate_EP_15_3_FALSE_1_0_Lrnr_xgboost_20_1_1_5 
+                                         2.874320 
+Lrnr_cate_EP_15_3_FALSE_1_0_Lrnr_xgboost_20_1_2_5 
+                                         3.565759 
+Lrnr_cate_EP_15_3_FALSE_1_0_Lrnr_xgboost_20_1_3_5 
+                                         3.809955 
+Lrnr_cate_EP_15_3_FALSE_1_0_Lrnr_xgboost_20_1_4_5 
+                                         3.875026 
+Lrnr_cate_EP_15_3_FALSE_1_0_Lrnr_xgboost_20_1_5_5 
+                                         3.992550 
+Lrnr_cate_EP_24_3_FALSE_1_0_Lrnr_xgboost_20_1_1_5 
+                                         2.859805 
+Lrnr_cate_EP_24_3_FALSE_1_0_Lrnr_xgboost_20_1_2_5 
+                                         3.614581 
+Lrnr_cate_EP_24_3_FALSE_1_0_Lrnr_xgboost_20_1_3_5 
+                                         3.852324 
+Lrnr_cate_EP_24_3_FALSE_1_0_Lrnr_xgboost_20_1_4_5 
+                                         4.030223 
+Lrnr_cate_EP_24_3_FALSE_1_0_Lrnr_xgboost_20_1_5_5 
+                                         4.044882 

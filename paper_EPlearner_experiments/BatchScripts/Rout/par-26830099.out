@@ -1,0 +1,70 @@
+LOADING R
+R LOADED
+[1] 1
+[1] "simsEP_n=500_pos=TRUE_hard=TRUE_base_learner=rf_sim_type=CATElow_nsims=1"
+[1] 500   4
+[1] 500   7
+[1] 500  10
+[1] 500  16
+[1] 500  25
+[1] 400   4
+[1] 400   7
+[1] 400  10
+[1] 400  16
+[1] 400  25
+[1] 400   4
+[1] 400   7
+[1] 400  10
+[1] 400  16
+[1] 400  25
+[1] 400   4
+[1] 400   7
+[1] 400  10
+[1] 400  16
+[1] 400  25
+[1] 400   4
+[1] 400   7
+[1] 400  10
+[1] 400  16
+[1] 400  25
+[1] 400   4
+[1] 400   7
+[1] 400  10
+[1] 400  16
+[1] 400  25
+[1] 500  40
+[1] 400  35
+[1] 400  39
+[1] 400  41
+[1] 400  29
+[1] 400  26
+ Lrnr_cate_EP_3_3_FALSE_1_0_Lrnr_ranger_500_TRUE_none_1_4 
+                                                 2.479930 
+ Lrnr_cate_EP_3_3_FALSE_1_0_Lrnr_ranger_500_TRUE_none_1_6 
+                                                 2.610890 
+ Lrnr_cate_EP_3_3_FALSE_1_0_Lrnr_ranger_500_TRUE_none_1_8 
+                                                 2.667497 
+ Lrnr_cate_EP_6_3_FALSE_1_0_Lrnr_ranger_500_TRUE_none_1_4 
+                                                 2.489234 
+ Lrnr_cate_EP_6_3_FALSE_1_0_Lrnr_ranger_500_TRUE_none_1_6 
+                                                 2.626354 
+ Lrnr_cate_EP_6_3_FALSE_1_0_Lrnr_ranger_500_TRUE_none_1_8 
+                                                 2.674684 
+ Lrnr_cate_EP_9_3_FALSE_1_0_Lrnr_ranger_500_TRUE_none_1_4 
+                                                 2.524867 
+ Lrnr_cate_EP_9_3_FALSE_1_0_Lrnr_ranger_500_TRUE_none_1_6 
+                                                 2.685498 
+ Lrnr_cate_EP_9_3_FALSE_1_0_Lrnr_ranger_500_TRUE_none_1_8 
+                                                 2.731906 
+Lrnr_cate_EP_15_3_FALSE_1_0_Lrnr_ranger_500_TRUE_none_1_4 
+                                                 2.908501 
+Lrnr_cate_EP_15_3_FALSE_1_0_Lrnr_ranger_500_TRUE_none_1_6 
+                                                 3.179905 
+Lrnr_cate_EP_15_3_FALSE_1_0_Lrnr_ranger_500_TRUE_none_1_8 
+                                                 3.279306 
+Lrnr_cate_EP_24_3_FALSE_1_0_Lrnr_ranger_500_TRUE_none_1_4 
+                                                 2.932504 
+Lrnr_cate_EP_24_3_FALSE_1_0_Lrnr_ranger_500_TRUE_none_1_6 
+                                                 3.193237 
+Lrnr_cate_EP_24_3_FALSE_1_0_Lrnr_ranger_500_TRUE_none_1_8 
+                                                 3.357172 
