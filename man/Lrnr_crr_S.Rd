@@ -11,7 +11,7 @@ This class constructs an S-learner for estimation of the conditional relative av
 This object is a wrapper for \code{Lrnr_crr_T} with \code{stratify_by_treatment} = \code{FALSE}.
 }
 \section{Super classes}{
-\code{\link[sl3:Lrnr_base]{sl3::Lrnr_base}} -> \code{\link[hte3:Lrnr_hte]{hte3::Lrnr_hte}} -> \code{hte3::Lrnr_crr_T} -> \code{Lrnr_crr_S}
+\code{\link[sl3:Lrnr_base]{sl3::Lrnr_base}} -> \code{\link[hte3:Lrnr_hte]{hte3::Lrnr_hte}} -> \code{\link[hte3:Lrnr_crr_T]{hte3::Lrnr_crr_T}} -> \code{Lrnr_crr_S}
 }
 \section{Methods}{
 \subsection{Public methods}{

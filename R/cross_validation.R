@@ -28,9 +28,15 @@ cross_validate <- function(hte_learners, hte3_task, cv_metalearner = Lrnr_cv_sel
 
 #' Cross-Validate CATE Models
 #'
-#' Cross-validates a collection of CATE (hte3) learners using the DR-learner loss.
+#' Cross-validates a collection of CATE (hte3) learners using the DR-learner loss for the CATE.
 #'
+#' @param treatment_level The specific level of the treatment variable to be considered as the treated group. This parameter is crucial for models that differentiate between treated and control groups in estimating treatment effects.
+#' @param control_level The specific level of the treatment variable to be considered as the control group. Similar to `treatment_level`, this parameter helps in identifying the control group for the purpose of treatment effect estimation.
 #' @inheritParams cross_validate
+#' @return A list containing the following elements:
+#'   - `lrnr_sl`: A `Lrnr_sl` object that represents the cross-validated ensemble of CATE learners.
+#'   - `cv_risk`: The cross-validation risk associated with the ensemble, which serves as a measure of the ensemble's predictive performance.
+#'   - `coefficients`: The coefficients derived from the cross-validation process, providing insights into the relative importance of different learners within the ensemble.
 #' @export
 cross_validate_cate <- function(hte_learners, hte3_task, cv_control = NULL, treatment_level = NULL, control_level = NULL, ...) {
   cv_metalearner <- Lrnr_cate_DR_selector$new(treatment_level = treatment_level, control_level = control_level)
@@ -43,9 +49,15 @@ cross_validate_cate <- function(hte_learners, hte3_task, cv_control = NULL, trea
 
 #' Cross-Validate CRR Models
 #'
-#' Cross-validates a collection of CRR (hte3) learners using the DR-learner loss.
+#' Cross-validates a collection of CRR (hte3) learners using a DR-learner loss for the CRR.
 #'
+#' @param treatment_level The specific level of the treatment variable to be considered as the treated group. This parameter is crucial for models that differentiate between treated and control groups in estimating treatment effects.
+#' @param control_level The specific level of the treatment variable to be considered as the control group. Similar to `treatment_level`, this parameter helps in identifying the control group for the purpose of treatment effect estimation.
 #' @inheritParams cross_validate
+#' @return A list containing the following elements:
+#'   - `lrnr_sl`: A `Lrnr_sl` object that represents the cross-validated ensemble of CATE learners.
+#'   - `cv_risk`: The cross-validation risk associated with the ensemble, which serves as a measure of the ensemble's predictive performance.
+#'   - `coefficients`: The coefficients derived from the cross-validation process, providing insights into the relative importance of different learners within the ensemble.
 #' @export
 cross_validate_crr <- function(hte_learners, hte3_task, cv_control = NULL, treatment_level = NULL, control_level = NULL, ...) {
   cv_metalearner <- Lrnr_crr_DR_selector$new(treatment_level = treatment_level, control_level = control_level)
