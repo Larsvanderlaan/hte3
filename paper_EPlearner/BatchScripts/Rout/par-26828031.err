@@ -1,0 +1,2 @@
+/var/tmp/slurmd/job26828031/slurm_script: line 11: syntax error near unexpected token `('
+/var/tmp/slurmd/job26828031/slurm_script: line 11: `n = Sys.getenv("n");'

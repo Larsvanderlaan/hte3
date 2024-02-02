@@ -1,0 +1,106 @@
+Loading required package: tmle3
+Loading required package: causalutils
+Loading required package: hal9001
+Loading required package: Rcpp
+hal9001 v0.4.5: The Scalable Highly Adaptive Lasso
+note: fit_hal defaults have changed. See ?fit_hal for details
+Loading required package: R6
+Loading required package: stringr
+Loading required package: origami
+origami v1.0.7: Generalized Framework for Cross-Validation
+Loading required package: delayed
+delayed v0.4.0: A Framework for Parallelizing Dependent Tasks
+Loading required package: future
+Loading required package: earth
+Loading required package: Formula
+Loading required package: plotmo
+Loading required package: plotrix
+Loading required package: TeachingDemos
+Loading required package: fastglm
+Loading required package: bigmemory
+Loading required package: doMC
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+Loading required package: glmnet
+Loading required package: Matrix
+Loaded glmnet 4.1-7
+
+Attaching package: ‘hte3’
+
+The following objects are masked from ‘package:causalutils’:
+
+    get_autoML, make_cross_fitted, truncate_propensity
+
+The following object is masked from ‘package:origami’:
+
+    cross_validate
+
+Loading required package: nnls
+Loading required package: gam
+Loading required package: splines
+Loaded gam 1.22-2
+
+Super Learner
+Version: 2.0-28.1
+Package created on 2021-05-04
+
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+Error in get(SL_wrapper) : object 'SL.gam_degree' not found
+slurmstepd-gizmok101: error: *** JOB 28502098 ON gizmok101 CANCELLED AT 2023-09-03T12:21:44 ***

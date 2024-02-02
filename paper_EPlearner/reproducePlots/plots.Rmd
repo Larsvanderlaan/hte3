@@ -1,0 +1,242 @@
+---
+title: "plots"
+output: html_document
+date: '2023-08-30'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(data.table)
+nsims <- 1000
+data_list <- list()
+lrnr_names <- c("gam" = "GAM", "glm" = "GLM", "earth" = "MARS", "rf" = "random forests", "xg" = "xgboost")
+for(sim_type in c("CATElow", "CATEhigh")){
+  for (n in c(500, 1000, 2000, 3000, 4000, 5000)) {
+    for(pos in c(T, F)) {
+      for(hard in c(T, F)) {
+        for(base_learner in c("gam",  "earth", "rf", "xg")) {
+          try({
+            # glm is used instead of earth for CRATE/LRR
+            if(sim_type == "CRATE" && base_learner == "earth") {
+              base_learner <- "glm"
+            }
+            key <- paste0("simsEP_n=",n, "_pos=",pos, "_hard=", hard, "_base_learner=" , base_learner, "_sim_type=", sim_type, "_nsims=", nsims)
+            data <- fread(paste0("results/", key))
+            if(!("causal_forest_risk" %in% names(data))) {
+              data$causal_forest_risk <- NA
+            }
+            if(base_learner == "xg") {
+              data$causal_forest_risk <- NA
+            }
+            data$pos <- pos
+            
+            data$base_learner <- lrnr_names[match(base_learner, names(lrnr_names))]
+            data$hard <- hard
+            data$n <- n
+            data$sim_type <- sim_type
+            data_list[[key]] <- data
+          })
+        }
+      }
+    }
+  }
+}
+
+results_CATE <- rbindlist(data_list, use.names = TRUE)
+
+
+results_list <- list()
+for(method in c("ep", "dr", "r", "t", "causal_forest")) {
+  results <- copy(results_CATE)
+  results$Method <- method
+  results$risk <- as.numeric(results[[paste0(method, "_risk")]])
+  results_list[[method]] <- results 
+}
+results_CATE <- rbindlist(results_list, use.names = TRUE)
+results_CATE <- results_CATE[, c("Method", "risk", "iter", "n", "hard", "pos", "base_learner", "sim_type"), with = FALSE]
+results_CATE <- results_CATE[,risk := mean(risk, na.rm = TRUE), by = c("sim_type", "base_learner", "pos", "hard", "n", "Method")]
+results_CATE$iter <- NULL
+results_CATE <- unique(results_CATE)
+results_CATE <- results_CATE[-which(results_CATE$Method == "r" & results_CATE$base_learner == "MARS"),]
+results_CATE <- as.data.frame(results_CATE)
+```
+
+
+```{r}
+library(ggplot2)
+
+sim_type <- "CATElow"
+
+for(pos in c(T,F)) {
+  for(hard in c(T,F)) {
+    results <- results_CATE[results_CATE$sim_type == sim_type,]
+    results <- as.data.frame(results)
+    labels <- c(ep = "EP-learner (ours)",  dr = "DR-learner", r = "R-learner", t = "T-learner", causal_forest = "Causal Forests" )
+    label_names <- as.vector(unlist(labels, use.names = FALSE))
+    colors <- c("#FF0000", "#0000FF", "#008000", "#800080", "#FFA500")
+    linetypes <- c("solid", "dashed", "dotted", "dotdash", "longdash")
+    names(colors) <- names(linetypes) <- label_names
+    results$Method <- label_names[match(results$Method, names(labels))] 
+    
+    for(base_learner in setdiff(lrnr_names, "GLM")) {
+      keep <- results$hard == hard & results$pos == pos
+      results_sub <- results[keep,]
+      results_subsub <- results_sub[results_sub$base_learner == base_learner,]
+      plt <- ggplot(results_subsub, aes(x = n, y = risk, group = Method, color = Method, linetype = Method)) + geom_line(size = 0.75)  + theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1)) + ylab("MSE") + scale_y_log10(limits = c(min(1e-1, min(results_sub$risk)), max(results_sub$risk)))  +  scale_x_continuous(breaks = c(500, 1000, 2000, 3000, 4000, 5000)) +
+        facet_wrap(~base_learner, scales = "free") + xlab("Sample Size (n)") + ylab("Mean-Squared-Error (MSE)") + theme_bw() + labs(color = "Method", group = "Method", linetype = "Method")  +  
+        scale_colour_manual(breaks = label_names, values =   colors) +
+        scale_linetype_manual(breaks = label_names,   values = linetypes)
+      plt_legend <- plt + theme(legend.key.size = unit(2, 'cm'), legend.title = element_blank(), legend.direction  = "horizontal") 
+      
+      ggsave(plot = cowplot::get_legend(plt_legend), file = paste0("results/plots/legend_", sim_type, ".pdf"), width = 10, height = 1)
+      
+      print(plt)
+      plt <- plt + theme(legend.position = "none")
+      key <- paste0("plot_", sim_type, "_pos=", pos, "_hard=", hard,"_", base_learner,".pdf" )
+      ggsave(paste0("results/plots/", key), width = 4, height = 3)
+      
+      
+    }
+    
+    
+    unique(results_sub$Method) %in% names(colors)
+  }}
+```
+
+
+```{r}
+library(ggplot2)
+
+sim_type <- "CATEhigh"
+
+for(pos in c(T,F)) {
+  for(hard in c(T,F)) {
+    results <- results_CATE[results_CATE$sim_type == sim_type,]
+    results <- as.data.frame(results)
+    labels <- c(ep = "EP-learner (ours)",  dr = "DR-learner", r = "R-learner", t = "T-learner", causal_forest = "Causal Forests" )
+    label_names <- as.vector(unlist(labels, use.names = FALSE))
+    colors <- c("#FF0000", "#0000FF", "#008000", "#800080", "#FFA500")
+    linetypes <- c("solid", "dashed", "dotted", "dotdash", "longdash")
+    names(colors) <- names(linetypes) <- label_names
+    results$Method <- label_names[match(results$Method, names(labels))] 
+    
+    for(base_learner in setdiff(lrnr_names, "GLM")) {
+      keep <- results$hard == hard & results$pos == pos
+      results_sub <- results[keep,]
+      results_subsub <- results_sub[results_sub$base_learner == base_learner,]
+      plt <- ggplot(results_subsub, aes(x = n, y = risk, group = Method, color = Method, linetype = Method)) + geom_line(size = 0.75)  + theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1)) + ylab("MSE") + scale_y_log10(limits = c(min(1e-1, min(results_sub$risk)), max(results_sub$risk)))  +  scale_x_continuous(breaks = c(500, 1000, 2000, 3000, 4000, 5000)) +
+        facet_wrap(~base_learner, scales = "free") + xlab("Sample Size (n)") + ylab("Mean-Squared-Error (MSE)") + theme_bw() + labs(color = "Method", group = "Method", linetype = "Method")  +  
+        scale_colour_manual(breaks = label_names, values =   colors) +
+        scale_linetype_manual(breaks = label_names,   values = linetypes)
+      plt_legend <- plt + theme(legend.key.size = unit(2, 'cm'), legend.title = element_blank(), legend.direction  = "horizontal") 
+      
+      ggsave(plot = cowplot::get_legend(plt_legend), file = paste0("results/plots/legend_", sim_type, ".pdf"), width = 10, height = 1)
+      
+      print(plt)
+      plt <- plt + theme(legend.position = "none")
+      key <- paste0("plot_", sim_type, "_pos=", pos, "_hard=", hard,"_", base_learner,".pdf" )
+      ggsave(paste0("results/plots/", key), width = 4, height = 3)
+      
+      
+    }
+    
+    
+    unique(results_sub$Method) %in% names(colors)
+  }}
+```
+
+
+# CRR
+
+```{r}
+library(data.table)
+nsims <- 1000
+data_list <- list()
+lrnr_names <- c("gam" = "GAM", "glm" = "GLM", "rf" = "random forests", "xg" = "xgboost")
+for(sim_type in c("crr")){
+  for (n in c(500, 1000, 2000, 3000, 4000, 5000)) {
+    for(pos in c(T, F)) {
+      for(hard in c(T, F)) {
+        for(base_learner in c("gam",  "glm", "rf", "xg")) {
+          try({
+            # glm is used instead of earth for CRATE/LRR
+            key <- paste0("simsEP_n=",n, "_pos=",pos, "_hard=", hard, "_base_learner=" , base_learner, "_sim_type=", sim_type, "_nsims=", nsims)
+            data <- fread(paste0("results/", key))
+            data$pos <- pos
+            data$base_learner <- lrnr_names[match(base_learner, names(lrnr_names))]
+            data$hard <- hard
+            data$n <- n
+            data$sim_type <- sim_type
+            data_list[[key]] <- data
+          })
+        }
+      }
+    }
+  }
+}
+
+results_CRR <- rbindlist(data_list, use.names = TRUE)
+
+
+results_list <- list()
+for(method in c("ep", "ipw",  "t")) {
+  results <- copy(results_CRR)
+  results$Method <- method
+  results$risk <- as.numeric(results[[paste0(method, "_risk")]])
+  results_list[[method]] <- results 
+}
+results_CRR <- rbindlist(results_list, use.names = TRUE)
+results_CRR <- results_CRR[, c("Method", "risk", "iter", "n", "hard", "pos", "base_learner", "sim_type"), with = FALSE]
+results_CRR <- results_CRR[,risk := mean(risk, na.rm = TRUE), by = c("sim_type", "base_learner", "pos", "hard", "n", "Method")]
+results_CRR$iter <- NULL
+results_CRR <- unique(results_CRR)
+results_CRR <- as.data.frame(results_CRR)
+```
+
+
+```{r}
+library(ggplot2)
+sim_type <- "CRR"
+ 
+
+for(pos in c(T,F)) {
+  for(hard in c(T,F)) {
+    results <- results_CRR 
+    results <- as.data.frame(results)
+    labels <- c(ep = "EP-learner (ours)",  ipw = "IPW-learner", t = "T-learner")
+    label_names <- as.vector(unlist(labels, use.names = FALSE))
+    colors <- c("#FF0000", "#0000FF", "#008000")
+    linetypes <- c("solid", "dashed", "dotted")
+    names(colors) <- names(linetypes) <- label_names
+    results$Method <- label_names[match(results$Method, names(labels))] 
+    
+    for(base_learner in lrnr_names) {
+      keep <- results$hard == hard & results$pos == pos
+      results_sub <- results[keep,]
+      results_subsub <- results_sub[results_sub$base_learner == base_learner,]
+      plt <- ggplot(results_subsub, aes(x = n, y = risk, group = Method, color = Method, linetype = Method)) + geom_line(size = 0.75)  + theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1)) + ylab("MSE") + scale_y_log10(limits = c(min(1e-1, min(results_sub$risk)), max(results_sub$risk)))  +  scale_x_continuous(breaks = c(500, 1000, 2000, 3000, 4000, 5000)) +
+        facet_wrap(~base_learner, scales = "free") + xlab("Sample Size (n)") + ylab("Mean-Squared-Error (MSE)") + theme_bw() + labs(color = "Method", group = "Method", linetype = "Method")  +  
+        scale_colour_manual(breaks = label_names, values =   colors) +
+        scale_linetype_manual(breaks = label_names,   values = linetypes)
+      plt_legend <- plt + theme(legend.key.size = unit(2, 'cm'), legend.title = element_blank(), legend.direction  = "horizontal") 
+      
+      ggsave(plot = cowplot::get_legend(plt_legend), file = paste0("results/plots/legend_", sim_type, ".pdf"), width = 10, height = 1)
+      
+      print(plt)
+      plt <- plt + theme(legend.position = "none")
+      key <- paste0("plot_", sim_type, "_pos=", pos, "_hard=", hard,"_", base_learner,".pdf" )
+      ggsave(paste0("results/plots/", key), width = 4, height = 3)
+      
+      
+    }
+    
+    
+      
+      
+    unique(results_sub$Method) %in% names(colors)
+  }}
+```
