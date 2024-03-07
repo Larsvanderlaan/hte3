@@ -174,6 +174,8 @@ hte3_task <- make_hte3_Task_tx(data, modifiers, confounders, treatment, outcome,
                                learner_m = Lrnr_xgboost$new(max_depth=4))
 ```
 
+
+
 ```{r}
 # Specify a cate DR-learner with generalized additive models (GAMs) as the supervised learning algorithm
 lrnr_cate_dr <- Lrnr_cate_DR$new(base_learner = Lrnr_gam$new(), treatment_level = 1, control_level = 0)
@@ -191,6 +193,31 @@ correlation <- cor(predictions, cate)
 plot(predictions, cate)
 ```
 
+
+### Training EP-learner for the CATE
+
+Next, let us train the EP-learner using an xgboost ensemble! EP-learner requires tuning of the `sieve_num_basis' argument, which specifies the number of basis functions used for debiasing the EP-learner risk estimator. We can use cross-validation via the function 'cross_validate_cate' to tune this parameter. For convenience, a default stack of EP-learners of various basis function numbers can be obtained using 'make_ep_stack'. The below code constructs and cross-validates EP-learner!.
+
+```{r}
+lrnr_xg_stack <- Stack$new(Lrnr_xgboost$new(max_depth = 1, min_child_weight = 20),
+                      Lrnr_xgboost$new(max_depth = 2, min_child_weight = 20),
+                      Lrnr_xgboost$new(max_depth = 3, min_child_weight = 20),
+                      Lrnr_xgboost$new(max_depth = 4, min_child_weight = 20),
+                      Lrnr_xgboost$new(max_depth = 5, min_child_weight = 20))
+
+ep_lrnr_xg <- cross_validate_cate(make_ep_stack(lrnr_xg_stack, hte3_task), hte3_task)
+ep_lrnr_xg_trained <- ep_lrnr_xg$lrnr_sl
+
+# Predict using the trained cate DR-learner on the hte3_task
+predictions <- ep_lrnr_xg_trained$predict(hte3_task)
+
+# Calculate the correlation between predicted cate and true cate
+correlation <- cor(predictions, cate)
+
+# Plot the predictions vs. the true cate values
+plot(predictions, cate)
+
+```
 
 
 We can also train T-learners, R-learners, and EP-learners and cross-validate (with the DR-learner loss) by using the function ``cross_validate_cate".

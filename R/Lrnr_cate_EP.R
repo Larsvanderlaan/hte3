@@ -90,7 +90,7 @@ Lrnr_cate_EP <- R6Class(
         keep <- union(c(1), which(coef(glmnet_fit, s = "lambda.min")[-1] != 0))
         sieve_basis <- sieve_basis[, keep, drop = FALSE]
       }
-      print(dim(sieve_basis))
+
       # perform EP-learner sieve-based debiasing of outcome regression nuisance.
       sieve_basis_train <- sieve_basis * ((A == treatment_level) - (A == control_level))
       mu.hat <- (A == treatment_level) * (mu.hat.1) + (A == control_level) * (mu.hat.0)
