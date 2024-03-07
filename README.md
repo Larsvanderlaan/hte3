@@ -1,6 +1,6 @@
 # hte3 Package
 
-`This package is in development. Improved documentation and examples coming soon.`
+`This package is in development. Improved documentation and examples coming soon.`For questions, bugs, or feature additions, feel free to contact me at 'lvdlaan@uw.edu'!
 # hte3: Causal Machine Learning of Heterogeneous Treatment Effects using `sl3`
 
 The `hte3` package equips users with tools for supervised causal machine learning of heterogeneous treatment effects, leveraging the `sl3` package. 
