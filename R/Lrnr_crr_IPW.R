@@ -36,8 +36,8 @@ Lrnr_crr_IPW <- R6Class(
       pi.hat.0 <- pi.hat[, index.pi.0]
       truncation_method <- ifelse(n >= 500, "isotonic", "adaptive")
       truncation_method <- "adaptive"
-      pi.hat.1 <- causalutils::truncate_propensity(pi.hat.1, A, treatment_level = treatment_level, truncation_method = truncation_method)
-      pi.hat.0 <- causalutils::truncate_propensity(pi.hat.0, A, treatment_level = control_level, truncation_method = truncation_method)
+      pi.hat.1 <- truncate_propensity(pi.hat.1, A, treatment_level = treatment_level, truncation_method = truncation_method)
+      pi.hat.0 <- truncate_propensity(pi.hat.0, A, treatment_level = control_level, truncation_method = truncation_method)
       pi.hat.1 <- pmax(pi.hat.1, 1e-10)
       pi.hat.0 <- pmax(pi.hat.0, 1e-10)
 

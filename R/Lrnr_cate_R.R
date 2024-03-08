@@ -20,7 +20,7 @@ Lrnr_cate_R <- R6Class(
       A_levels <- as.numeric(levels(factor(A)))
       pi.hat <- as.matrix(hte3_task$get_nuisance_estimates("pi"))
       pi.hat <- do.call(cbind, lapply(seq_along(A_levels), function(index) {
-        pi.hat.i <- causalutils::truncate_propensity(pi.hat[, index], A, treatment_level = A_levels[index], truncation_method = "adaptive")
+        pi.hat.i <- truncate_propensity(pi.hat[, index], A, treatment_level = A_levels[index], truncation_method = "adaptive")
       }))
       e.hat <- as.vector(pi.hat %*% A_levels)
       m.hat <- as.vector(hte3_task$get_nuisance_estimates("m"))

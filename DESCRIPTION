@@ -13,7 +13,6 @@ RoxygenNote: 7.2.3
 Imports: 
   Sieve,
   tmle3,
-  causalutils,
   hal9001,
   sl3,
   stats,
@@ -28,7 +27,6 @@ Imports:
   glmnet
 Depends:
   tmle3,
-  causalutils,
   hal9001,
   sl3,
   stats,
@@ -43,7 +41,6 @@ Depends:
   doMC,
   glmnet
 Remotes: 
-  github::Larsvanderlaan/causaltoolbox/causalutils,
   github::tlverse/hal9001@screeningHAL, 
   github::tlverse/tmle3@devel, 
   github::tlverse/sl3@Larsvanderlaan-patch-1

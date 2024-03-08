@@ -51,8 +51,8 @@ Lrnr_crr_DR_selector <- R6Class(
       index.pi.0 <- match(as.character(control_level), as.character(colnames(pi.hat)))
       pi.hat.1 <- pi.hat[, index.pi.1]
       pi.hat.0 <- pi.hat[, index.pi.0]
-      pi.hat.1 <- causalutils::truncate_propensity(pi.hat.1, A, treatment_level = treatment_level, truncation_method = "adaptive")
-      pi.hat.0 <- causalutils::truncate_propensity(pi.hat.0, A, treatment_level = control_level, truncation_method = "adaptive")
+      pi.hat.1 <- truncate_propensity(pi.hat.1, A, treatment_level = treatment_level, truncation_method = "adaptive")
+      pi.hat.0 <- truncate_propensity(pi.hat.0, A, treatment_level = control_level, truncation_method = "adaptive")
 
       index.mu.1 <- match(as.character(treatment_level), as.character(colnames(mu.hat)))
       index.mu.0 <- match(as.character(control_level), as.character(colnames(mu.hat)))

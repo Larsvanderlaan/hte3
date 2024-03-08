@@ -46,8 +46,8 @@ Lrnr_cate_EP <- R6Class(
       pi.hat.1 <- pi.hat[, index.pi.1]
       pi.hat.0 <- pi.hat[, index.pi.0]
       # use data-adaptive propensity score truncation to bound away from 0 and 1.
-      pi.hat.1 <- causalutils::truncate_propensity(pi.hat.1, A, treatment_level = treatment_level, truncation_method = "adaptive")
-      pi.hat.0 <- causalutils::truncate_propensity(pi.hat.0, A, treatment_level = control_level, truncation_method = "adaptive")
+      pi.hat.1 <- truncate_propensity(pi.hat.1, A, treatment_level = treatment_level, truncation_method = "adaptive")
+      pi.hat.0 <- truncate_propensity(pi.hat.0, A, treatment_level = control_level, truncation_method = "adaptive")
 
       # get outcome regression estimates for relevant treatment levels
       index.mu.1 <- match(as.character(treatment_level), as.character(colnames(mu.hat)))
