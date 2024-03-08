@@ -89,9 +89,10 @@ hte3_task <- make_hte3_Task_tx(data, modifiers, confounders, treatment, outcome,
 library(sl3)
 hte3_task_custom_sl3 <- make_hte3_Task_tx(data, modifiers, confounders, treatment, outcome,
                                           learner_pi = Lrnr_gam$new( ),
-                                          learner_mu = Lrnr_glmnet$new( ))
+                                          learner_mu = Lrnr_gam$new( ))
 
 # Create the task with auto-machine learning default
+# This should take a minute or so
 hte3_task_autoML <- make_hte3_Task_tx(data, modifiers, confounders, treatment, outcome)
 ```
 
@@ -145,36 +146,10 @@ We note, when `modifiers` are equal to `confounders`, both the DR-learner and R-
 
 Here's a practical illustration of how to train a DR-learner of the cate using generalized additive models (GAMs) as base supervised learning algorithm:
 
-
 ```{r}
-n <- 500
-W1 <- runif(n, -1 , 1)
-W2 <- runif(n, -1 , 1)
-W3 <- runif(n, -1 , 1)
-W <- data.table(W1, W2, W3)
-pi1 <- plogis((W1 + W2 + W3)/2)
-pi0 <- 1 - pi1
-quantile(pi1)
-A <- rbinom(n, 1 ,  pi1)
-mu <- plogis(W1 + W2 + W3 + A * (W1 + W2 + W3))
-Y <- rbinom(n, 1 ,  mu)
-LRR <- log(plogis(W1 + W2 + W3 + 1 * (W1 + W2 + W3))) - log(plogis(W1 + W2 + W3 + 0 * (W1 + W2 + W3)))
-cate <- W1 + W2 + W3
-  
-data <- data.table(W, A, Y)
-modifiers <- c("W1", "W2", "W3") # or modifiers <-  c("W1")
-confounders <- c("W1", "W2","W3")
-treatment <- "A"
-outcome <- "Y"
-
-
-hte3_task <- make_hte3_Task_tx(data, modifiers, confounders, treatment, outcome,
-                               learner_pi = Lrnr_gam$new(),
-                               learner_mu = Lrnr_xgboost$new(max_depth=4),
-                               learner_m = Lrnr_xgboost$new(max_depth=4))
+# Lets use the machine learning nuisances obtained using our sl3 library.
+hte3_task <- hte3_task_custom_sl3
 ```
-
-
 
 ```{r}
 # Specify a cate DR-learner with generalized additive models (GAMs) as the supervised learning algorithm
@@ -188,9 +163,12 @@ predictions <- trained_lrnr_cate_dr$predict(hte3_task)
 
 # Calculate the correlation between predicted cate and true cate
 correlation <- cor(predictions, cate)
-
+print(correlation)
+rmse <- sqrt(mean((predictions-  cate)^2))
+print(rmse)
 # Plot the predictions vs. the true cate values
 plot(predictions, cate)
+
 ```
 
 
@@ -213,10 +191,13 @@ predictions <- ep_lrnr_xg_trained$predict(hte3_task)
 
 # Calculate the correlation between predicted cate and true cate
 correlation <- cor(predictions, cate)
+print(correlation)
+rmse <- sqrt(mean((predictions-  cate)^2))
+print(rmse)
 
 # Plot the predictions vs. the true cate values
 plot(predictions, cate)
-
+correlation
 ```
 
 
@@ -268,6 +249,34 @@ t_lrnr_gam <- Lrnr_cate_T$new(lrnr_gam)$train(hte3_task)
 
 ### conditional relative average treatment effect (CRR) estimation with `hte3` meta-learners
 
+
+```{r}
+n <- 1000
+W1 <- runif(n, -1 , 1)
+W2 <- runif(n, -1 , 1)
+W3 <- runif(n, -1 , 1)
+W <- data.table(W1, W2, W3)
+pi1 <- plogis((W1 + W2 + W3)/2)
+pi0 <- 1 - pi1
+quantile(pi1)
+A <- rbinom(n, 1 ,  pi1)
+mu <- plogis(W1 + W2 + W3 + A * (W1 + W2 + W3))
+Y <- rbinom(n, 1 ,  mu)
+LRR <- log(plogis(W1 + W2 + W3 + 1 * (W1 + W2 + W3))) - log(plogis(W1 + W2 + W3 + 0 * (W1 + W2 + W3)))
+cate <- W1 + W2 + W3
+  
+data <- data.table(W, A, Y)
+modifiers <- c("W1", "W2", "W3") # or modifiers <-  c("W1")
+confounders <- c("W1", "W2","W3")
+treatment <- "A"
+outcome <- "Y"
+
+
+hte3_task <- make_hte3_Task_tx(data, modifiers, confounders, treatment, outcome,
+                               learner_pi = Lrnr_gam$new(),
+                               learner_mu = Lrnr_gam$new(),
+                               learner_m = Lrnr_gam$new())
+```
 
 
 ## References
