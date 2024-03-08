@@ -135,10 +135,10 @@ make_hte3_Task_tx <- function(data,
 
   missing_m_learner <- is.null(learner_m)
   if(cross_fit_and_cv) {
-    learner_pi <- causalutils::make_cross_fitted(learner_pi, cross_validate = TRUE)
-    learner_mu <- causalutils::make_cross_fitted(learner_mu, cross_validate = TRUE)
-    if(!is.null(learner_missing)) learner_missing <- causalutils::make_cross_fitted(learner_missing, cross_validate = TRUE)
-    if(!is.null(learner_m)) learner_m <- causalutils::make_cross_fitted(learner_m, cross_validate = TRUE)
+    learner_pi <- make_cross_fitted(learner_pi, cross_validate = TRUE)
+    learner_mu <- make_cross_fitted(learner_mu, cross_validate = TRUE)
+    if(!is.null(learner_missing)) learner_missing <- make_cross_fitted(learner_missing, cross_validate = TRUE)
+    if(!is.null(learner_m)) learner_m <- make_cross_fitted(learner_m, cross_validate = TRUE)
   }
 
   factor_list <- list()
@@ -198,7 +198,7 @@ make_hte3_Task_tx <- function(data,
 
   if(!is.null(missing_indicator)) {
     # Add calibrated IPCW weights
-    missing.hat <- causalutils::calibrate(likelihood$get_likelihood(task, "missing"), data[[missing_indicator]])
+    missing.hat <- calibrate(likelihood$get_likelihood(task, "missing"), data[[missing_indicator]])
     obs_weights <- ifelse(data[[missing_indicator]] == 1, 1/missing.hat, 0)
     data[[weights]] <- data[[weights]] *  obs_weights
     task <- hte3_Task$new(data, npsem, likelihood, id = id, weights = weights, folds = folds  , ...)

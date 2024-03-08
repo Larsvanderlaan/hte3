@@ -190,3 +190,104 @@ Lrnr_stratified_multivariate <- R6Class(
 
 
 
+#' Calibrate Predictor-Outcome Relationship
+#'
+#' This function calibrates the predictor-outcome relationship using isotonic regression.
+#'
+#' @param predictor A numeric vector representing the predictor variable.
+#' @param outcome A numeric vector representing the outcome variable.
+#'
+#' @return A step function that represents the calibrated relationship between the predictor and the outcome.
+#'
+#' @export
+calibrate <- function(predictor, outcome) {
+  return(as.stepfun(isoreg(predictor, outcome))(predictor))
+}
+
+
+
+
+
+#' Helper function for estimation of outcome regression using \code{sl3}.
+#' @import sl3 data.table
+#' @export
+estimate_mu <- function(W, A, Y, treatment_level, learner = Lrnr_gam$new(family = "gaussian"), weights = NULL, cross_fit_and_cv = TRUE, stratified_by_trt = TRUE, return_learner = FALSE, folds = 10,...) {
+
+  W <- as.data.table(W)
+  if(length(names(W))==0) {
+    names(W) <- paste0("W", 1:ncol(W))
+  }
+
+  data <- cbind(W, data.table(A, Y, weights))
+
+  if(stratified_by_trt) {
+    learner <- Lrnr_stratified$new(learner = learner, variable_stratify = "A")
+  }
+  if(cross_fit_and_cv) {
+    learner <- make_learner(Pipeline, Lrnr_cv$new(learner), Lrnr_cv_selector$new(loss_squared_error()))
+  }
+
+  task <- sl3_Task$new(data, covariates = c(names(W), "A"), outcome = "Y", weights = weights, folds = folds, ...)
+  learner_trained <- learner$train(task[A == treatment_level])
+  mu.hat <- learner_trained$predict(task)
+
+  output <- list(mu.hat = mu,hat, folds = folds)
+  if(return_learner) output$learner <- learner_trained
+  return(output)
+}
+
+#' Helper function for estimation of treatment-averaged outcome regression using \code{sl3}.
+#' @import sl3 data.table
+#' @export
+estimate_m <- function(W, Y, learner = Lrnr_gam$new(family = "gaussian"), weights = NULL, cross_fit_and_cv = TRUE,  return_learner = FALSE, folds = 10,...) {
+
+  W <- as.data.table(W)
+  if(length(names(W))==0) {
+    names(W) <- paste0("W", 1:ncol(W))
+  }
+
+  data <- cbind(W, data.table( Y, weights))
+
+  if(cross_fit_and_cv) {
+    learner <- make_learner(Pipeline, Lrnr_cv$new(learner), Lrnr_cv_selector$new(loss_squared_error()))
+  }
+
+  task <- sl3_Task$new(data, covariates = names(W), outcome = "Y", weights = weights, folds = folds, ...)
+  learner_trained <- learner$train(task)
+  m.hat <- learner_trained$predict(task)
+
+  output <- list(m.hat = m,hat, folds = folds)
+  if(return_learner) output$learner <- learner_trained
+  return(output)
+}
+
+#' Helper function for estimation of propensity score using \code{sl3}.
+#' @import sl3 data.table
+#' @export
+estimate_pi <- function(W, A, binomial_learner = Lrnr_gam$new(family = "gaussian"), weights = NULL, treatment_level = max(A), cross_fit_and_cv = TRUE,  return_learner = FALSE, folds = 10,...) {
+
+  A <- factor(A, levels = sort(unique(A)))
+  learner <- Lrnr_independent_binomial$new(binomial_learner)
+
+
+  W <- as.data.table(W)
+  if(length(names(W))==0) {
+    names(W) <- paste0("W", 1:ncol(W))
+  }
+
+  data <- cbind(W, data.table(A, weights))
+
+  if(cross_fit_and_cv) {
+    learner <- make_learner(Pipeline, Lrnr_cv$new(learner), Lrnr_cv_selector$new(loss_squared_error()))
+  }
+
+  task <- sl3_Task$new(data, covariates = names(W), outcome = "A", weights = weights, folds = folds, ...)
+  learner_trained <- learner$train(task)
+  pi.hat <- sl3:::unpack_predictions(learner_trained$predict(task))
+
+  output <- list(pi.hat = pi.hat, levels = levels(A), folds = folds)
+  if(return_learner) output$learner <- learner_trained
+  return(output)
+}
+
+
