@@ -144,12 +144,36 @@ For an overview of the DR-learner and R-learner algorithms, see ??? and ???, res
 
 We note, when `modifiers` are equal to `confounders`, both the DR-learner and R-learner estimate the cate function `E(Y_1 - Y_0 | confounders)`. However, if `modifiers` differs from `confounders`, the R-learner and DR-learner generally estimate different measures of effect modification. In particular, the DR-learner provides estimates of the marginal cate `E(Y_1 - Y_0 | modifiers)`, which marginalizes over all `confounders` not included in `modifiers`. In contrast, the R-learner provides estimates of the `e(W)(1-e(W))`-weighted projection of the cate `E(Y_1 - Y_0 | confounders)` onto functions of the effect `modifiers`.For further details on the differences between R-learners and DR-learners, see ???.
 
-Here's a practical illustration of how to train a DR-learner of the cate using xgboost as base supervised learning algorithm:
+Here's a practical illustration of how to train a DR-learner of the cate using GAM and xgboost as base supervised learning algorithm:
 
 ```{r}
 # Lets use the machine learning nuisances obtained using our sl3 library.
 hte3_task <- hte3_task_custom_sl3
 ```
+
+
+
+```{r}
+lrnr_gam <- Lrnr_gam$new()
+# Specify a cate DR-learner with generalized additive models as the supervised learning algorithm
+lrnr_cate_dr  <- Lrnr_cate_DR$new(base_learner = lrnr_gam, treatment_level = 1, control_level = 0)
+
+# Train CATE DR-learner on hte3_Task
+trained_lrnr_cate_dr <- lrnr_cate_dr$train(hte3_task)
+
+# Predict using the trained cate DR-learner on the hte3_task
+predictions <- trained_lrnr_cate_dr$predict(hte3_task)
+
+# Calculate the correlation between predicted cate and true cate
+correlation <- cor(predictions, cate)
+print(correlation)
+rmse <- sqrt(mean((predictions-  cate)^2))
+print(rmse)
+# Plot the predictions vs. the true cate values
+plot(predictions, cate)
+
+```
+
 
 ```{r}
 lrnr_xg_stack <- Stack$new(Lrnr_xgboost$new(max_depth = 1, min_child_weight = 20),
@@ -178,7 +202,27 @@ plot(predictions, cate)
 
 ### Training EP-learner for the CATE
 
-Next, let us train the EP-learner using an xgboost ensemble! EP-learner requires tuning of the `sieve_num_basis' argument, which specifies the number of basis functions used for debiasing the EP-learner risk estimator. We can use cross-validation via the function 'cross_validate_cate' to tune this parameter. For convenience, a default stack of EP-learners of various basis function numbers can be obtained using 'make_ep_stack'. The below code constructs and cross-validates EP-learner!.
+Next, let us train the EP-learner using GAM and an xgboost ensemble! EP-learner requires tuning of the `sieve_num_basis' argument, which specifies the number of basis functions used for debiasing the EP-learner risk estimator. We can use cross-validation via the function 'cross_validate_cate' to tune this parameter. For convenience, a default stack of EP-learners of various basis function numbers can be obtained using 'make_ep_stack'. The below code constructs and cross-validates EP-learner!.
+
+```{r}
+lrnr_gam <- Lrnr_gam$new()
+# Specify a cate DR-learner with generalized additive models as the supervised learning algorithm
+ep_lrnr_xg <- cross_validate_cate(make_ep_stack(lrnr_xg_stack, hte3_task), hte3_task)
+ep_lrnr_xg_trained <- ep_lrnr_xg$lrnr_sl
+
+# Predict using the trained cate DR-learner on the hte3_task
+predictions <- trained_lrnr_cate_dr$predict(hte3_task)
+
+# Calculate the correlation between predicted cate and true cate
+correlation <- cor(predictions, cate)
+print(correlation)
+rmse <- sqrt(mean((predictions-  cate)^2))
+print(rmse)
+# Plot the predictions vs. the true cate values
+plot(predictions, cate)
+
+```
+
 
 ```{r}
 lrnr_xg_stack <- Stack$new(Lrnr_xgboost$new(max_depth = 1, min_child_weight = 20),
