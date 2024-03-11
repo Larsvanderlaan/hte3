@@ -48,7 +48,7 @@ get_autoML <- function() {
 #' to provide a more robust estimate of model performance.
 #'
 #' @param learner The learner to be cross-fitted. This can be a single learner or a stacked learner.
-#' @param calibrate Logical indicating whether to calibrate the learner (default is \code{FALSE}).
+#' @param calibrate Currently not used. Logical indicating whether to calibrate the learner (default is \code{FALSE}).
 #' @param cross_validate Logical indicating whether to perform cross-validation (default is \code{TRUE} if \code{learner} is a stacked learner).
 #'
 #' @return A cross-fitted version of the input learner.
@@ -124,11 +124,10 @@ truncate_propensity <- function(pi.hat, A, treatment_level = max(A), truncation_
     # Rule of thumb truncation level based on sample size
     pi.hat.star <- pmax(pi.hat, 25/sqrt(n)/log(n))
     pi.hat.star <- pmin(pi.hat, 1 - 25/sqrt(n)/log(n))
-  } else {
-    # Truncate to 1/n level (essentially no truncation)
-    pi.hat.star <- pmax(pi.hat, 1/n)
-    pi.hat.star <- pmin(pi.hat, 1 - 1/n)
   }
+
+  pi.hat.star <- pmax(pi.hat, 1/n)
+  pi.hat.star <- pmin(pi.hat, 1 - 1/n)
   return(pi.hat.star)
 
 }

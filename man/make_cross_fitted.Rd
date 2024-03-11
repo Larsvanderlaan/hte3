@@ -13,7 +13,7 @@ make_cross_fitted(
 \arguments{
 \item{learner}{The learner to be cross-fitted. This can be a single learner or a stacked learner.}
 
-\item{calibrate}{Logical indicating whether to calibrate the learner (default is \code{FALSE}).}
+\item{calibrate}{Currently not used. Logical indicating whether to calibrate the learner (default is \code{FALSE}).}
 
 \item{cross_validate}{Logical indicating whether to perform cross-validation (default is \code{TRUE} if \code{learner} is a stacked learner).}
 }
