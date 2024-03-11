@@ -65,6 +65,8 @@ This class constructs a T-learner (or S-learner) for estimation of the condition
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
+\item{\code{base_learner}}{A \code{\link{sl3}} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.}
+
 \item{\code{stratify_by_treatment}}{Logical indicating whether to estimate outcome regression separately in each treatment arm (i.e., T-learner) or pooled across treatment arms (i.e., S-learner).}
 }
 \if{html}{\out{</div>}}

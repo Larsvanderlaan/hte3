@@ -7,6 +7,7 @@
 #' @inheritParams Lrnr_hte
 #' @inheritParams Lrnr_cate_DR
 #' @import Sieve
+#' @param base_learner A \code{\link{sl3}} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.
 #' @param sieve_num_basis The number of trignometric basis functions to construct the EP-learner sieve space.
 #' This argument is passed as the argument \code{basisN} to the function \code{\link[Sieve]{sieve_preprocess}}.
 #' By default, \code{sieve_num_basis = ceiling((n^(1/3)*d)} where \code{n} denotes the sample size and \code{d} is the number of effect modifiers.

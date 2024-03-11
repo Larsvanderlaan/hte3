@@ -4,6 +4,7 @@
 #'
 #' @format An R6 class with public methods to initialize the learner, create a regression task, and access the base learner.
 #' @inheritParams Lrnr_cate_EP
+#' @param base_learner A \code{\link{sl3}} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.
 #' @import Sieve
 #' @export
 Lrnr_crr_IPW <- R6Class(

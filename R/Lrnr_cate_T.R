@@ -6,6 +6,7 @@
 #' @format An R6 class with public methods to initialize the learner, create a regression task, and access the base learner.
 #' @param stratify_by_treatment Logical indicating whether to estimate outcome regression separately in each treatment arm (i.e., T-learner) or pooled across treatment arms (i.e., S-learner).
 #' @inheritParams Lrnr_cate_DR
+#' @param base_learner A \code{\link{sl3}} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.
 #' @export
 Lrnr_cate_T <- R6Class(
   classname = "Lrnr_cate_T", inherit = Lrnr_hte,

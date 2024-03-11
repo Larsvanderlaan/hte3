@@ -4,6 +4,7 @@
 #'
 #' @format An R6 class with public methods to initialize the learner, create a regression task, and access the base learner.
 #' @inheritParams Lrnr_hte
+#' @param base_learner A \code{\link{sl3}} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.
 #' @param treatment_level A treatment level encoding the treatment assignment of interest.
 #' @param control_level A treatment level encoding the control (or reference) treatment assignment.
 #' @export
