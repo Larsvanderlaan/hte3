@@ -73,9 +73,13 @@ Here are three potential approaches to generating an `hte3_Task` tailored to the
 ```{r}
 library(hte3)
 # Specify variable names
+# variables to model treatment effect/CATE
 modifiers <- c("W1", "W2", "W3") # or modifiers <-  c("W1")
-confounders <- c("W1", "W2","W3")
+# variables to adjust for confounding
+confounders <- c("W1", "W2","W3")  
+# treatment variable
 treatment <- "A"
+# outcome variable
 outcome <- "Y"
 
 # Create the task with true nuisances
