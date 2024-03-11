@@ -29,9 +29,9 @@ get_autoML <- function() {
                        Lrnr_gam$new(),
                        Lrnr_earth$new(degree =2),
                        Lrnr_ranger$new(max.depth = 10),
-                       Lrnr_xgboost$new(min_child_weight = max(15, (n)^(1/3)), max_depth = 3, nrounds = 40, eta = 0.15, subsample = 0.9),
-                       Lrnr_xgboost$new(min_child_weight = max(15, (n)^(1/3)), max_depth = 4, nrounds = 40, eta = 0.15, subsample = 0.9) ,
-                       Lrnr_xgboost$new(min_child_weight = max(15, (n)^(1/3)), max_depth = 5, nrounds = 40, eta = 0.15, subsample = 0.9)
+                       Lrnr_xgboost$new(min_child_weight = 15, max_depth = 3, nrounds = 40, eta = 0.15, subsample = 0.9),
+                       Lrnr_xgboost$new(min_child_weight = 15, max_depth = 4, nrounds = 40, eta = 0.15, subsample = 0.9) ,
+                       Lrnr_xgboost$new(min_child_weight = 15, max_depth = 5, nrounds = 40, eta = 0.15, subsample = 0.9)
   )
   return(learner)
 
