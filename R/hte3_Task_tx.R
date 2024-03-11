@@ -48,6 +48,7 @@
 #'   If a \code{Stack} object, the best model is selected using cross-validation.
 #' @param multinomial_learner A \code{multinomial} \code{Lrnr_base} object to convert \code{learner_pi} from a \code{binomial} learner to a \code{multinomial} learner.
 #' @param cross_fit_and_cv Whether to cross-fit the specified nuisance learners by applying \code{learner <- causaltools::make_cross_fitted(learner)}.
+#' @param for_prediction A \code{boolean} of whether to return an hte3_Task without the nuisance training and estimates. This can be useful when you wish to construct a task for predicting on a new dataset.
 #' @param ... Additional arguments to pass to the \code{\link[sl3]{sl3_Task}} and \code{\link[tmle3]{tmle_Task}} constructors.
 #' @return A \code{hte3_Task} object for the point-treatment data-structure
 #'
