@@ -30,7 +30,7 @@ Suppose we conduct an observational or experimental study where we observe basel
 
 ```{r}
 library(data.table)
-n <- 3000
+n <- 1000
 W1 <- runif(n, -1 , 1)
 W2 <- runif(n, -1 , 1)
 W3 <- runif(n, -1 , 1)
@@ -42,7 +42,7 @@ A <- rbinom(n, 1 ,  pi1)
 cate <- 1 + rowSums(as.matrix(W)) + rowSums(sin(5*as.matrix(W)))
 mu0 <- 0.5*(W1 + W2 + W3) + sin(5*W1) + sin(5*W2) + sin(5*W3) + 1/(W1 + 1.2) + 1/(W2 + 1.2) + 1/(W3 + 1.2)
 mu1 <- mu0 + cate
-Y <- rnorm(n, mu0 + A*cate, 1)
+Y <- rnorm(n, mu0 + A*cate, 0.5)
 
  
 
@@ -207,7 +207,7 @@ Next, let us train the EP-learner using GAM and an xgboost ensemble! EP-learner 
 ```{r}
 lrnr_gam <- Lrnr_gam$new()
 # Specify a cate DR-learner with generalized additive models as the supervised learning algorithm
-ep_lrnr_xg <- cross_validate_cate(make_ep_stack(lrnr_xg_stack, hte3_task), hte3_task)
+ep_lrnr_xg <- cross_validate_cate(make_ep_stack(lrnr_gam, hte3_task), hte3_task)
 ep_lrnr_xg_trained <- ep_lrnr_xg$lrnr_sl
 
 # Predict using the trained cate DR-learner on the hte3_task

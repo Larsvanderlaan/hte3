@@ -75,6 +75,8 @@ If a \code{Stack} object, the best model is selected using cross-validation.}
 
 \item{cross_fit_and_cv}{Whether to cross-fit the specified nuisance learners by applying \code{learner <- causaltools::make_cross_fitted(learner)}.}
 
+\item{for_prediction}{A \code{boolean} of whether to return an hte3_Task without the nuisance training and estimates. This can be useful when you wish to construct a task for predicting on a new dataset.}
+
 \item{...}{Additional arguments to pass to the \code{\link[sl3]{sl3_Task}} and \code{\link[tmle3]{tmle_Task}} constructors.}
 
 \item{modifers}{A character vector of variable names in \code{colnames(data)} for treatment effect moderators.}
