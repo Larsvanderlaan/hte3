@@ -1,0 +1,290 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+
+---
+title: "Vignette: causal machine learning with `hte3`"
+output:
+pdf_document: default
+html_document: default
+date: '2023-08-06'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+```
+
+
+ 
+### Generate point-treatment data structure
+Suppose we conduct an observational or experimental study where we observe baseline covariates `W`, a treatment `A`, and an outcome `Y`. We can generate such a dataset as follows:
+
+
+```{r}
+library(data.table)
+n <- 1000
+W1 <- runif(n, -1 , 1)
+W2 <- runif(n, -1 , 1)
+W3 <- runif(n, -1 , 1)
+W <- data.table(W1, W2, W3)
+pi1 <- plogis((W1 + W2 + W3)/2)
+pi0 <- 1 - pi1
+quantile(pi1)
+A <- rbinom(n, 1 ,  pi1)
+cate <- 1 + rowSums(as.matrix(W)) + rowSums(sin(5*as.matrix(W)))
+mu0 <- 0.5*(W1 + W2 + W3) + sin(5*W1) + sin(5*W2) + sin(5*W3) + 1/(W1 + 1.2) + 1/(W2 + 1.2) + 1/(W3 + 1.2)
+mu1 <- mu0 + cate
+Y <- rnorm(n, mu0 + A*cate, 0.5)
+
+ 
+
+# R-learner nuisance functions
+m <- mu1 * pi1 + mu0 * pi0
+e <- pi1
+
+data <- data.table(W1, W2, W3, A, Y)
+```
+
+
+ 
+
+### `hte3_Task` objects and nuisance function estimation with `sl3` 
+ 
+First we construct the hte3_Task object which specifies the data and fits nuisance functions. 
+ 
+
+```{r}
+library(hte3)
+# Specify variable names
+# variables to model treatment effect/CATE
+modifiers <- c("W1", "W2", "W3") # or modifiers <-  c("W1")
+# variables to adjust for confounding
+confounders <- c("W1", "W2","W3")  
+# treatment variable
+treatment <- "A"
+# outcome variable
+outcome <- "Y"
+ 
+# Create the task with custom sl3 learners
+library(sl3)
+outcome_learner <- Stack$new(
+  Lrnr_stratified$new(Lrnr_gam$new(), variable_stratify = "A"), Lrnr_glmnet$new(), Lrnr_earth$new(degree = 2)
+)
+hte3_task <- make_hte3_Task_tx(data, modifiers, confounders, treatment, outcome,
+                                          learner_pi = Lrnr_gam$new( ),
+                                          learner_mu = outcome_learner)
+
+
+```
+
+ 
+ 
+ 
+### EP learner with custom sieve dimension
+
+This block fits an EP-learner for the conditional average treatment effect (CATE) using a *single, user-chosen* sieve dimension \(K\), rather than selecting \(K\) by cross-validation. Here we use a GAM as the base learner and set `sieve_num_basis = K`, which controls the flexibility of the EP sieve step (larger \(K\) allows a richer approximation, but can increase variance). After training on `hte3_task`, we predict individual-level CATEs and report their correlation with the simulated ground-truth CATE `cate` (when available).
+
+
+```{r}
+base_learner <- Lrnr_gam$new()
+K <- 10
+treatment_level <- 1
+control_level <- 0
+
+lrnr_ep_gam <- Lrnr_cate_EP$new(base_learner = base_learner, sieve_num_basis  = K,
+                    treatment_level = treatment_level, control_level = control_level)
+
+
+lrnr_ep_gam <- lrnr_ep_gam$train(hte3_task)
+cate.hat <- lrnr_ep_gam$predict(hte3_task)
+
+cor(cate.hat, cate)
+```
+
+
+
+
+
+This block performs a simple grid search over the EP-learner sieve dimension \(K\) using a fixed base learner (here, a GAM). For each candidate value in `K_grid`, we train an EP-learner on `hte3_task`, predict CATEs on the same task, and summarize performance against the known ground-truth CATE `cate` using RMSE and Pearson correlation. The resulting tibble `res` lets you compare how the choice of \(K\) trades off bias and variance in this example.
+ 
+ 
+ 
+```{r}
+library(sl3)
+library(dplyr)
+library(purrr)
+library(tidyr)
+library(ggplot2)
+
+# Assumes:
+# - hte3_task is an sl3 Task
+# - cate is a numeric vector of true CATE aligned with rows of hte3_task
+
+base_learner <- Lrnr_gam$new()
+treatment_level <- 1
+control_level <- 0
+
+K_grid <- c(1, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30)
+
+fit_one_K <- function(K) {
+  lrnr <- Lrnr_cate_EP$new(
+    base_learner    = base_learner,
+    sieve_num_basis = K,
+    treatment_level = treatment_level,
+    control_level   = control_level
+  )$train(hte3_task)
+
+  cate_hat <- lrnr$predict(hte3_task)
+
+  tibble(
+    K = K,
+    rmse = sqrt(mean((cate_hat - cate)^2)),
+    cor_pearson  = cor(cate_hat, cate)
+  )
+}
+
+res <- map_dfr(K_grid, fit_one_K)
+
+res
+```
+
+
+
+### Performance vs sieve dimension
+
+This block visualizes how EP-learner accuracy changes as the sieve dimension \(K\) varies. We reshape `res` into a long format and plot each metric (RMSE and Pearson correlation) against \(K\) in separate facets, making it easy to see whether increasing sieve flexibility helps or hurts. We then extract the best-performing sieve dimension according to the error metric (in this example, RMSE). Note that these curves are based on in-sample comparisons using the simulated ground-truth CATE; for a more honest model selection procedure, use cross-fitting or evaluate on a held-out split.
+
+
+```{r}
+res_long <- res %>%
+  pivot_longer(c(rmse, cor_pearson),
+               names_to = "metric", values_to = "value")
+
+ggplot(res_long, aes(x = K, y = value)) +
+  geom_line() +
+  geom_point() +
+  facet_wrap(~ metric, scales = "free_y", ncol = 1) +
+  labs(
+    x = "Sieve dimension K (num basis functions)",
+    y = NULL,
+    title = "EP-learner performance vs sieve dimension",
+    subtitle = "In-sample evaluation using known true CATE"
+  )
+
+
+best_K_mse <- res$K[which.min(res$mse)]
+best_K_mse
+```
+
+
+ 
+ 
+## EP learner with cross-validation of sieve dimension
+
+This block fits an EP-learner for the conditional average treatment effect (CATE) while selecting the sieve dimension (i.e., the number of basis functions used in the EP “sieve” stage) by cross-validation. We first define a simple stacked base learner (a small library of shallow XGBoost models), then build a candidate set of EP learners that differ only in their sieve size, scaled to the covariate dimension \(d\). Finally, we cross-validate across these candidates to choose the sieve dimension that performs best for the CATE task.
+
+
+
+```{r}
+# ----------------------------
+# Goal:
+#   Fit an EP-learner for CATE and choose the sieve dimension (num_basis)
+#   via cross-validation. We scale the candidate sieve sizes by d = dim(W).
+# ----------------------------
+
+# ----------------------------
+# 1) Base learner: shallow XGBoost stack
+#    We keep trees shallow (max_depth 1..5) to provide a simple, stable
+#    library; stacking lets the meta-learner combine them adaptively.
+# ----------------------------
+lrnr_xg_stack <- Stack$new(
+  Lrnr_xgboost$new(max_depth = 1, min_child_weight = 20),
+  Lrnr_xgboost$new(max_depth = 2, min_child_weight = 20),
+  Lrnr_xgboost$new(max_depth = 3, min_child_weight = 20),
+  Lrnr_xgboost$new(max_depth = 4, min_child_weight = 20),
+  Lrnr_xgboost$new(max_depth = 5, min_child_weight = 20)
+)
+
+# Alias used below for readability
+base_learner <- lrnr_xg_stack
+
+# Treatment / control labels in the task (A = 1 vs A = 0)
+treatment_level <- 1
+control_level <- 0
+
+# ----------------------------
+# 2) Define the sieve-dimension grid (scaled by d)
+#    d is the number of effect modifiers / covariates used by the task.
+#    We use multiples of d so the grid automatically adapts to problem size.
+# ----------------------------
+d <- length(hte3_task$npsem$modifiers$variables)
+n <- hte3_task$nrow  # (kept here in case you want n-scaled grids later)
+
+# ----------------------------
+# 3) Candidate EP learners with different sieve dimensions
+#    Each Lrnr_cate_EP shares the same base_learner, but varies sieve_num_basis.
+#    Wrapping them in a Stack gives us a library we can CV over.
+# ----------------------------
+lrnr_cate_epstack <- Stack$new(
+  Lrnr_cate_EP$new(
+    base_learner = base_learner,
+    sieve_num_basis = d,
+    treatment_level = treatment_level,
+    control_level = control_level
+  ),
+  Lrnr_cate_EP$new(
+    base_learner = base_learner,
+    sieve_num_basis = 5 * d,
+    treatment_level = treatment_level,
+    control_level = control_level
+  ),
+  Lrnr_cate_EP$new(
+    base_learner = base_learner,
+    sieve_num_basis = 7 * d,
+    treatment_level = treatment_level,
+    control_level = control_level
+  ),
+  Lrnr_cate_EP$new(
+    base_learner = base_learner,
+    sieve_num_basis = 9 * d,
+    treatment_level = treatment_level,
+    control_level = control_level
+  ),
+  Lrnr_cate_EP$new(
+    base_learner = base_learner,
+    sieve_num_basis = 12 * d,
+    treatment_level = treatment_level,
+    control_level = control_level
+  ),
+  Lrnr_cate_EP$new(
+    base_learner = base_learner,
+    sieve_num_basis = 15 * d,
+    treatment_level = treatment_level,
+    control_level = control_level
+  ),
+  Lrnr_cate_EP$new(
+    base_learner = base_learner,
+    sieve_num_basis = 20 * d,
+    treatment_level = treatment_level,
+    control_level = control_level
+  )
+)
+
+# ----------------------------
+# 4) Cross-validation to pick the sieve dimension
+
+
+cv_output <- cross_validate_cate(lrnr_cate_epstack, hte3_task) 
+lrnr_cv <- cv_output$lrnr_sl
+
+cate.hat <- lrnr_cv$predict(hte3_task)
+cor(cate.hat, cate)
+```
+
+
+
+## References

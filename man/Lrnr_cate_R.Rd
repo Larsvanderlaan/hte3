@@ -10,7 +10,7 @@ An R6 class with public methods to initialize the learner, create a regression t
 This class defines the R-learner of Xie and Wager (2021) for estimation of the conditional average treatment effect.
 }
 \section{Super classes}{
-\code{\link[sl3:Lrnr_base]{sl3::Lrnr_base}} -> \code{\link[hte3:Lrnr_hte]{hte3::Lrnr_hte}} -> \code{Lrnr_cate_R}
+\code{\link[sl3:Lrnr_base]{sl3::Lrnr_base}} -> \code{hte3::Lrnr_hte} -> \code{Lrnr_cate_R}
 }
 \section{Methods}{
 \subsection{Public methods}{

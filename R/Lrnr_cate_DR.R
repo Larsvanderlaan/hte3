@@ -3,7 +3,6 @@
 #' This class defines a doubly-robust (DR) meta-learner of the conditional average treatment effect.
 #'
 #' @format An R6 class with public methods to initialize the learner, create a regression task, and access the base learner.
-#' @inheritParams Lrnr_hte
 #' @param base_learner A \code{\link{sl3}} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.
 #' @param treatment_level A treatment level encoding the treatment assignment of interest.
 #' @param control_level A treatment level encoding the control (or reference) treatment assignment.
@@ -12,13 +11,11 @@ Lrnr_cate_DR <- R6Class(
   classname = "Lrnr_cate_DR", inherit = Lrnr_hte,
   portable = TRUE, class = TRUE,
   public = list(
-    #' @inheritParams Lrnr_hte
     initialize = function(base_learner, treatment_level = NULL, control_level = NULL, ...) {
       params <- sl3:::args_to_list()
       super$initialize(params = params, base_learner = base_learner,
                        ...)
     },
-    #' @inheritParams Lrnr_hte
     get_pseudo_data = function(hte3_task, treatment_level = NULL, control_level = NULL, ...) {
       data <- hte3_task$data
       A <- hte3_task$get_tmle_node("treatment")

@@ -13,7 +13,7 @@ This class defines the EP-learner of van der Laan et al. (2023) for estimation o
 The EP-learner is a robust and doubly-robust meta-learner that inherits desirable properties of both T-learner and DR-learner.
 }
 \section{Super classes}{
-\code{\link[sl3:Lrnr_base]{sl3::Lrnr_base}} -> \code{\link[hte3:Lrnr_hte]{hte3::Lrnr_hte}} -> \code{Lrnr_cate_EP}
+\code{\link[sl3:Lrnr_base]{sl3::Lrnr_base}} -> \code{hte3::Lrnr_hte} -> \code{Lrnr_cate_EP}
 }
 \section{Methods}{
 \subsection{Public methods}{

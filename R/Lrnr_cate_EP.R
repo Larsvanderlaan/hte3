@@ -4,8 +4,6 @@
 #'
 #' The EP-learner is a robust and doubly-robust meta-learner that inherits desirable properties of both T-learner and DR-learner.
 #' @format An R6 class with public methods to initialize the learner, create a regression task, and access the base learner.
-#' @inheritParams Lrnr_hte
-#' @inheritParams Lrnr_cate_DR
 #' @import Sieve
 #' @param base_learner A \code{\link{sl3}} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.
 #' @param sieve_num_basis The number of trignometric basis functions to construct the EP-learner sieve space.

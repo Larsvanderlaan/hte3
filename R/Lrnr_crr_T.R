@@ -4,7 +4,6 @@
 #' This class constructs a T-learner for estimation of the conditional relative average treatment effect (crr)
 #'
 #' @format An R6 class with public methods to initialize the learner, create a regression task, and access the base learner.
-#' @inheritParams Lrnr_cate_T
 #' @param base_learner A \code{\link{sl3}} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.
 #' @export
 Lrnr_crr_T <- R6Class(
@@ -89,23 +88,3 @@ Lrnr_crr_T <- R6Class(
 )
 
 
-#' Lrnr_cate_S Class
-#'
-#' This class constructs an S-learner for estimation of the conditional relative average treatment effect (crr).
-#' This object is a wrapper for \code{Lrnr_crr_T} with \code{stratify_by_treatment} = \code{FALSE}.
-#'
-#' @format An R6 class with public methods to initialize the learner, create a regression task, and access the base learner.
-#' @inheritParams Lrnr_crr_T
-#' @export
-Lrnr_crr_S <- R6Class(
-  classname = "Lrnr_crr_S", inherit = Lrnr_crr_T,
-  portable = TRUE, class = TRUE,
-  public = list(
-    initialize = function(base_learner, treatment_level = 1, control_level = 0, ...) {
-      super$initialize(base_learner = base_learner,
-                       treatment_level = treatment_level,
-                       control_level = control_level,
-                       stratify_by_treatment = FALSE,
-                       ...)
-    }
-  ))

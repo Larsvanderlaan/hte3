@@ -15,7 +15,6 @@
 #'   The CRATE EP-learner involves performing weighted logistic regression using a pseudo-outcome taking values in [0,1] with \code{pseudo_outcome_type = "quasibinomial"}.
 #' @param pseudo_family A \code{\link[stats]{family}} object specifying the loss function (involving pseudo-weights and pseudo-outcomes) used to fit \code{base_learner} in the meta-learner algorithm. Default is \code{gaussian()}.
 #'
-#' @inheritParams Lrnr_base
 #' @importFrom sl3 Lrnr_base
 #' @export
 Lrnr_hte <- R6Class(

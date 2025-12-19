@@ -13,7 +13,6 @@ loss_crr_quasibinomial <- function (pred, observed)
 #' This class defines an DR meta-learner for the conditional relative average treatment effect (crr).
 #'
 #' @format An R6 class with public methods to initialize the learner, create a regression task, and access the base learner.
-#' @inheritParams Lrnr_cate_EP
 #' @import Sieve
 #' @export
 Lrnr_crr_DR_selector <- R6Class(

@@ -10,7 +10,7 @@ An R6 class with public methods to initialize the learner, create a regression t
 This class constructs a T-learner for estimation of the conditional relative average treatment effect (crr)
 }
 \section{Super classes}{
-\code{\link[sl3:Lrnr_base]{sl3::Lrnr_base}} -> \code{\link[hte3:Lrnr_hte]{hte3::Lrnr_hte}} -> \code{Lrnr_crr_T}
+\code{\link[sl3:Lrnr_base]{sl3::Lrnr_base}} -> \code{hte3::Lrnr_hte} -> \code{Lrnr_crr_T}
 }
 \section{Methods}{
 \subsection{Public methods}{
