@@ -3,7 +3,8 @@
 This directory contains all code, scripts, and outputs needed to reproduce
 the experiments and figures in the EP-learner paper:
 
-	"Combining T-learning and DR-learning: a framework for oracle-efficient estimation of causal contrasts"
+  “Combining T-learning and DR-learning: a framework for oracle-efficient
+   estimation of causal contrasts”
 
   https://arxiv.org/abs/2402.01972
 
@@ -17,7 +18,8 @@ https://github.com/Larsvanderlaan/hte3
 
 ## Purpose
 
-The goal of this directory is to provide code to reproduce the experimentfor the EP-learner paper, including:
+The goal of this directory is to provide a fully reproducible experiment
+pipeline for the EP-learner paper, including:
 
 - Simulation studies
 - Empirical comparisons
@@ -32,15 +34,18 @@ contents of this directory.
 
 - BatchScripts/
   Batch and driver scripts for running experiments (e.g., grid runs,
-  repeated simulations).
+  repeated simulations). These scripts were written for a custom SLURM-based
+  cluster and may require modification to run on a different cluster or
+  job scheduling system.
 
 - code_for_experiments_and_figures/
   Core experiment code for data generation, estimator fitting, evaluation,
   and result saving.
 
 - code_for_examples_and_figures_from_text/
-  Code corresponding directly to examples and figures in Section 3 of the main
-  text of the paper.
+  Code corresponding directly to examples and illustrative figures and
+  tables from Section 3 of the paper (including the CATE and relative risk
+  examples).
 
 - experiment_results/
   Saved outputs from completed experiment runs, used for plotting and tables.
@@ -72,6 +77,10 @@ A typical workflow is:
    code_for_experiments_and_figures/ to generate raw results.
 4. Use the figure scripts to regenerate plots from experiment_results/.
 
+The BatchScripts/ directory assumes access to a SLURM-based cluster. The same
+experiments can be run locally (e.g., on a MacBook Pro) by executing the
+corresponding scripts directly without parallelization, though runtimes may
+be substantially longer.
+
 Exact instructions for each experiment and figure are documented in the
 corresponding subfolder READMEs.
- 
