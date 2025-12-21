@@ -1,0 +1,84 @@
+# code_for_experiments_and_figures
+
+This folder contains the R code used to generate data, run simulation
+experiments, and produce the figures reported in the EP-learner paper.
+
+The batch scripts in `BatchScripts/` call the `experiment_*.R` files in this
+directory.
+
+---
+
+## File overview
+
+### Data-generating processes
+
+These scripts define the simulation DGPs used across experiments:
+
+- `generate_data_CATE.R`
+  Data-generating process for conditional average treatment effect (CATE)
+  experiments (low-dimensional setting).
+
+- `generate_data_CATE_HighDim.R`
+  High-dimensional variant of the CATE DGP.
+
+- `generate_data_RR.R`
+  Data-generating process for relative risk / conditional risk ratio (CRR)
+  experiments.
+
+---
+
+### Experiment drivers
+
+These scripts run a **single simulation configuration**, given parameters
+supplied via environment variables (typically by batch scripts):
+
+- `experiment_CATE.R`
+  Main CATE experiment driver.
+
+- `experiment_CATE_wager.R`
+  CATE experiments using the Wager-style setup.
+
+- `experiment_logCRR.R`
+  Experiments for log conditional risk ratio (log-CRR).
+
+Each `experiment_*.R` script:
+- sources the appropriate data generator(s)
+- fits the specified learners (e.g. GAM, random forest, XGBoost)
+- saves numerical results used downstream for plotting
+
+---
+
+### Plotting scripts
+
+These scripts read saved experiment outputs and generate figures:
+
+- `make_plot_cate_gam.R`
+- `make_plot_cate_gam_highdim.R`
+- `make_plot_cate_xgboost.R`
+- `make_plot_cate_xgboost_highdim.R`
+- `make_plot_cate_wager.R`
+- `make_plot_RR_gam.R`
+- `make_plot_RR_xgboost.R`
+
+Plotting scripts are typically run **after** all experiments have completed.
+
+After plotting scripts are run, code in nice_experiment_plots.Rmd can be run to make nice plots used in paper.
+---
+
+## How these files are used together
+
+1. Batch scripts in `BatchScripts/` submit jobs that call an
+   `experiment_*.R` file in this directory.
+2. Each experiment script runs one configuration and saves results.
+3. Plotting scripts aggregate saved results and produce figures.
+
+
+---
+
+## Running experiments manually (without batch scripts)
+
+You can run an experiment locally by setting the expected environment variables
+and calling the experiment script directly, e.g.:
+
+```bash
+Rscript experiment_CATE.R
