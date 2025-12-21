@@ -1,0 +1,46 @@
+# BatchScripts
+
+This folder contains convenience scripts for launching EP-learner simulation
+experiments across a grid of parameters.
+
+It includes:
+- `*.sh` shell scripts defining the experimental parameter grids
+- `*.sbatch` Slurm batch scripts that execute a single experiment
+- `Rout/` for batch stdout/stderr logs
+- `old_files/` for deprecated scripts
+- `README` (this file)
+
+The batch scripts ultimately call the `experiment_*.R` files located in
+`code_for_experiments_and_figures/`.
+
+---
+
+## Important portability notes (read first)
+
+The `*.sbatch` files are **not portable** as written. They were designed for a
+custom Slurm environment and **must be modified** to run elsewhere.
+
+You should expect to change:
+- Batch directives (`#SBATCH ...`) to match your scheduler
+  (or remove entirely for local execution)
+- Module loading commands (e.g. `module load R`)
+- All hard-coded paths (e.g. `~/EPlearner/...`, `~/Rlibs2`)
+- Output/log paths if your system differs
+
+Think of the `*.sbatch` files as **templates**, not drop-in executables.
+
+By contrast, the `*.sh` files are portable and document **exactly which parameter
+combinations were run**.
+
+---
+
+## Shell scripts (`*.sh`): parameter grids
+
+The shell scripts define the experimental design:
+- set R library paths
+- loop over parameter grids
+- submit one job per configuration
+
+Typical usage pattern:
+```bash
+sbatch --export=... experiment_*.sbatch

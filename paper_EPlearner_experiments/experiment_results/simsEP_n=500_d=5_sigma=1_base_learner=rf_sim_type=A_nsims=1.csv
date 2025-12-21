@@ -1,0 +1,2 @@
+iter,sim_type,n,d,sigma,lrnr,ep_risk,dr_risk,r_risk,t_risk,causal_forest_risk
+1,A,500,5,1,rf,0.249313983961744,0.346453235808443,0.302859731900725,0.252219636121272,0.0612326974930021
