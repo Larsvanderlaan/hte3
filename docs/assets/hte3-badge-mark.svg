@@ -1,28 +1,32 @@
-<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="bg" x1="160" y1="128" x2="832" y2="896" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#EAF6F1"/>
-      <stop offset="1" stop-color="#F9E2C7"/>
-    </linearGradient>
-    <linearGradient id="curveA" x1="260" y1="760" x2="760" y2="320" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#145449"/>
-      <stop offset="1" stop-color="#1E7B6F"/>
-    </linearGradient>
-    <linearGradient id="curveB" x1="272" y1="280" x2="760" y2="700" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#C98B48"/>
-      <stop offset="1" stop-color="#E0A56A"/>
-    </linearGradient>
-  </defs>
-  <circle cx="512" cy="512" r="436" fill="url(#bg)"/>
-  <circle cx="512" cy="512" r="436" stroke="#18343A" stroke-opacity="0.08" stroke-width="20"/>
-  <path d="M282 710C366 604 430 564 512 564C608 564 668 644 748 748" stroke="url(#curveA)" stroke-width="56" stroke-linecap="round"/>
-  <path d="M282 316C364 422 428 460 512 460C606 460 672 384 748 284" stroke="url(#curveB)" stroke-width="56" stroke-linecap="round"/>
-  <path d="M512 292V732" stroke="#18343A" stroke-opacity="0.12" stroke-width="22" stroke-linecap="round" stroke-dasharray="14 24"/>
-  <circle cx="282" cy="316" r="40" fill="#F8F3EB" stroke="#C98B48" stroke-width="18"/>
-  <circle cx="748" cy="284" r="40" fill="#F8F3EB" stroke="#C98B48" stroke-width="18"/>
-  <circle cx="282" cy="710" r="40" fill="#F8F3EB" stroke="#1E7B6F" stroke-width="18"/>
-  <circle cx="748" cy="748" r="40" fill="#F8F3EB" stroke="#1E7B6F" stroke-width="18"/>
-  <circle cx="512" cy="512" r="84" fill="#FFFDF8" stroke="#18343A" stroke-opacity="0.08" stroke-width="18"/>
-  <path d="M460 542L498 486L532 532L566 476" stroke="#18343A" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="512" y="838" text-anchor="middle" font-family="Space Grotesk, Avenir Next, Trebuchet MS, sans-serif" font-size="84" font-weight="700" fill="#18343A">hte3</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">hte3 circular badge</title>
+  <desc id="desc">Circular badge with a simple regression tree inside a boxed panel, whose leaves show smaller and larger treatment contrasts, and plain hte3 text beneath it.</desc>
+  <g fill="none" fill-rule="evenodd">
+    <circle cx="512" cy="512" r="336" fill="#FFF8F0" stroke="#16323D" stroke-width="24"/>
+    <circle cx="512" cy="512" r="292" fill="none" stroke="#0D8A7A" stroke-opacity="0.14" stroke-width="10"/>
+
+    <rect x="310" y="318" width="404" height="224" rx="42" fill="#FFFDF9" stroke="#16323D" stroke-width="18"/>
+    <path d="M364 484h296" stroke="#16323D" stroke-opacity="0.12" stroke-linecap="round" stroke-width="8"/>
+    <path d="M364 404h296" stroke="#16323D" stroke-opacity="0.08" stroke-linecap="round" stroke-width="8"/>
+
+    <path d="M512 366v38" stroke="#0D8A7A" stroke-linecap="round" stroke-width="18"/>
+    <path d="M512 404L438 458" stroke="#0D8A7A" stroke-linecap="round" stroke-linejoin="round" stroke-width="18"/>
+    <path d="M512 404L586 458" stroke="#0D8A7A" stroke-linecap="round" stroke-linejoin="round" stroke-width="18"/>
+    <path d="M438 458H392" stroke="#0D8A7A" stroke-linecap="round" stroke-width="18"/>
+    <path d="M586 458H632" stroke="#0D8A7A" stroke-linecap="round" stroke-width="18"/>
+
+    <circle cx="512" cy="350" r="16" fill="#FFB562" stroke="#16323D" stroke-width="8"/>
+    <circle cx="438" cy="458" r="14" fill="#FFB562" stroke="#16323D" stroke-width="8"/>
+    <circle cx="586" cy="458" r="14" fill="#FFB562" stroke="#16323D" stroke-width="8"/>
+
+    <path d="M392 472V444" stroke="#16323D" stroke-opacity="0.24" stroke-linecap="round" stroke-width="8"/>
+    <circle cx="392" cy="444" r="13" fill="#0D8A7A" stroke="#16323D" stroke-width="8"/>
+    <circle cx="392" cy="472" r="13" fill="#FFB562" stroke="#16323D" stroke-width="8"/>
+
+    <path d="M632 500V428" stroke="#16323D" stroke-opacity="0.24" stroke-linecap="round" stroke-width="8"/>
+    <circle cx="632" cy="428" r="13" fill="#0D8A7A" stroke="#16323D" stroke-width="8"/>
+    <circle cx="632" cy="500" r="13" fill="#FFB562" stroke="#16323D" stroke-width="8"/>
+
+    <text x="512" y="668" fill="#16323D" font-family="'Avenir Next', 'Helvetica Neue', Arial, sans-serif" font-size="72" font-weight="700" text-anchor="middle">hte3</text>
+  </g>
 </svg>

@@ -40,25 +40,25 @@
             <p class="eyebrow">sl3 Guide</p>
             <div class="hero-head">
               <div>
-                <h1>hte3 is built on sl3, but you do not need to be an sl3 expert on day one</h1>
+                <h1>How hte3 uses the sl3 learner framework</h1>
               </div>
               <div class="hero-art">
                 <img
                   src="./assets/hte3-badge-mark.svg"
-                  alt="hte3 package badge"
+                  alt="hte3 package badge showing a simple regression tree with subgroup treatment contrasts"
                   width="1024"
                   height="1024"
                 />
               </div>
             </div>
             <p class="lede">
-              <code>sl3</code> is the learner framework underneath <code>hte3</code>. It gives you the nuisance models,
-              learner stacks, and cross-validation tools that power the package. This page explains the parts of
-              <code>sl3</code> that matter most for actually using <code>hte3</code>.
+              <code>sl3</code> is the learner framework underneath <code>hte3</code>. It supplies the nuisance models,
+              learner libraries, and cross-validation tools used by the package. This page explains the parts of
+              <code>sl3</code> that matter when you want to understand or customize those modeling components.
             </p>
             <p class="summary-text">
-              Use this page for learner choice and customization. For function signatures, key arguments, and return values,
-              the primary function-level API page is the <a href="./r.html#api">R guide</a>.
+              Start with the <a href="./r.html#api">R guide</a> if you only need the main wrappers and their arguments.
+              Use this page when you want to change learners, stacks, or lower-level control settings.
             </p>
             <div class="hero-actions">
               <a class="button button-primary" href="#slots">Where learners go</a>
@@ -73,11 +73,10 @@
 
           <aside class="hero-panel" data-reveal>
             <div class="panel-card gradient-card">
-              <p class="panel-label">Plain-language summary</p>
+              <p class="panel-label">What sl3 does in hte3</p>
               <p class="panel-note">
-                In <code>hte3</code>, <code>sl3</code> is the modeling engine.
-                You pick learners for nuisance pieces like the propensity and outcome model,
-                and you can also pick the learner that maps pseudo-outcomes to the final effect surface.
+                In <code>hte3</code>, <code>sl3</code> provides the estimation machinery for nuisance models and learner libraries.
+                It also supplies the learner that maps pseudo-outcomes to the final effect surface.
               </p>
             </div>
             <div class="panel-card code-card">
@@ -103,7 +102,7 @@
             <p class="eyebrow">Learner Slots</p>
             <h2>Where do learners plug into hte3?</h2>
             <p>
-              Most users only need to remember four places where modeling choices matter.
+              Most users only need to keep track of four places where modeling choices matter.
             </p>
           </div>
 
@@ -118,7 +117,7 @@
             </article>
             <article class="resource-card">
               <h3><code>mean_learner</code></h3>
-              <p>Provides the marginal mean nuisance when the workflow needs it. You can usually leave it at the package default to start.</p>
+              <p>Provides the marginal mean nuisance when the workflow requires it. In many analyses, the package default is sufficient.</p>
             </article>
             <article class="resource-card">
               <h3><code>base_learner</code></h3>
@@ -127,8 +126,8 @@
           </div>
 
           <div class="callout">
-            <strong>Practical rule:</strong>
-            if you are unsure which slot to tune first, start with the nuisance learners and leave the rest at the defaults.
+            <strong>Recommended starting point:</strong>
+            if you are unsure which slot to tune first, begin with the nuisance learners and leave the rest at the defaults.
           </div>
         </section>
 
@@ -139,7 +138,7 @@
               <h2>What does <code>get_autoML()</code> use?</h2>
             </div>
             <p class="section-side-note">
-              The default stack is already fairly capable, which is why it is a good starting point for many users.
+              The default stack is broad enough to serve as a reasonable starting point in many analyses.
             </p>
           </div>
 
@@ -166,7 +165,7 @@
             <article class="argument-card">
               <h3>When to override it</h3>
               <p>
-                Override the default when you need faster iteration, stronger interpretability,
+                Override the default when you need shorter iteration cycles, stronger interpretability,
                 or a task-specific learner library.
               </p>
             </article>
@@ -185,7 +184,7 @@
             <p class="eyebrow">Starter Recipes</p>
             <h2>Common learner strategies for practitioners</h2>
             <p>
-              These are not the only good choices, but they are easy to reason about and easy to communicate.
+              These are common starting points rather than rules.
             </p>
           </div>
 
@@ -194,15 +193,15 @@
               <span class="comparison-kicker">Fast baseline</span>
               <h3>Simple generalized linear learners</h3>
               <p>
-                Use learners like <code>Lrnr_glm_fast</code> or <code>Lrnr_mean</code> when you want fast iteration,
-                debugging, or a baseline that is easy to explain to collaborators.
+                Use learners like <code>Lrnr_glm_fast</code> or <code>Lrnr_mean</code> for rapid iteration,
+                debugging, or an interpretable baseline.
               </p>
             </article>
             <article class="comparison-card">
               <span class="comparison-kicker">Balanced default</span>
               <h3>Keep <code>get_autoML()</code></h3>
               <p>
-                This is the best default when you want the package to start from a broad learner library without a lot of tuning work up front.
+                Use this when a broad learner library is needed without constructing one manually.
               </p>
             </article>
             <article class="comparison-card">
@@ -216,7 +215,7 @@
               <span class="comparison-kicker">Custom library</span>
               <h3>Hand-built <code>Stack</code> or <code>Lrnr_sl</code></h3>
               <p>
-                Use this path when your team already has a preferred library or when you want to compare a curated set of candidate learners.
+                Use this path when a preferred learner library already exists or when comparing a curated set of candidate learners.
               </p>
             </article>
           </div>
@@ -257,7 +256,7 @@
         <section class="section" id="resources" data-reveal>
           <div class="section-heading">
             <p class="eyebrow">Official sl3 Resources</p>
-            <h2>Read these next if you want to go deeper</h2>
+            <h2>References for further detail</h2>
             <p>
               These are the upstream references most likely to help an <code>hte3</code> user make better modeling decisions.
             </p>
@@ -280,14 +279,14 @@
             </article>
             <article class="resource-card">
               <h3>Pipeline reference</h3>
-              <p>Useful when you want chained learners, screening steps, or more custom workflows.</p>
+              <p>Useful for chained learners, screening steps, or more customized workflows.</p>
               <div class="resource-links">
                 <a class="resource-link" href="https://tlverse.org/sl3/reference/Pipeline.html">Open the pipeline reference</a>
               </div>
             </article>
             <article class="resource-card">
               <h3>Super Learner reference</h3>
-              <p>Use this when you want to build or understand <code>Lrnr_sl</code> libraries explicitly.</p>
+              <p>Use this reference when building or interpreting <code>Lrnr_sl</code> libraries explicitly.</p>
               <div class="resource-links">
                 <a class="resource-link" href="https://tlverse.org/sl3/reference/Lrnr_sl.html">Open the Super Learner reference</a>
               </div>
@@ -304,7 +303,7 @@
       </main>
 
       <footer class="site-footer">
-        <p>sl3 guide for hte3 users.</p>
+        <p>sl3 guide for hte3.</p>
       </footer>
     </div>
   </body>

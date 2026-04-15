@@ -42,25 +42,25 @@
             <p class="eyebrow">R Package Guide</p>
             <div class="hero-head">
               <div>
-                <h1>The shortest path from raw data to an effect surface</h1>
+                <h1>High-level API for CATE and CRR analysis</h1>
               </div>
               <div class="hero-art">
                 <img
                   src="./assets/hte3-badge-mark.svg"
-                  alt="hte3 package badge"
+                  alt="hte3 package badge showing a simple regression tree with subgroup treatment contrasts"
                   width="1024"
                   height="1024"
                 />
               </div>
             </div>
             <p class="lede">
-              The recommended user path is simple:
-              <strong>create a task, fit the estimand, then predict.</strong>
-              This page doubles as both the quickstart and the high-level API guide for the public wrappers.
+              <code>hte3</code> is organized around a short sequence:
+              <strong>create a task, fit the estimand, then generate predictions or summaries.</strong>
+              This page is the primary guide to the public wrappers and their main arguments.
             </p>
             <p class="summary-text">
-              Use the API section when you want signatures, key arguments, returns, and when-to-use guidance.
-              Use the quickstart when you want the shortest runnable path end to end.
+              Use the API section for function-level details, the quickstart for a minimal runnable example,
+              and the <code>sl3</code> guide when you need to customize learners.
             </p>
             <div class="hero-actions">
               <a class="button button-primary" href="#api">Open API guide</a>
@@ -86,8 +86,8 @@ remotes::install_github("Larsvanderlaan/hte3")</code></pre>
             <div class="panel-card">
               <p class="panel-label">Default Modeling Stack</p>
               <p class="panel-note">
-                If you do not pass learners manually, <code>hte3</code> uses its
-                internal <code>get_autoML()</code> stack so you can start with a sensible default and refine later.
+                If you do not pass learners manually, <code>hte3</code> uses
+                <code>get_autoML()</code> for the default nuisance and base-learner stack.
               </p>
             </div>
           </aside>
@@ -107,8 +107,7 @@ remotes::install_github("Larsvanderlaan/hte3")</code></pre>
               </p>
             </div>
             <p class="section-side-note">
-              Need learner customization rather than function signatures? The <a href="./sl3.html">sl3 guide</a> is the
-              best next page.
+              For learner selection and customization, use the <a href="./sl3.html">sl3 guide</a>.
             </p>
           </div>
 
@@ -156,7 +155,7 @@ remotes::install_github("Larsvanderlaan/hte3")</code></pre>
                 </div>
                 <div class="summary-row">
                   <span>Use when</span>
-                  You are starting a new analysis from raw data and want the main production-oriented workflow.
+                  You are starting a new analysis from raw data and want the main high-level workflow.
                 </div>
                 <div class="summary-row">
                   <span>Default behavior</span>
@@ -243,7 +242,7 @@ remotes::install_github("Larsvanderlaan/hte3")</code></pre>
             <article class="resource-card">
               <p class="mini-label">Model summary</p>
               <h3><code>summary()</code></h3>
-              <p>Prints the main training metadata for a fitted production model.</p>
+              <p>Prints the main training metadata for a fitted high-level model.</p>
               <pre class="inline-code"><code>summary(object)</code></pre>
               <div class="summary-stack">
                 <div class="summary-row">
@@ -289,7 +288,7 @@ remotes::install_github("Larsvanderlaan/hte3")</code></pre>
             <p class="eyebrow">Common Defaults</p>
             <h2>What you can usually leave alone</h2>
             <p>
-              The defaults are meant to get you moving. Most users can ignore deeper tuning until they are comparing methods or customizing learners.
+              Most users can leave these settings at their defaults until they need method comparison or learner customization.
             </p>
           </div>
 
@@ -303,7 +302,7 @@ remotes::install_github("Larsvanderlaan/hte3")</code></pre>
             <article class="argument-card">
               <h3><code>cross_fit</code> in <code>hte_task()</code></h3>
               <p>
-                This controls nuisance cross-fitting. Leave it at the default unless you need a faster, simpler experimental loop.
+                This controls nuisance cross-fitting. In most analyses, the default setting is appropriate.
               </p>
             </article>
             <article class="argument-card">
@@ -315,7 +314,7 @@ remotes::install_github("Larsvanderlaan/hte3")</code></pre>
             <article class="argument-card">
               <h3>When to ignore tuning</h3>
               <p>
-                If you are just getting started, keep the default learners, fit one method at a time, and postpone EP tuning or learner-library customization until later.
+                For an initial analysis, keep the default learners, fit one method at a time, and postpone EP tuning or learner-library customization until needed.
               </p>
             </article>
           </div>
@@ -374,28 +373,28 @@ summary(fit)</code></pre>
           <div class="resource-grid">
             <article class="resource-card">
               <h3>Quickstart</h3>
-              <p>Best first read if you want to go from data to a fitted model as quickly as possible.</p>
+              <p>Use this vignette for a minimal end-to-end example.</p>
               <div class="resource-links">
                 <a class="resource-link" href="https://github.com/Larsvanderlaan/hte3/blob/main/vignettes/quickstart.Rmd">Open source vignette</a>
               </div>
             </article>
             <article class="resource-card">
               <h3>CATE workflow</h3>
-              <p>Examples of the production path for conditional average treatment effect estimation.</p>
+              <p>Examples of the high-level workflow for conditional average treatment effect estimation.</p>
               <div class="resource-links">
                 <a class="resource-link" href="https://github.com/Larsvanderlaan/hte3/blob/main/vignettes/cate.Rmd">Open source vignette</a>
               </div>
             </article>
             <article class="resource-card">
               <h3>CRR workflow</h3>
-              <p>Use this when relative effects and nonnegative outcomes are the right target.</p>
+              <p>Use this vignette when relative effects and nonnegative outcomes are the appropriate target.</p>
               <div class="resource-links">
                 <a class="resource-link" href="https://github.com/Larsvanderlaan/hte3/blob/main/vignettes/crr.Rmd">Open source vignette</a>
               </div>
             </article>
             <article class="resource-card">
               <h3>Advanced sl3 integration</h3>
-              <p>Drops closer to the original learner classes and manual control path.</p>
+              <p>Documents lower-level learner control and manual customization.</p>
               <div class="resource-links">
                 <a class="resource-link" href="https://github.com/Larsvanderlaan/hte3/blob/main/vignettes/advanced-sl3.Rmd">Open source vignette</a>
               </div>
@@ -405,24 +404,24 @@ summary(fit)</code></pre>
 
         <section class="section" id="paths" data-reveal>
           <div class="section-heading">
-            <p class="eyebrow">Two Paths</p>
-            <h2>Start simple, then go deeper only if you need to</h2>
+            <p class="eyebrow">Workflow Levels</p>
+            <h2>Choose the level of control you need</h2>
           </div>
 
           <div class="comparison-grid">
             <article class="comparison-card">
-              <span class="comparison-kicker">Recommended path</span>
-              <h3>Production API</h3>
+              <span class="comparison-kicker">Default entrypoint</span>
+              <h3>High-level API</h3>
               <p>
                 Use <code>hte_task()</code>, then <code>fit_cate()</code> or <code>fit_crr()</code>.
-                This is the right default if you mainly care about getting to a trustworthy analysis quickly.
+                This is the default interface for most analyses.
               </p>
             </article>
             <article class="comparison-card">
-              <span class="comparison-kicker">Advanced path</span>
-              <h3>Direct learner control</h3>
+              <span class="comparison-kicker">Advanced entrypoint</span>
+              <h3>Lower-level learner control</h3>
               <p>
-                Use <code>make_hte3_Task_tx()</code> and the <code>Lrnr_*</code> classes when you want to tune the lower-level metalearner workflow directly.
+                Use <code>make_hte3_Task_tx()</code> and the <code>Lrnr_*</code> classes when you need direct control of nuisance models or learner libraries.
               </p>
             </article>
           </div>
@@ -433,7 +432,7 @@ summary(fit)</code></pre>
             <p class="eyebrow">Legacy Reproducibility</p>
             <h2>Paper reproduction stays available without cluttering the main workflow</h2>
             <p>
-              The package preserves the original paper-reproduction path, but the website keeps it separate so new users do not have to start there.
+              The package preserves the original paper reproduction workflow, but the website keeps it separate from the main workflow.
             </p>
           </div>
 
@@ -441,7 +440,7 @@ summary(fit)</code></pre>
             <article class="resource-card">
               <h3>Legacy paper reproduction</h3>
               <p>
-                Use the frozen reproducibility path if your goal is to rerun the older research scripts rather than start a fresh analysis.
+                Use the frozen reproducibility path when the goal is to rerun the original research scripts rather than begin a new analysis.
               </p>
               <div class="resource-links">
                 <a class="resource-link" href="https://github.com/Larsvanderlaan/hte3/blob/main/vignettes/legacy-paper-repro.Rmd">Open source vignette</a>

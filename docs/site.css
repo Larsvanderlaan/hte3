@@ -88,6 +88,7 @@ a {
 .toplinks {
   display: flex;
   gap: 18px;
+  row-gap: 10px;
   flex-wrap: wrap;
   align-items: center;
   flex: 1 1 auto;
@@ -95,6 +96,7 @@ a {
 
 .toplinks a {
   opacity: 0.82;
+  overflow-wrap: anywhere;
 }
 
 .toplinks a:hover,
@@ -116,6 +118,7 @@ a {
   box-shadow: 0 10px 24px rgba(41, 65, 73, 0.08);
   font-weight: 700;
   white-space: nowrap;
+  max-width: 100%;
 }
 
 .paper-link:hover,
@@ -270,6 +273,7 @@ a {
   padding: 14px 22px;
   border-radius: 999px;
   font-weight: 700;
+  max-width: 100%;
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
@@ -299,6 +303,8 @@ a {
   background: rgba(255, 255, 255, 0.7);
   border: 1px solid var(--line);
   font-size: 0.92rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .hero-panel {
@@ -357,6 +363,7 @@ a {
 .code-block,
 .inline-code {
   margin: 0;
+  max-width: 100%;
   overflow-x: auto;
   white-space: pre-wrap;
   line-height: 1.55;
@@ -399,6 +406,7 @@ a {
   border: 1px solid var(--line);
   color: var(--muted);
   line-height: 1.65;
+  overflow-wrap: anywhere;
 }
 
 .argument-grid,
@@ -477,6 +485,7 @@ a {
 .callout {
   margin-top: 18px;
   background: linear-gradient(135deg, rgba(30, 123, 111, 0.11), rgba(201, 139, 72, 0.13));
+  overflow-wrap: anywhere;
 }
 
 .tab-row {
@@ -595,6 +604,7 @@ a {
   background: rgba(255, 255, 255, 0.74);
   color: var(--ink);
   font-weight: 700;
+  max-width: 100%;
   transition: transform 0.2s ease;
 }
 
@@ -609,6 +619,8 @@ a {
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.72);
   border: 1px solid var(--line);
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .summary-row span {
@@ -716,6 +728,11 @@ a {
     justify-content: center;
   }
 
+  .toplinks {
+    width: 100%;
+    gap: 10px 14px;
+  }
+
   .hero h1 {
     max-width: 100%;
   }
@@ -735,6 +752,10 @@ a {
   .method-panel,
   .companion-card {
     padding: 20px;
+  }
+
+  .hero-actions .button {
+    width: 100%;
   }
 
   .argument-grid-four {

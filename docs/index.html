@@ -45,7 +45,7 @@
               <div class="hero-art">
                 <img
                   src="./assets/hte3-badge-mark.svg"
-                  alt="hte3 package badge showing branching treatment effect paths"
+                  alt="hte3 package badge showing a simple regression tree with subgroup treatment contrasts"
                   width="1024"
                   height="1024"
                 />
@@ -53,13 +53,13 @@
             </div>
             <p class="lede">
               <code>hte3</code> helps practitioners estimate <strong>how treatment effects vary across people</strong>.
-              It offers a production-style workflow for <strong>conditional average treatment effects (CATE)</strong>
-              and <strong>conditional risk ratios (CRR)</strong>, while still exposing the lower-level
-              <code>sl3</code>-based machinery when you want tighter control.
+              It provides a high-level workflow for <strong>conditional average treatment effects (CATE)</strong>
+              and <strong>conditional risk ratios (CRR)</strong>, with access to the underlying
+              <code>sl3</code> learner framework when you need more control over the modeling choices.
             </p>
             <p class="summary-text">
-              In practice, that means you can start with a simple three-step flow
-              and only drop into advanced learners, stacks, and tuning when your analysis needs it.
+              Most analyses follow three steps: build a task, fit the estimand, then generate predictions or summaries.
+              The <code>sl3</code> guide explains how to customize learners when the defaults are not enough.
             </p>
             <div class="hero-actions">
               <a class="button button-primary" href="#methods">Explore methods</a>
@@ -69,7 +69,7 @@
             <ul class="hero-pills">
               <li>CATE and CRR workflows</li>
               <li>Built on <code>sl3</code> and <code>tmle3</code></li>
-              <li>Production API plus advanced learner classes</li>
+              <li>High-level API with lower-level learner control</li>
             </ul>
           </section>
 
@@ -80,7 +80,7 @@
                 <li>Estimating effect heterogeneity instead of only one average effect.</li>
                 <li>Working with effect modifiers and confounders in a clean task object.</li>
                 <li>Choosing between simple baselines and more flexible meta-learners.</li>
-                <li>Keeping an approachable user path while staying in the <code>sl3</code> ecosystem.</li>
+                <li>Customizing nuisance learners and learner libraries through the underlying <code>sl3</code> framework.</li>
               </ul>
             </div>
             <div class="panel-card code-card">
@@ -111,7 +111,7 @@ pred &lt;- predict(fit)</code></pre>
               <h2>What does the package actually estimate?</h2>
             </div>
             <p class="section-side-note">
-              Think of <code>hte3</code> as a package for learning effect surfaces, not just one-number summaries.
+              <code>hte3</code> is designed for estimating effect surfaces, not only one-number summaries.
             </p>
           </div>
 
@@ -137,7 +137,7 @@ pred &lt;- predict(fit)</code></pre>
           </div>
 
           <div class="callout">
-            <strong>Practitioner takeaway:</strong>
+            <strong>Practical guidance:</strong>
             start by choosing the estimand that matches your reporting goal, then choose the method inside that estimand.
           </div>
         </section>
@@ -145,33 +145,32 @@ pred &lt;- predict(fit)</code></pre>
         <section class="section" id="why-hte3" data-reveal>
           <div class="section-heading">
             <p class="eyebrow">Why hte3</p>
-            <h2>User-friendly on the surface, flexible underneath</h2>
+            <h2>Clear workflow, explicit method choice</h2>
             <p>
-              The package is designed so you can stay in a high-level workflow for common analyses,
-              while still having access to the lower-level learners and tuning controls that advanced users expect.
+              The package keeps the main workflow concise while making the estimand, method, and learner choices explicit.
             </p>
           </div>
 
           <div class="argument-grid">
             <article class="argument-card">
-              <h3>Production-style workflow</h3>
+              <h3>High-level workflow</h3>
               <p>
                 Build an <code>hte3_Task</code> once with <code>hte_task()</code>, then fit with
                 <code>fit_cate()</code> or <code>fit_crr()</code>.
               </p>
             </article>
             <article class="argument-card">
-              <h3>Method choice stays visible</h3>
+              <h3>Explicit method selection</h3>
               <p>
                 You do not have to guess which meta-learner is active. The site and the API keep
                 DR, R, EP, T, and IPW workflows explicit.
               </p>
             </article>
             <article class="argument-card">
-              <h3>sl3-native customization</h3>
+              <h3>Learner customization</h3>
               <p>
-                If you want custom nuisance learners, stacks, selectors, or cross-fitting behavior,
-                the package stays close to the <code>sl3</code> idioms you already know.
+                If you need custom nuisance learners, learner libraries, or cross-fitting behavior,
+                the <code>sl3</code> guide explains how those components fit into <code>hte3</code>.
               </p>
             </article>
           </div>
@@ -209,8 +208,8 @@ pred &lt;- predict(fit)</code></pre>
             </div>
             <div class="callout" style="margin-bottom: 18px;">
               <strong>Wrapper note:</strong>
-              <code>fit_cate()</code> currently exposes DR, R, EP, and T at the high level. <code>fit_crr()</code>
-              currently exposes EP, IPW, and T, while lower-level CRR selector classes remain available through the advanced API.
+              <code>fit_cate()</code> supports DR, R, EP, and T in the high-level API. <code>fit_crr()</code>
+              supports EP, IPW, and T. Lower-level CRR classes remain available through the advanced interface.
             </div>
             <div class="tab-row" data-method-buttons role="tablist" aria-label="Method choice"></div>
 
@@ -253,9 +252,9 @@ pred &lt;- predict(fit)</code></pre>
         <section class="section" id="workflow" data-reveal>
           <div class="section-heading">
             <p class="eyebrow">Workflow</p>
-            <h2>The day-to-day workflow is intentionally short</h2>
+            <h2>The workflow is intentionally short</h2>
             <p>
-              Most analyses can start with three simple decisions: what data object to build, which estimand to target, and which learner to plug in.
+              Most analyses start with three decisions: build the task, choose the estimand, then choose the method.
             </p>
           </div>
 
@@ -272,7 +271,7 @@ pred &lt;- predict(fit)</code></pre>
               <p class="step-number">Step 2</p>
               <h3>Fit the estimand</h3>
               <p>
-                Call <code>fit_cate()</code> or <code>fit_crr()</code>, then choose the method that matches your analysis goal and comfort level.
+                Call <code>fit_cate()</code> or <code>fit_crr()</code>, then choose the method that matches the estimand and modeling strategy.
               </p>
             </article>
             <article class="workflow-step">
