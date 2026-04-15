@@ -10,10 +10,14 @@ An R6 class with public methods to initialize the learner, create a regression t
 This class constructs a T-learner (or S-learner) for estimation of the conditional average treatment effect (CATE)
 }
 \details{
-When \code{stratify_by_treatment = FALSE}, the learner acts as a pooled
-S-learner and estimates the contrast by counterfactual prediction under each
-treatment level. Heterogeneous effects will only be recovered if the supplied
-\code{base_learner} can represent treatment-modifier interactions.
+The learner first estimates outcome regressions as functions of the adjustment
+set \code{W}. By default, it then regresses the resulting first-stage contrast
+\code{tau(W)} onto the modifier set \code{V}. When
+\code{stratify_by_treatment = FALSE}, the first-stage outcome model is fit as a
+pooled S-learner-style regression and evaluated counterfactually under each
+treatment level. In the reduced-modifier setting \eqn{V \subset W}, this
+default second stage is what aligns the learner with the
+\code{V}-conditional CATE target.
 }
 \section{Super classes}{
 \code{\link[sl3:Lrnr_base]{sl3::Lrnr_base}} -> \code{hte3::Lrnr_hte} -> \code{Lrnr_cate_T}
@@ -64,6 +68,7 @@ treatment level. Heterogeneous effects will only be recovered if the supplied
   treatment_level = 1,
   control_level = 0,
   stratify_by_treatment = TRUE,
+  second_stage_regression = TRUE,
   ...
 )}\if{html}{\out{</div>}}
 }
@@ -74,6 +79,11 @@ treatment level. Heterogeneous effects will only be recovered if the supplied
 \item{\code{base_learner}}{A \pkg{sl3} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.}
 
 \item{\code{stratify_by_treatment}}{Logical indicating whether to estimate outcome regression separately in each treatment arm (i.e., T-learner) or pooled across treatment arms (i.e., S-learner).}
+
+\item{\code{second_stage_regression}}{Logical indicating whether to regress the
+first-stage contrast estimates onto the modifier set. This defaults to
+\code{TRUE}. Setting it to \code{FALSE} is only supported when the modifier set
+and confounder set are the same.}
 }
 \if{html}{\out{</div>}}
 }

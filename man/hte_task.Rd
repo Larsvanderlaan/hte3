@@ -71,7 +71,8 @@ names.
 \details{
 When \code{modifiers = V} and \code{confounders = W}, the natural CATE target is
 \code{E[Y(1) - Y(0) | V] = E[tau(W) | V]}. In the supported
-binary/categorical-treatment setting, DR- and EP-learners align with that
-modifier-conditional target. The current R-learner does not generally target
-that object when \code{V} is a strict subset of \code{W}; it warns at fit time.
+binary/categorical-treatment setting, DR-, EP-, and the default two-stage
+T-learner align with that modifier-conditional target. The current R-learner
+does not generally target that object when \code{V} is a strict subset of
+\code{W}; it warns at fit time.
 }

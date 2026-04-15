@@ -15,11 +15,27 @@
 #'
 #' @importFrom data.table data.table
 #' @export
-cross_validate <- function(hte_learners, hte3_task, cv_metalearner = Lrnr_cv_selector$new(loss_squared_error), cv_control = NULL, ...) {
-  args <- list(hte3_task = hte3_task, ...)
-  if(is.list(hte_learners)) {
-    hte_learners <- do.call(Stack$new, hte_learners)
+prepare_cv_learner_stack <- function(hte_learners) {
+  if (inherits(hte_learners, "Stack")) {
+    learners <- hte_learners$learners
+    if (length(learners) > 1L) {
+      return(hte_learners)
+    }
+  } else if (is.list(hte_learners)) {
+    learners <- hte_learners
+  } else {
+    learners <- list(hte_learners)
   }
+
+  if (length(learners) == 1L) {
+    learners[[2L]] <- learners[[1L]]$clone(deep = TRUE)
+  }
+
+  do.call(Stack$new, learners)
+}
+
+cross_validate <- function(hte_learners, hte3_task, cv_metalearner = Lrnr_cv_selector$new(loss_squared_error), cv_control = NULL, ...) {
+  hte_learners <- prepare_cv_learner_stack(hte_learners)
   lrnr_sl <- Lrnr_sl$new(learners = hte_learners, metalearner = cv_metalearner, cv_control = cv_control, ...)$train(hte3_task)
   return(lrnr_sl)
 }

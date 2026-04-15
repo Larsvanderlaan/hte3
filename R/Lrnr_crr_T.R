@@ -6,18 +6,31 @@
 #' @format An R6 class with public methods to initialize the learner, create a regression task, and access the base learner.
 #' @param base_learner A \code{\link{sl3}} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.
 #' @param stratify_by_treatment Logical indicating whether to estimate outcome regressions separately in each treatment arm (i.e., T-learner) or with a pooled S-learner-style outcome model.
-#' @details When \code{stratify_by_treatment = FALSE}, the learner estimates log-risk-ratio contrasts by predicting the pooled outcome model under each treatment level. Heterogeneous contrasts require a \code{base_learner} that can represent treatment-modifier interactions.
+#' @param second_stage_regression Logical indicating whether to regress the
+#' first-stage log-risk-ratio contrast onto the modifier set. This defaults to
+#' \code{TRUE}. Setting it to \code{FALSE} is only supported when the modifier
+#' set and confounder set are the same.
+#' @details The learner first estimates arm-specific outcome regressions as
+#' functions of the adjustment set \code{W}. By default, it then regresses the
+#' resulting first-stage log-risk-ratio contrast onto the modifier set
+#' \code{V}. When \code{stratify_by_treatment = FALSE}, the first-stage outcome
+#' model is fit as a pooled S-learner-style regression and evaluated
+#' counterfactually under each treatment level.
 #' @export
 Lrnr_crr_T <- R6Class(
   classname = "Lrnr_crr_T", inherit = Lrnr_hte,
   portable = TRUE, class = TRUE,
   public = list(
-    initialize = function(base_learner, treatment_level = 1, control_level = 0, stratify_by_treatment = TRUE, ...) {
+    initialize = function(base_learner, treatment_level = 1, control_level = 0,
+                          stratify_by_treatment = TRUE,
+                          second_stage_regression = TRUE,
+                          ...) {
       params <- list(
         base_learner = base_learner,
         treatment_level = treatment_level,
         control_level = control_level,
         stratify_by_treatment = stratify_by_treatment,
+        second_stage_regression = second_stage_regression,
         ...
       )
       super$initialize(params = params, base_learner = base_learner,
@@ -53,17 +66,41 @@ Lrnr_crr_T <- R6Class(
         control_level = contrast$control_level,
         stratify_by_treatment = self$params$stratify_by_treatment
       )
+      first_stage_means <- predict_tlearner_means(
+        fit_object,
+        hte3_task,
+        learner_task,
+        treatment_level = contrast$treatment_level,
+        control_level = contrast$control_level,
+        stratify_by_treatment = self$params$stratify_by_treatment
+      )
+      fit_object$use_second_stage <- isTRUE(self$params$second_stage_regression)
+      if (fit_object$use_second_stage) {
+        fit_object$effect_learner_trained <- fit_tlearner_projection(
+          self$base_learner,
+          hte3_task,
+          outcome_values = log(bound_positive(first_stage_means$mu1.hat)) -
+            log(bound_positive(first_stage_means$mu0.hat)),
+          family = stats::gaussian(),
+          outcome_type = "continuous"
+        )
+      } else if (!modifiers_equal_confounders(hte3_task)) {
+        stop(
+          "T-learner without second-stage regression is only supported when `modifiers` and `confounders` are the same.",
+          call. = FALSE
+        )
+      }
       fit_object$prediction_template <- make_prediction_template(hte3_task)
       fit_object$contrast_levels <- contrast
       fit_object
     },
     .predict = function(hte3_task) {
       fit_object <- self$fit_object
-      contrast <- fit_object$contrast_levels
-      learner_task <- NULL
-      if (isTRUE(self$params$stratify_by_treatment)) {
-        learner_task <- hte3_task$next_in_chain(covariates = hte3_task$npsem$modifiers$variables)
+      if (isTRUE(fit_object$use_second_stage)) {
+        return(predict_tlearner_projection(fit_object$effect_learner_trained, hte3_task))
       }
+      contrast <- fit_object$contrast_levels
+      learner_task <- self$make_metalearner_task(hte3_task)
       means <- predict_tlearner_means(
         fit_object,
         hte3_task,

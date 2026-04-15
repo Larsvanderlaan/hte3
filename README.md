@@ -32,8 +32,12 @@ if (!requireNamespace("remotes", quietly = TRUE)) {
   install.packages("remotes")
 }
 
-remotes::install_github("Larsvanderlaan/hte3")
+remotes::install_github("Larsvanderlaan/hte3", dependencies = TRUE)
 ```
+
+`get_autoML()` always includes a core learner stack built from
+`Lrnr_glmnet` and `Lrnr_gam`, and it adds the `earth`, `ranger`, and
+`xgboost` components when those optional runtime packages are installed.
 
 For the frozen paper workflow:
 
@@ -148,9 +152,9 @@ cv_fit <- cross_validate_cate(
 
 - Continuous-treatment CATE tasks currently support `method = "r"` only, via
   the partially linear R-learner effect model `A * tau(X)`.
-- When `modifiers` are a strict subset of `confounders`, DR- and EP-learners
-  target the `V`-conditional CATE `E[Y(1) - Y(0) | V]` in the supported
-  binary/categorical-treatment setting.
+- When `modifiers` are a strict subset of `confounders`, DR-, EP-, and the
+  default two-stage T-learner target the `V`-conditional CATE
+  `E[Y(1) - Y(0) | V]` in the supported binary/categorical-treatment setting.
 - In that same reduced-modifier setting, the current R-learner does not
   generally target `E[Y(1) - Y(0) | V]`; it warns at fit time because it
   instead learns an overlap-weighted projection onto functions of `V`.
@@ -174,6 +178,7 @@ The documentation site is organized around:
 - Quickstart
 - CATE workflow
 - CRR workflow
+- EP-learner sieve tuning
 - Advanced `sl3` integration
 - Legacy paper reproduction
 
@@ -182,4 +187,6 @@ The vignettes in `vignettes/` mirror that documentation. In particular:
 - [`quickstart`](vignettes/quickstart.Rmd) explains the high-level workflow and the difference between cross-fitting and cross-validation.
 - [`cate`](vignettes/cate.Rmd) shows single-learner and portfolio CV CATE workflows.
 - [`crr`](vignettes/crr.Rmd) shows the analogous CRR workflows.
+- [`ep-learner`](vignettes/ep-learner.Rmd) explains the `Sieve`-based EP construction, basis ordering, and paper-faithful sieve CV grids.
 - [`advanced-sl3`](vignettes/advanced-sl3.Rmd) shows low-level learner portfolios with `cross_validate_cate()` and `cross_validate_crr()`.
+- [`legacy-paper-repro`](vignettes/legacy-paper-repro.Rmd) points to the frozen paper-reproduction workflow and smoke-test entrypoint.

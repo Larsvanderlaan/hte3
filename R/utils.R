@@ -213,6 +213,40 @@ validate_matrix_n <- function(x, n, label) {
   }
 }
 
+coerce_numeric_matrix_input <- function(x, label) {
+  if (is.factor(x)) {
+    x <- as.character(x)
+  }
+
+  matrix_input <- as.matrix(x)
+  numeric_source <- if (is.factor(matrix_input)) as.character(matrix_input) else matrix_input
+  numeric_values <- suppressWarnings(as.numeric(numeric_source))
+
+  if (length(numeric_values) != length(numeric_source) ||
+      any(is.na(numeric_values) & !is.na(numeric_source))) {
+    stop(sprintf("`%s` must be numeric.", label), call. = FALSE)
+  }
+
+  matrix(
+    numeric_values,
+    nrow = nrow(matrix_input),
+    ncol = ncol(matrix_input),
+    dimnames = dimnames(matrix_input)
+  )
+}
+
+coerce_numeric_vector_input <- function(x, label) {
+  numeric_source <- if (is.factor(x)) as.character(x) else x
+  numeric_values <- suppressWarnings(as.numeric(numeric_source))
+
+  if (length(numeric_values) != length(numeric_source) ||
+      any(is.na(numeric_values) & !is.na(numeric_source))) {
+    stop(sprintf("`%s` must be numeric.", label), call. = FALSE)
+  }
+
+  numeric_values
+}
+
 resolve_treatment_levels <- function(task, treatment_level = NULL, control_level = NULL) {
   treatment <- task$get_tmle_node("treatment")
   levels_found <- levels(factor(treatment))
@@ -337,6 +371,14 @@ get_task_modifier_spec <- function(hte3_task) {
   )
 }
 
+modifiers_equal_confounders <- function(hte3_task) {
+  modifier_spec <- get_task_modifier_spec(hte3_task)
+  identical(
+    sort(unique(modifier_spec$modifiers)),
+    sort(unique(modifier_spec$confounders))
+  )
+}
+
 warn_rlearner_reduced_modifier_target <- function(hte3_task) {
   modifier_spec <- get_task_modifier_spec(hte3_task)
   reduced_adjustment_set <- setdiff(modifier_spec$confounders, modifier_spec$modifiers)
@@ -393,6 +435,40 @@ validate_finite_vector <- function(x, label, lower = -Inf, upper = Inf, allow_na
   }
 
   invisible(x)
+}
+
+validate_probability_matrix_input <- function(x, n, label, row_sum_tol = 1e-6) {
+  x <- coerce_numeric_matrix_input(x, label)
+  validate_matrix_n(x, n, label)
+  validate_finite_vector(as.vector(x), label, lower = 0, upper = 1)
+
+  row_sums <- rowSums(x)
+  validate_finite_vector(row_sums, sprintf("%s row sums", label))
+  if (any(abs(row_sums - 1) > row_sum_tol)) {
+    stop(sprintf("Each row of `%s` must sum to 1.", label), call. = FALSE)
+  }
+
+  x
+}
+
+validate_outcome_matrix_input <- function(x, n, label, outcome_type = NULL) {
+  x <- coerce_numeric_matrix_input(x, label)
+  validate_matrix_n(x, n, label)
+
+  lower <- if (identical(canonicalize_treatment_type(outcome_type), "binomial")) 0 else -Inf
+  upper <- if (identical(canonicalize_treatment_type(outcome_type), "binomial")) 1 else Inf
+  validate_finite_vector(as.vector(x), label, lower = lower, upper = upper)
+  x
+}
+
+validate_outcome_vector_input <- function(x, n, label, outcome_type = NULL) {
+  x <- coerce_numeric_vector_input(x, label)
+  validate_vector_n(x, n, label)
+
+  lower <- if (identical(canonicalize_treatment_type(outcome_type), "binomial")) 0 else -Inf
+  upper <- if (identical(canonicalize_treatment_type(outcome_type), "binomial")) 1 else Inf
+  validate_finite_vector(x, label, lower = lower, upper = upper)
+  x
 }
 
 get_nuisance_matrix <- function(hte3_task, node, label = node) {
@@ -562,7 +638,7 @@ compute_crr_ratio_pseudo_data <- function(hte3_task, treatment_level = NULL, con
 }
 
 make_tlearner_task <- function(hte3_task) {
-  covariates <- c(hte3_task$npsem$modifiers$variables, hte3_task$npsem$treatment$variables)
+  covariates <- c(hte3_task$npsem$confounders$variables, hte3_task$npsem$treatment$variables)
   outcome <- hte3_task$npsem$outcome$variables
 
   sl3_Task$new(
@@ -577,10 +653,10 @@ make_tlearner_task <- function(hte3_task) {
 
 train_tlearner_models <- function(base_learner, learner_task, hte3_task, treatment_level, control_level, stratify_by_treatment = TRUE) {
   treatment <- hte3_task$get_tmle_node("treatment")
-  modifiers <- hte3_task$npsem$modifiers$variables
+  confounders <- hte3_task$npsem$confounders$variables
 
   if (stratify_by_treatment) {
-    learner_task <- learner_task$next_in_chain(covariates = modifiers)
+    learner_task <- learner_task$next_in_chain(covariates = confounders)
     return(list(
       learner_trained_trt = base_learner$train(learner_task[treatment == treatment_level]),
       learner_trained_control = base_learner$train(learner_task[treatment == control_level])
@@ -628,16 +704,16 @@ make_tlearner_prediction_task <- function(hte3_task, treatment_level) {
   )
 
   prediction_task$next_in_chain(
-    covariates = c(hte3_task$npsem$modifiers$variables, treatment_name),
+    covariates = c(hte3_task$npsem$confounders$variables, treatment_name),
     outcome = hte3_task$npsem$outcome$variables
   )
 }
 
 predict_tlearner_means <- function(fit_object, hte3_task, learner_task, treatment_level, control_level, stratify_by_treatment = TRUE) {
-  modifiers <- hte3_task$npsem$modifiers$variables
+  confounders <- hte3_task$npsem$confounders$variables
 
   if (stratify_by_treatment) {
-    learner_task <- learner_task$next_in_chain(covariates = modifiers)
+    learner_task <- learner_task$next_in_chain(covariates = confounders)
     return(list(
       mu1.hat = fit_object$learner_trained_trt$predict(learner_task),
       mu0.hat = fit_object$learner_trained_control$predict(learner_task)
@@ -648,6 +724,43 @@ predict_tlearner_means <- function(fit_object, hte3_task, learner_task, treatmen
     mu0.hat = fit_object$learner_trained_pooled$predict(make_tlearner_prediction_task(hte3_task, control_level)),
     mu1.hat = fit_object$learner_trained_pooled$predict(make_tlearner_prediction_task(hte3_task, treatment_level))
   )
+}
+
+make_tlearner_projection_task <- function(hte3_task,
+                                          outcome_values,
+                                          outcome_name = paste0("projection_outcome_", uuid::UUIDgenerate()),
+                                          outcome_type = "continuous") {
+  new_data <- data.table::data.table(outcome_values)
+  names(new_data) <- outcome_name
+  column_names <- hte3_task$add_columns(new_data)
+
+  hte3_task$next_in_chain(
+    covariates = hte3_task$npsem$modifiers$variables,
+    outcome = outcome_name,
+    column_names = column_names,
+    new_outcome_type = outcome_type
+  )
+}
+
+fit_tlearner_projection <- function(base_learner,
+                                    hte3_task,
+                                    outcome_values,
+                                    family = stats::gaussian(),
+                                    outcome_type = "continuous") {
+  projection_task <- make_tlearner_projection_task(
+    hte3_task,
+    outcome_values = outcome_values,
+    outcome_type = outcome_type
+  )
+  learner <- base_learner$reparameterize(list(family = family))
+  learner$train(projection_task)
+}
+
+predict_tlearner_projection <- function(learner_trained, hte3_task) {
+  prediction_task <- hte3_task$next_in_chain(
+    covariates = hte3_task$npsem$modifiers$variables
+  )
+  learner_trained$predict(prediction_task)
 }
 
 make_sieve_basis <- function(X, basisN = NULL, interaction_order = 3) {
@@ -716,18 +829,79 @@ make_crr_ep_stack <- function(base_learner, hte3_task, treatment_level, control_
   do.call(Stack$new, make_crr_ep_candidates(base_learner, hte3_task, treatment_level, control_level))
 }
 
+resolve_automl_candidate_specs <- function(specs = automl_spec_table(),
+                                           sl3_exports = getNamespaceExports("sl3"),
+                                           package_available = function(pkg) requireNamespace(pkg, quietly = TRUE)) {
+  available_specs <- list()
+  omitted_specs <- list()
+
+  for (spec in specs) {
+    learner_exported <- spec$learner_class %in% sl3_exports || identical(spec$learner_class, "Lrnr_xgboost_early_stopping")
+    package_ready <- is.null(spec$required_package) || isTRUE(package_available(spec$required_package))
+
+    if (learner_exported && package_ready) {
+      available_specs[[length(available_specs) + 1L]] <- spec
+    } else {
+      omitted_specs[[length(omitted_specs) + 1L]] <- list(
+        learner_class = spec$learner_class,
+        required_package = spec$required_package,
+        learner_exported = learner_exported,
+        package_ready = package_ready
+      )
+    }
+  }
+
+  attr(available_specs, "omitted_specs") <- omitted_specs
+  available_specs
+}
+
+instantiate_automl_spec <- function(spec) {
+  learner_class <- get(spec$learner_class, inherits = TRUE)
+  do.call(learner_class$new, spec$constructor_args)
+}
+
+warn_missing_automl_candidates <- function(omitted_specs) {
+  if (length(omitted_specs) == 0L) {
+    return(invisible(FALSE))
+  }
+
+  missing_packages <- sort(unique(vapply(
+    omitted_specs,
+    function(spec) if (isTRUE(spec$package_ready)) NA_character_ else spec$required_package,
+    character(1)
+  )))
+  missing_packages <- missing_packages[!is.na(missing_packages)]
+
+  warning_key <- paste("get_autoML", paste(missing_packages, collapse = ","), sep = "|")
+  if (!exists(warning_key, envir = hte3_warning_registry, inherits = FALSE)) {
+    assign(warning_key, TRUE, envir = hte3_warning_registry)
+
+    if (length(missing_packages) > 0L) {
+      warning(
+        sprintf(
+          "`get_autoML()` is using the available safe subset of its default learner stack because optional package(s) are unavailable: %s. Install them for the full default stack.",
+          paste(missing_packages, collapse = ", ")
+        ),
+        call. = FALSE
+      )
+    }
+  }
+
+  invisible(TRUE)
+}
+
 get_autoML <- function() {
-  Stack$new(
-    Lrnr_glmnet$new(),
-    Lrnr_gam$new(),
-    Lrnr_earth$new(degree = 2),
-    Lrnr_ranger$new(max.depth = 10),
-    Lrnr_xgboost_early_stopping$new(min_child_weight = 15, max_depth = 2, eta = 0.20, subsample = 0.8, colsample_bytree = 0.8),
-    Lrnr_xgboost_early_stopping$new(min_child_weight = 15, max_depth = 3, eta = 0.15, subsample = 0.9),
-    Lrnr_xgboost_early_stopping$new(min_child_weight = 15, max_depth = 4, eta = 0.15, subsample = 0.9),
-    Lrnr_xgboost_early_stopping$new(min_child_weight = 15, max_depth = 5, eta = 0.15, subsample = 0.9),
-    Lrnr_xgboost_early_stopping$new(min_child_weight = 15, max_depth = 4, eta = 0.08, subsample = 0.8, colsample_bytree = 0.8)
-  )
+  specs <- resolve_automl_candidate_specs()
+  warn_missing_automl_candidates(attr(specs, "omitted_specs"))
+
+  if (length(specs) == 0L) {
+    stop(
+      "`get_autoML()` could not construct a default learner stack because no supported base learners are available.",
+      call. = FALSE
+    )
+  }
+
+  do.call(Stack$new, lapply(specs, instantiate_automl_spec))
 }
 
 make_cross_fitted <- function(learner, calibrate = FALSE, cross_validate = inherits(learner, "Stack")) {

@@ -4,7 +4,7 @@
 \usage{
 fit_crr(
   task,
-  method = c("ep", "ipw", "t"),
+  method = supported_crr_methods(),
   base_learner = get_autoML(),
   treatment_level = NULL,
   control_level = NULL,
@@ -44,4 +44,8 @@ An object of class \code{hte3_model}.
 High-level wrapper for fitting conditional risk-ratio models with
 non-negative outcomes. The wrapper supports both single-method fits and
 cross-validated portfolios across multiple learner families.
+}
+\details{
+CRR models are supported for binary or categorical treatment tasks and
+require a non-negative outcome.
 }

@@ -24,9 +24,9 @@ Use the advanced API to:
 Keep the modifier target in mind when you build tasks manually. If
 `modifiers = V` and `confounders = W` with `V` a strict subset of `W`, then
 the target of interest is `E[Y(1) - Y(0) | V] = E[tau(W) | V]`. In the
-supported binary/categorical-treatment setting, DR- and EP-learners align
-with that target, while the current R-learner instead targets the
-overlap-weighted projection
+supported binary/categorical-treatment setting, DR-, EP-, and the default
+two-stage T-learner align with that target, while the current R-learner
+instead targets the overlap-weighted projection
 `f_R(V) = E[Var(A|W) tau(W) | V] / E[Var(A|W) | V]`. For binary treatment,
 this becomes
 `E[e(W)(1-e(W)) tau(W) | V] / E[e(W)(1-e(W)) | V]`.
@@ -54,6 +54,9 @@ trained <- learner$train(task)
 
 head(predict_hte3(trained, data))
 ```
+
+For EP-learner-specific sieve construction, basis ordering, and paper-faithful
+cross-validation grids, see the separate `ep-learner` vignette.
 
 ## Low-Level CATE Portfolios
 

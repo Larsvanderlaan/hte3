@@ -96,6 +96,9 @@ validate_hte_task <- function(task) {
 
 normalize_method_spec <- function(method, choices) {
   method <- unique(as.character(method))
+  if (length(method) == 0L) {
+    stop("`method` must contain at least one supported method.", call. = FALSE)
+  }
   unknown <- setdiff(method, choices)
   if (length(unknown) > 0L) {
     stop(
@@ -235,7 +238,7 @@ build_crr_candidates <- function(task,
 }
 
 fit_cate <- function(task,
-                     method = c("dr", "r", "t", "ep"),
+                     method = supported_cate_methods(),
                      base_learner = get_autoML(),
                      treatment_level = NULL,
                      control_level = NULL,
@@ -245,7 +248,7 @@ fit_cate <- function(task,
                      sieve_interaction_order = 3,
                      screen_basis_with_lasso = FALSE) {
   validate_hte_task(task)
-  methods <- if (missing(method)) "dr" else normalize_method_spec(method, c("dr", "r", "t", "ep"))
+  methods <- if (missing(method)) "dr" else normalize_method_spec(method, supported_cate_methods())
   task_treatment_type <- get_task_treatment_type(task)
 
   if (task_treatment_type == "continuous" && any(methods %in% c("dr", "t", "ep"))) {
@@ -291,7 +294,7 @@ fit_cate <- function(task,
 }
 
 fit_crr <- function(task,
-                    method = c("ep", "ipw", "t"),
+                    method = supported_crr_methods(),
                     base_learner = get_autoML(),
                     treatment_level = NULL,
                     control_level = NULL,
@@ -300,7 +303,11 @@ fit_crr <- function(task,
                     sieve_num_basis = NULL,
                     sieve_interaction_order = 3) {
   validate_hte_task(task)
-  methods <- if (missing(method)) "ep" else normalize_method_spec(method, c("ep", "ipw", "t"))
+  methods <- if (missing(method)) "ep" else normalize_method_spec(method, supported_crr_methods())
+  task_treatment_type <- get_task_treatment_type(task)
+  if (identical(task_treatment_type, "continuous")) {
+    stop("CRR models are only supported for binary or categorical treatments.", call. = FALSE)
+  }
   contrast <- resolve_treatment_levels(task, treatment_level, control_level)
   cross_validate <- prepare_cv_flag(base_learner, cross_validate, candidate_count = length(methods))
 

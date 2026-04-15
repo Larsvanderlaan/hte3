@@ -136,17 +136,20 @@
           </div>
 
           <div class="code-block-card">
+            <!-- BEGIN:automl_stack -->
 <pre><code>Stack$new(
   Lrnr_glmnet$new(),
   Lrnr_gam$new(),
+  # Added when optional runtime packages are installed:
   Lrnr_earth$new(degree = 2),
   Lrnr_ranger$new(max.depth = 10),
-  Lrnr_xgboost_early_stopping$new(min_child_weight = 15, max_depth = 2, eta = 0.20, subsample = 0.8, colsample_bytree = 0.8),
+  Lrnr_xgboost_early_stopping$new(min_child_weight = 15, max_depth = 2, eta = 0.2, subsample = 0.8, colsample_bytree = 0.8),
   Lrnr_xgboost_early_stopping$new(min_child_weight = 15, max_depth = 3, eta = 0.15, subsample = 0.9),
   Lrnr_xgboost_early_stopping$new(min_child_weight = 15, max_depth = 4, eta = 0.15, subsample = 0.9),
   Lrnr_xgboost_early_stopping$new(min_child_weight = 15, max_depth = 5, eta = 0.15, subsample = 0.9),
-  Lrnr_xgboost_early_stopping$new(min_child_weight = 15, max_depth = 4, eta = 0.08, subsample = 0.8, colsample_bytree = 0.8)
+  Lrnr_xgboost_early_stopping$new(min_child_weight = 15, max_depth = 4, eta = 0.08, subsample = 0.8, colsample_bytree = 0.8),
 )</code></pre>
+            <!-- END:automl_stack -->
           </div>
 
           <div class="argument-grid" style="margin-top: 16px;">
@@ -234,8 +237,9 @@ learner_library &lt;- Stack$new(
             <article class="argument-card">
               <h3>Common hte3 default</h3>
               <p>
-                <code>get_autoML()</code> returns a <code>Stack</code>, which gives you a ready-made
-                candidate library without manually listing learners.
+                <code>get_autoML()</code> returns a <code>Stack</code> built from its available safe
+                default learners, which gives you a ready-made candidate library without manually
+                listing learners.
               </p>
             </article>
           </div>

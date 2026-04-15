@@ -59,9 +59,10 @@ The basic pattern is:
 Here the modifiers are `V = (W1, W2)` while the nuisance adjustment set is
 `W = (W1, W2, W3)`, so the target of interest is
 `E[Y(1) - Y(0) | V] = E[tau(W) | V]`. In the supported
-binary/categorical-treatment setting, DR- and EP-learners align with that
-target. The current R-learner fit warns in this setting because it does not
-generally target the same reduced-modifier conditional effect surface.
+binary/categorical-treatment setting, DR-, EP-, and the default two-stage
+T-learner align with that target. The current R-learner fit warns in this
+setting because it does not generally target the same reduced-modifier
+conditional effect surface.
 
 ## Cross-Validation Across Learner Families
 
@@ -118,7 +119,8 @@ head(cv_fit$lrnr_sl$predict(task))
   the partially linear R-learner effect model `A * tau(X)`.
 - If `modifiers` are a strict subset of `confounders`, the package warns for
   `method = "r"` because the current R-learner does not generally target
-  `E[Y(1) - Y(0) | V]`. In binary/categorical-treatment settings, DR and EP
-  are the target-aligned choices for that reduced modifier set.
+  `E[Y(1) - Y(0) | V]`. In binary/categorical-treatment settings, DR, EP, and
+  the default two-stage T-learner are the target-aligned choices for that
+  reduced modifier set.
 - For EP-learner tuning and more direct `Lrnr_*` control, see the advanced
   vignette.

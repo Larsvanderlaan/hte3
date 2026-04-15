@@ -7,16 +7,19 @@
 get_autoML()
 }
 \value{
-A `sl3::Stack` object containing a predefined set of off-the-shelf learners for AutoML.
+A \code{sl3::Stack} object containing the available safe subset of the
+predefined default learner library.
 }
 \description{
-This function returns a predefined stack of off-the-shelf learning algorithms for Automated Machine Learning (AutoML).
-The following base learners are included in the stack:
+This function returns the default \code{sl3} learner stack used by the
+high-level \code{hte3} wrappers. The stack always includes the core learners
+\code{Lrnr_glmnet} and \code{Lrnr_gam}. It adds the following optional
+learners only when their supporting runtime packages are available:
 \itemize{
-  \item \code{Lrnr_glmnet}: Elastic Net Regularized Generalized Linear Model.
-  \item \code{Lrnr_gam}: Generalized Additive Model.
   \item \code{Lrnr_earth}: Multivariate Adaptive Regression Spline Model.
   \item \code{Lrnr_ranger}: Random Forest Model.
   \item \code{Lrnr_xgboost_early_stopping}: XGBoost models with early stopping across a small set of depth and shrinkage configurations.
 }
+If optional packages are unavailable, \code{get_autoML()} emits a warning once
+and returns the available safe subset rather than failing at runtime.
 }

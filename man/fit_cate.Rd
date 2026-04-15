@@ -4,7 +4,7 @@
 \usage{
 fit_cate(
   task,
-  method = c("dr", "r", "t", "ep"),
+  method = supported_cate_methods(),
   base_learner = get_autoML(),
   treatment_level = NULL,
   control_level = NULL,
@@ -55,8 +55,8 @@ For continuous-treatment CATE tasks, the supported high-level method is
 
 If \code{modifiers = V} and \code{confounders = W} with \code{V} a strict
 subset of \code{W}, the natural target is \code{E[Y(1) - Y(0) | V]}. In the
-supported binary/categorical-treatment setting, DR- and EP-learners target
-that modifier-conditional CATE surface. The current R-learner does not
-generally target that object in the reduced-modifier setting and warns at fit
-time.
+supported binary/categorical-treatment setting, DR-, EP-, and the default
+two-stage T-learner target that modifier-conditional CATE surface. The
+current R-learner does not generally target that object in the
+reduced-modifier setting and warns at fit time.
 }

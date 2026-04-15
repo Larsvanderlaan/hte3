@@ -73,6 +73,10 @@ make_hte3_Task_tx <- function(data,
   assert_columns_present(data, confounders, "confounder")
   assert_columns_present(data, c(treatment, outcome), "required")
 
+  if (!is.numeric(folds) || length(folds) != 1L || folds < 2 || folds != as.integer(folds)) {
+    stop("`folds` must be a single integer greater than or equal to 2.", call. = FALSE)
+  }
+
   if (!is.null(id)) {
     assert_columns_present(data, id, "id")
   }
@@ -83,6 +87,19 @@ make_hte3_Task_tx <- function(data,
 
   if (anyNA(data[[outcome]])) {
     stop("Missing outcomes are not currently supported in `make_hte3_Task_tx()`.", call. = FALSE)
+  }
+
+  if (anyNA(data[[treatment]])) {
+    stop("Missing treatment values are not currently supported in `make_hte3_Task_tx()`.", call. = FALSE)
+  }
+
+  if (!is.null(weights)) {
+    data[[weights]] <- coerce_numeric_vector_input(data[[weights]], "weights")
+    validate_finite_vector(data[[weights]], "weights", lower = 0)
+  }
+
+  if (!is.null(id) && anyNA(data[[id]])) {
+    stop("Missing IDs are not currently supported in `make_hte3_Task_tx()`.", call. = FALSE)
   }
 
   if (warn && !is.factor(data[[treatment]]) && treatment_type == "categorical") {
@@ -127,16 +144,14 @@ make_hte3_Task_tx <- function(data,
   }
 
   if (!is.null(pi.hat)) {
-    pi.hat <- as.matrix(pi.hat)
-    validate_matrix_n(pi.hat, nrow(data), "pi.hat")
+    pi.hat <- validate_probability_matrix_input(pi.hat, nrow(data), "pi.hat")
     if (ncol(pi.hat) != length(treatment_levels)) {
       stop("pi.hat should be a matrix with ncol(pi.hat) = length(treatment_levels). The jth column should be estimated for the propensity score of the jth treatment level in treatment_levels.")
     }
     colnames(pi.hat) <- treatment_levels
   }
   if (!is.null(mu.hat)) {
-    mu.hat <- as.matrix(mu.hat)
-    validate_matrix_n(mu.hat, nrow(data), "mu.hat")
+    mu.hat <- validate_outcome_matrix_input(mu.hat, nrow(data), "mu.hat", var_type_outcome$type)
     if (ncol(mu.hat) != length(treatment_levels)) {
       stop("mu.hat should be a matrix with ncol(mu.hat) = length(treatment_levels). The jth column should be estimated for the outcome regression of the jth treatment level in treatment_levels.")
     }
@@ -144,7 +159,7 @@ make_hte3_Task_tx <- function(data,
   }
 
   if (!is.null(m.hat)) {
-    validate_vector_n(m.hat, nrow(data), "m.hat")
+    m.hat <- validate_outcome_vector_input(m.hat, nrow(data), "m.hat", var_type_outcome$type)
   }
 
   if (cross_fit_and_cv) {

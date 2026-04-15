@@ -1,4 +1,4 @@
-test_that("CRR IPW and stratified T learners preserve a monotone log-risk-ratio signal", {
+test_that("CRR IPW and two-stage stratified T learners preserve a monotone log-risk-ratio signal", {
   skip_if_runtime_unavailable()
   data <- make_binary_crr_data(n = 1200)
   base_learner <- make_sl3_regression_learner(stats::binomial())
@@ -21,6 +21,28 @@ test_that("CRR IPW and stratified T learners preserve a monotone log-risk-ratio 
     expect_true(all(is.finite(predictions)))
     expect_monotone_signal(predictions, data$W1)
   }
+})
+
+test_that("CRR T learner only skips the second stage when modifiers equal confounders", {
+  skip_if_runtime_unavailable()
+  data <- make_binary_crr_data(seed = 7)
+  base_learner <- make_sl3_regression_learner(stats::binomial())
+  reduced_task <- make_crr_task_for_test(data)
+  full_task <- make_crr_task_for_test(
+    data,
+    modifiers = c("W1", "W2", "W3"),
+    confounders = c("W1", "W2", "W3")
+  )
+
+  expect_error(
+    Lrnr_crr_T$new(base_learner = base_learner, second_stage_regression = FALSE)$train(reduced_task),
+    "only supported when `modifiers` and `confounders` are the same"
+  )
+
+  fit <- Lrnr_crr_T$new(base_learner = base_learner, second_stage_regression = FALSE)$train(full_task)
+  predictions <- predict_hte3(fit, data[, c("W1", "W2", "W3"), with = FALSE])
+  expect_length(predictions, nrow(data))
+  expect_true(all(is.finite(predictions)))
 })
 
 test_that("CRR pooled T learner returns a valid positive average log-risk-ratio contrast", {

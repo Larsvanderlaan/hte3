@@ -6,6 +6,23 @@ skip_if_runtime_unavailable <- function(extra = character()) {
   }
 }
 
+is_known_runtime_warning <- function(message) {
+  grepl("is not cv-aware: self\\$predict_fold reverts to self\\$predict", message) ||
+    grepl("The supplied outcome_type .* does not correspond to the detected type", message) ||
+    grepl("Learner called function .* with unknown args: family", message)
+}
+
+suppress_known_runtime_warnings <- function(expr) {
+  withCallingHandlers(
+    expr,
+    warning = function(w) {
+      if (is_known_runtime_warning(conditionMessage(w))) {
+        invokeRestart("muffleWarning")
+      }
+    }
+  )
+}
+
 make_sl3_regression_learner <- function(family = stats::gaussian()) {
   exports <- getNamespaceExports("sl3")
 

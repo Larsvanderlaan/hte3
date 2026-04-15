@@ -2,15 +2,8 @@
 \name{Lrnr_xgboost_early_stopping}
 \alias{Lrnr_xgboost_early_stopping}
 \title{XGBoost Learner with Early Stopping}
-\usage{
-Lrnr_xgboost_early_stopping$new(
-  nrounds = 500,
-  validation_fraction = 0.2,
-  early_stopping_rounds = 25,
-  seed = 1,
-  nthread = 1,
-  ...
-)
+\format{
+An R6 class inheriting from \code{\link[sl3:Lrnr_base]{sl3::Lrnr_base}}.
 }
 \arguments{
 \item{nrounds}{Maximum number of boosting rounds considered before early stopping.}
@@ -38,4 +31,56 @@ the selected iteration count.
 \details{
 This learner is used by \code{\link{get_autoML}} to avoid manually fixing
 \code{nrounds} in the default boosted-tree candidates.
+}
+\section{Methods}{
+\subsection{Public methods}{
+\itemize{
+\item \code{Lrnr_xgboost_early_stopping$new()}
+\item \code{Lrnr_xgboost_early_stopping$clone()}
+}
+}
+\subsection{Method \code{new()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Lrnr_xgboost_early_stopping$new(
+  nrounds = 500,
+  validation_fraction = 0.2,
+  early_stopping_rounds = 25,
+  seed = 1,
+  nthread = 1,
+  ...
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{nrounds}}{Maximum number of boosting rounds considered before early stopping.}
+
+\item{\code{validation_fraction}}{Fraction of the training sample reserved for the internal validation split.}
+
+\item{\code{early_stopping_rounds}}{Number of validation rounds without improvement before stopping.}
+
+\item{\code{seed}}{Random seed used for the internal validation split.}
+
+\item{\code{nthread}}{Number of threads used by \code{xgboost}.}
+
+\item{\code{...}}{Additional arguments passed to \code{\link[xgboost]{xgb.train}}.}
+}
+\if{html}{\out{</div>}}
+}
+}
+\subsection{Method \code{clone()}}{
+The objects of this class are cloneable with this method.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Lrnr_xgboost_early_stopping$clone(deep = FALSE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{deep}}{Whether to make a deep clone.}
+}
+\if{html}{\out{</div>}}
+}
+}
 }

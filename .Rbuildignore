@@ -4,8 +4,14 @@
 ^\.DS_Store$
 ^\.lintr$
 ^LICENSE\.md$
+^dev$
+^dev/
+^docs$
+^docs/
 ^paper_EPlearner_experiments$
 ^paper_EPlearner_experiments/
+^tools$
+^tools/
 ^introDRlearner_bydepth_presentation\.pdf$
 ^hte3_.*\.tar\.gz$
 ^\.{2}Rcheck$

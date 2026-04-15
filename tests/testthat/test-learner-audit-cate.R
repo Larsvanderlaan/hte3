@@ -1,4 +1,4 @@
-test_that("CATE DR, R, and stratified T learners preserve a monotone signal on binary treatment data", {
+test_that("CATE DR, R, and two-stage stratified T learners preserve a monotone signal on binary treatment data", {
   skip_if_runtime_unavailable()
   data <- make_binary_cate_data()
   base_learner <- make_sl3_regression_learner(stats::gaussian())
@@ -16,6 +16,28 @@ test_that("CATE DR, R, and stratified T learners preserve a monotone signal on b
     expect_true(all(is.finite(predictions)))
     expect_monotone_signal(predictions, data$W1)
   }
+})
+
+test_that("CATE T learner only skips the second stage when modifiers equal confounders", {
+  skip_if_runtime_unavailable()
+  data <- make_binary_cate_data(seed = 4)
+  base_learner <- make_sl3_regression_learner(stats::gaussian())
+  reduced_task <- make_cate_task_for_test(data)
+  full_task <- make_cate_task_for_test(
+    data,
+    modifiers = c("W1", "W2", "W3"),
+    confounders = c("W1", "W2", "W3")
+  )
+
+  expect_error(
+    Lrnr_cate_T$new(base_learner = base_learner, second_stage_regression = FALSE)$train(reduced_task),
+    "only supported when `modifiers` and `confounders` are the same"
+  )
+
+  fit <- Lrnr_cate_T$new(base_learner = base_learner, second_stage_regression = FALSE)$train(full_task)
+  predictions <- predict_hte3(fit, data[, c("W1", "W2", "W3"), with = FALSE])
+  expect_length(predictions, nrow(data))
+  expect_true(all(is.finite(predictions)))
 })
 
 test_that("CATE pooled T learner returns a valid average contrast with additive base learners", {
@@ -137,13 +159,19 @@ test_that("R-learner warns once when modifiers are a strict subset of confounder
     "does not generally target"
   )
   expect_no_warning(
-    Lrnr_cate_R$new(base_learner = base_learner)$train(reduced_task)
+    suppress_known_runtime_warnings(
+      Lrnr_cate_R$new(base_learner = base_learner)$train(reduced_task)
+    )
   )
   expect_no_warning(
-    Lrnr_cate_R$new(base_learner = base_learner)$train(full_task)
+    suppress_known_runtime_warnings(
+      Lrnr_cate_R$new(base_learner = base_learner)$train(full_task)
+    )
   )
   expect_no_warning(
-    Lrnr_cate_DR$new(base_learner = base_learner)$train(reduced_task)
+    suppress_known_runtime_warnings(
+      Lrnr_cate_DR$new(base_learner = base_learner)$train(reduced_task)
+    )
   )
 })
 
@@ -189,6 +217,8 @@ test_that("EP does not warn on reduced modifier-set tasks", {
   base_learner <- make_sl3_regression_learner(stats::gaussian())
 
   expect_no_warning(
-    Lrnr_cate_EP$new(base_learner = base_learner, sieve_num_basis = 6)$train(make_cate_task_for_test(data))
+    suppress_known_runtime_warnings(
+      Lrnr_cate_EP$new(base_learner = base_learner, sieve_num_basis = 6)$train(make_cate_task_for_test(data))
+    )
   )
 })
