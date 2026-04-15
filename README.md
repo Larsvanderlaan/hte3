@@ -20,6 +20,11 @@ The production API has three main entry points:
 - `fit_cate()` fits conditional average treatment effect models.
 - `fit_crr()` fits conditional risk-ratio models with non-negative outcomes.
 
+In the CATE workflow, `modifiers` define the target covariate set `V` and
+`confounders` define the adjustment set `W` used for nuisance estimation.
+When `V` is smaller than `W`, the natural target is
+`E[Y(1) - Y(0) | V] = E[tau(W) | V]`.
+
 ## Installation
 
 ```r
@@ -143,6 +148,12 @@ cv_fit <- cross_validate_cate(
 
 - Continuous-treatment CATE tasks currently support `method = "r"` only, via
   the partially linear R-learner effect model `A * tau(X)`.
+- When `modifiers` are a strict subset of `confounders`, DR- and EP-learners
+  target the `V`-conditional CATE `E[Y(1) - Y(0) | V]` in the supported
+  binary/categorical-treatment setting.
+- In that same reduced-modifier setting, the current R-learner does not
+  generally target `E[Y(1) - Y(0) | V]`; it warns at fit time because it
+  instead learns an overlap-weighted projection onto functions of `V`.
 - CRR workflows require a non-negative outcome.
 - In the examples above, `cross_fit = FALSE` keeps the code lightweight. For
   analyses beyond simple examples, nuisance cross-fitting is generally preferred.

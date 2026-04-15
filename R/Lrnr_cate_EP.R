@@ -3,6 +3,9 @@
 #' This class defines the EP-learner of van der Laan et al. (2023) for estimation of the conditional average treatment effect.
 #'
 #' The EP-learner is a robust and doubly-robust meta-learner that inherits desirable properties of both T-learner and DR-learner.
+#' In the supported binary/categorical-treatment setting, it targets the
+#' conditional mean difference over the chosen modifier set `V`, namely
+#' `E[Y(1) - Y(0) | V]`.
 #' @format An R6 class with public methods to initialize the learner, create a regression task, and access the base learner.
 #' @import Sieve
 #' @param base_learner A \code{\link{sl3}} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.

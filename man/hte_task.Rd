@@ -26,9 +26,9 @@ hte_task(
 \arguments{
 \item{data}{A data frame or \code{data.table} containing treatment, outcome, modifiers, and confounders.}
 
-\item{modifiers}{Character vector of effect-modifier column names.}
+\item{modifiers}{Character vector of effect-modifier column names. These define the target modifier set \code{V}.}
 
-\item{confounders}{Character vector of adjustment-variable column names.}
+\item{confounders}{Character vector of adjustment-variable column names used for nuisance estimation. These define the adjustment set \code{W}.}
 
 \item{treatment}{Treatment column name.}
 
@@ -67,4 +67,11 @@ An \code{hte3_Task} object.
 \code{hte_task()} is the recommended high-level constructor for new users. It
 wraps \code{make_hte3_Task_tx()} with validated, production-oriented argument
 names.
+}
+\details{
+When \code{modifiers = V} and \code{confounders = W}, the natural CATE target is
+\code{E[Y(1) - Y(0) | V] = E[tau(W) | V]}. In the supported
+binary/categorical-treatment setting, DR- and EP-learners align with that
+modifier-conditional target. The current R-learner does not generally target
+that object when \code{V} is a strict subset of \code{W}; it warns at fit time.
 }

@@ -390,6 +390,20 @@ learner_library &lt;- Stack$new(
             view with an <code>A * tau(X)</code> term rather than a fully general
             treatment-response surface.
           </div>
+
+          <div class="callout">
+            <strong>Reduced-modifier-set note:</strong>
+            if the target modifiers are <code>V</code> and the nuisance adjustment
+            set is <code>W</code> with <code>V</code> a strict subset of <code>W</code>,
+            then the target of interest is <code>E[Y(1)-Y(0) | V] = E[tau(W) | V]</code>.
+            In the supported binary/categorical-treatment setting, DR- and EP-learners
+            target that surface. The current R-learner instead targets the
+            overlap-weighted projection
+            <code>f_R(V) = E[Var(A|W) tau(W) | V] / E[Var(A|W) | V]</code>,
+            which becomes
+            <code>E[e(W)(1-e(W)) tau(W) | V] / E[e(W)(1-e(W)) | V]</code>
+            for binary treatment.
+          </div>
         </section>
 
         <section class="section" id="resources" data-reveal>

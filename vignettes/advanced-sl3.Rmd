@@ -21,6 +21,16 @@ Use the advanced API to:
 - specify the exact low-level `Lrnr_*` candidates
 - call `cross_validate_cate()` or `cross_validate_crr()` yourself
 
+Keep the modifier target in mind when you build tasks manually. If
+`modifiers = V` and `confounders = W` with `V` a strict subset of `W`, then
+the target of interest is `E[Y(1) - Y(0) | V] = E[tau(W) | V]`. In the
+supported binary/categorical-treatment setting, DR- and EP-learners align
+with that target, while the current R-learner instead targets the
+overlap-weighted projection
+`f_R(V) = E[Var(A|W) tau(W) | V] / E[Var(A|W) | V]`. For binary treatment,
+this becomes
+`E[e(W)(1-e(W)) tau(W) | V] / E[e(W)(1-e(W)) | V]`.
+
 ```{r}
 library(hte3)
 library(sl3)
@@ -29,7 +39,7 @@ data <- hte3_example_data(n = 100, seed = 4)
 
 task <- make_hte3_Task_tx(
   data = data,
-  modifiers = c("W1", "W2", "W3"),
+  modifiers = c("W1", "W2"),
   confounders = c("W1", "W2", "W3"),
   treatment = "A",
   outcome = "Y",

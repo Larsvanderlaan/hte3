@@ -2,6 +2,10 @@
 #'
 #' This class defines a doubly-robust (DR) meta-learner of the conditional average treatment effect.
 #'
+#' In the supported binary/categorical-treatment setting, this learner targets
+#' the conditional mean difference over the chosen modifier set `V`, namely
+#' `E[Y(1) - Y(0) | V]`.
+#'
 #' @format An R6 class with public methods to initialize the learner, create a regression task, and access the base learner.
 #' @param base_learner A \code{\link{sl3}} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.
 #' @param treatment_level A treatment level encoding the treatment assignment of interest.

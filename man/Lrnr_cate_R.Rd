@@ -12,6 +12,13 @@ This class defines the R-learner of Xie and Wager (2021) for estimation of the c
 For continuous treatment, this implementation follows the partially linear
 effect-model view in which the outcome regression is decomposed using an
 \code{A * tau(X)} term rather than a fully general treatment-response surface.
+
+When the chosen modifier set \code{V} is a strict subset of the adjustment set
+\code{W}, the natural target is \code{E[Y(1) - Y(0) | V] = E[tau(W) | V]}. The
+current implementation does not generally target that object in the
+reduced-modifier setting. Instead, it learns the overlap-weighted projection
+\code{f_R(V) = E[Var(A|W) tau(W) | V] / E[Var(A|W) | V]}, which simplifies to
+\code{E[e(W)(1-e(W)) tau(W) | V] / E[e(W)(1-e(W)) | V]} for binary treatment.
 }
 \section{Super classes}{
 \code{\link[sl3:Lrnr_base]{sl3::Lrnr_base}} -> \code{hte3::Lrnr_hte} -> \code{Lrnr_cate_R}

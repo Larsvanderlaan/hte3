@@ -52,4 +52,11 @@ across multiple learner families.
 For continuous-treatment CATE tasks, the supported high-level method is
 \code{"r"} only. That path uses the partially linear R-learner effect model
 \code{A * tau(X)}.
+
+If \code{modifiers = V} and \code{confounders = W} with \code{V} a strict
+subset of \code{W}, the natural target is \code{E[Y(1) - Y(0) | V]}. In the
+supported binary/categorical-treatment setting, DR- and EP-learners target
+that modifier-conditional CATE surface. The current R-learner does not
+generally target that object in the reduced-modifier setting and warns at fit
+time.
 }

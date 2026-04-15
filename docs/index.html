@@ -203,7 +203,9 @@ pred &lt;- predict(fit)</code></pre>
               <code>fit_cate()</code> supports DR, R, EP, and T in the high-level API. <code>fit_crr()</code>
               supports EP, IPW, and T. For continuous-treatment CATE, the supported high-level path is the
               R-learner under a partially linear <code>A * tau(X)</code> effect model. Lower-level CRR classes
-              remain available through the advanced interface.
+              remain available through the advanced interface. When <code>modifiers</code> are a strict subset
+              of <code>confounders</code>, prefer DR or EP for the <code>V</code>-conditional CATE target;
+              the current R-learner instead targets an overlap-weighted projection and warns at fit time.
             </div>
             <div class="tab-row" data-method-buttons role="tablist" aria-label="Method choice"></div>
 

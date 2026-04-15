@@ -117,3 +117,78 @@ test_that("CATE learner validation catches unsupported treatment codings and sel
   expect_true(inherits(selector_fit$lrnr_sl, "Lrnr_sl"))
   expect_true(length(selector_fit$coefficients) >= 1L)
 })
+
+test_that("R-learner warns once when modifiers are a strict subset of confounders", {
+  skip_if_runtime_unavailable()
+  data <- make_binary_cate_data(seed = 22)
+  base_learner <- make_sl3_regression_learner(stats::gaussian())
+  reset_warning_registry <- getFromNamespace("reset_rlearner_target_warning_registry", "hte3")
+  reset_warning_registry()
+
+  reduced_task <- make_cate_task_for_test(data)
+  full_task <- make_cate_task_for_test(
+    data,
+    modifiers = c("W1", "W2", "W3"),
+    confounders = c("W1", "W2", "W3")
+  )
+
+  expect_warning(
+    Lrnr_cate_R$new(base_learner = base_learner)$train(reduced_task),
+    "does not generally target"
+  )
+  expect_no_warning(
+    Lrnr_cate_R$new(base_learner = base_learner)$train(reduced_task)
+  )
+  expect_no_warning(
+    Lrnr_cate_R$new(base_learner = base_learner)$train(full_task)
+  )
+  expect_no_warning(
+    Lrnr_cate_DR$new(base_learner = base_learner)$train(reduced_task)
+  )
+})
+
+test_that("fit_cate propagates the reduced-modifier-set R-learner warning", {
+  skip_if_runtime_unavailable()
+  data <- make_binary_cate_data(seed = 23)
+  base_learner <- make_sl3_regression_learner(stats::gaussian())
+  reset_warning_registry <- getFromNamespace("reset_rlearner_target_warning_registry", "hte3")
+  reset_warning_registry()
+
+  expect_warning(
+    fit_cate(
+      make_cate_task_for_test(data),
+      method = "r",
+      base_learner = base_learner,
+      cross_validate = FALSE
+    ),
+    "does not generally target"
+  )
+})
+
+test_that("DR and EP remain valid on reduced modifier-set targets", {
+  skip_if_runtime_unavailable(c("glmnet", "Sieve"))
+  data <- make_binary_cate_data(seed = 24)
+  base_learner <- make_sl3_regression_learner(stats::gaussian())
+  task <- make_cate_task_for_test(data)
+  modifier_data <- data[, c("W1", "W2"), with = FALSE]
+
+  dr_fit <- Lrnr_cate_DR$new(base_learner = base_learner)$train(task)
+  ep_fit <- Lrnr_cate_EP$new(base_learner = base_learner, sieve_num_basis = 6)$train(task)
+
+  for (fit in list(dr_fit, ep_fit)) {
+    predictions <- predict_hte3(fit, modifier_data)
+    expect_length(predictions, nrow(data))
+    expect_true(all(is.finite(predictions)))
+    expect_monotone_signal(predictions, data$W1)
+  }
+})
+
+test_that("EP does not warn on reduced modifier-set tasks", {
+  skip_if_runtime_unavailable(c("glmnet", "Sieve"))
+  data <- make_binary_cate_data(seed = 25)
+  base_learner <- make_sl3_regression_learner(stats::gaussian())
+
+  expect_no_warning(
+    Lrnr_cate_EP$new(base_learner = base_learner, sieve_num_basis = 6)$train(make_cate_task_for_test(data))
+  )
+})

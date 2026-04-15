@@ -1,3 +1,16 @@
+loss_cate_selector_squared_error <- function(pred, observed) {
+  pred <- coerce_scalar_numeric(pred, "selector predictions")
+  observed <- coerce_scalar_numeric(observed, "selector targets")
+
+  if (length(pred) != length(observed)) {
+    stop("CATE selector loss requires `pred` and `observed` to have matching lengths.", call. = FALSE)
+  }
+
+  out <- (pred - observed)^2
+  attributes(out)$name <- "mse"
+  out
+}
+
 #' @export
 Lrnr_cate_DR_selector <- R6Class(
   classname = "Lrnr_cate_DR_selector",
@@ -11,7 +24,7 @@ Lrnr_cate_DR_selector <- R6Class(
     ...
     ) {
       params <- list(treatment_level = treatment_level, control_level = control_level, ...)
-      base_learner <- Lrnr_cv_selector$new(loss_squared_error)
+      base_learner <- Lrnr_cv_selector$new(loss_cate_selector_squared_error)
       super$initialize(params = params, base_learner = base_learner,
                        transform_function = NULL,
                        pseudo_outcome_type = "continuous",

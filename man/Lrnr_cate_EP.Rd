@@ -8,6 +8,10 @@ An R6 class with public methods to initialize the learner, create a regression t
 }
 \description{
 This class defines the EP-learner of van der Laan et al. (2023) for estimation of the conditional average treatment effect.
+
+In the supported binary/categorical-treatment setting, it targets the
+conditional mean difference over the chosen modifier set \code{V}, namely
+\code{E[Y(1) - Y(0) | V]}.
 }
 \details{
 The EP-learner is a robust and doubly-robust meta-learner that inherits desirable properties of both T-learner and DR-learner.

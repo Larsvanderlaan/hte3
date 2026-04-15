@@ -1,7 +1,14 @@
 
 loss_crr_quasibinomial <- function (pred, observed)
 {
-  out <- log(1 + exp(pred)) - observed * pred
+  pred <- coerce_scalar_numeric(pred, "selector predictions")
+  observed <- coerce_scalar_numeric(observed, "selector targets")
+
+  if (length(pred) != length(observed)) {
+    stop("CRR selector loss requires `pred` and `observed` to have matching lengths.", call. = FALSE)
+  }
+
+  out <- log1p(exp(pred)) - observed * pred
   attributes(out)$name <- "crr"
   return(out)
 }

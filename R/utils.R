@@ -1,3 +1,5 @@
+hte3_warning_registry <- new.env(parent = emptyenv())
+
 call_with_args <- function(fun, args, silent = FALSE) {
   if (!is.function(fun)) {
     stop("`fun` must be a function.", call. = FALSE)
@@ -318,6 +320,61 @@ validate_supported_treatment_type <- function(hte3_task, supported_types, learne
   invisible(observed_type)
 }
 
+get_task_modifier_spec <- function(hte3_task) {
+  modifiers <- hte3_task$npsem$modifiers$variables
+  confounders <- hte3_task$npsem$confounders$variables
+
+  if (is.null(modifiers)) {
+    modifiers <- character()
+  }
+  if (is.null(confounders)) {
+    confounders <- modifiers
+  }
+
+  list(
+    modifiers = as.character(modifiers),
+    confounders = as.character(confounders)
+  )
+}
+
+warn_rlearner_reduced_modifier_target <- function(hte3_task) {
+  modifier_spec <- get_task_modifier_spec(hte3_task)
+  reduced_adjustment_set <- setdiff(modifier_spec$confounders, modifier_spec$modifiers)
+
+  if (length(reduced_adjustment_set) == 0L) {
+    return(invisible(FALSE))
+  }
+
+  warning_key <- paste(
+    "Lrnr_cate_R",
+    paste(sort(modifier_spec$modifiers), collapse = ","),
+    paste(sort(modifier_spec$confounders), collapse = ","),
+    sep = "|"
+  )
+
+  if (!exists(warning_key, envir = hte3_warning_registry, inherits = FALSE)) {
+    assign(warning_key, TRUE, envir = hte3_warning_registry)
+    warning(
+      paste(
+        "The current R-learner implementation does not generally target",
+        "`E[Y(1)-Y(0) | V]` when `modifiers` are a strict subset of",
+        "`confounders`. In that setting it instead targets an",
+        "overlap-weighted projection onto functions of the modifier set.",
+        "For the `V`-conditional CATE target, prefer DR- or EP-learner in",
+        "binary/categorical-treatment settings."
+      ),
+      call. = FALSE
+    )
+  }
+
+  invisible(TRUE)
+}
+
+reset_rlearner_target_warning_registry <- function() {
+  rm(list = ls(envir = hte3_warning_registry, all.names = TRUE), envir = hte3_warning_registry)
+  invisible(NULL)
+}
+
 validate_finite_vector <- function(x, label, lower = -Inf, upper = Inf, allow_na = FALSE) {
   if (!allow_na && anyNA(x)) {
     stop(sprintf("`%s` contains missing values.", label), call. = FALSE)
@@ -361,6 +418,39 @@ get_nuisance_vector <- function(hte3_task, node, label = node) {
   validate_vector_n(estimates, hte3_task$nrow, label)
   validate_finite_vector(estimates, label)
   estimates
+}
+
+coerce_scalar_numeric <- function(x, label) {
+  values <- coerce_prediction_matrix(x)
+
+  if (length(dim(values)) > 2L) {
+    stop(sprintf("`%s` must be coercible to a numeric vector.", label), call. = FALSE)
+  }
+
+  values <- as.vector(values)
+  values <- suppressWarnings(as.numeric(values))
+  validate_finite_vector(values, label)
+  values
+}
+
+coerce_numeric_treatment_values <- function(treatment, learner_name) {
+  if (is.data.frame(treatment) || is.matrix(treatment)) {
+    if (ncol(treatment) != 1L) {
+      stop(sprintf("`%s` requires a univariate treatment.", learner_name), call. = FALSE)
+    }
+    treatment <- as.vector(treatment[, 1])
+  }
+
+  if (is.logical(treatment)) {
+    return(as.numeric(treatment))
+  }
+
+  treatment_numeric <- suppressWarnings(as.numeric(as.character(treatment)))
+  if (anyNA(treatment_numeric)) {
+    stop(sprintf("`%s` requires numeric treatment coding.", learner_name), call. = FALSE)
+  }
+
+  treatment_numeric
 }
 
 extract_treatment_column <- function(estimates, treatment_level, label) {

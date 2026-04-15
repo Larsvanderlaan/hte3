@@ -26,7 +26,7 @@ const hteMethodData = {
           Call: 'fit_cate(task, method = "dr", ...)'
         },
         note:
-          "Uses both propensity and outcome nuisance estimates to form a doubly robust pseudo-outcome."
+          "Uses both propensity and outcome nuisance estimates to form a doubly robust pseudo-outcome. When modifiers define a reduced target set V, this is a target-aligned choice for E[Y(1)-Y(0) | V] in the supported binary/categorical-treatment setting."
       },
       r: {
         label: "R-learner",
@@ -43,6 +43,7 @@ const hteMethodData = {
           "Requires numeric treatment coding.",
           "For continuous treatment, relies on the partially linear A times tau(X) effect-model assumption.",
           "Can become unstable when treatment residuals are near zero.",
+          "When modifiers are a strict subset of confounders, does not generally target E[Y(1)-Y(0) | V].",
           "Does not use the same contrast-style interface as DR, EP, or T."
         ],
         meta: {
@@ -52,7 +53,7 @@ const hteMethodData = {
           Call: 'fit_cate(task, method = "r", ...)'
         },
         note:
-          "Residualizes treatment and outcome before learning the effect surface."
+          "Residualizes treatment and outcome before learning the effect surface. With a reduced modifier set V, this becomes an overlap-weighted projection target rather than E[Y(1)-Y(0) | V]."
       },
       ep: {
         label: "EP-learner",
@@ -77,7 +78,7 @@ const hteMethodData = {
           Call: 'fit_cate(task, method = "ep", ...)'
         },
         note:
-          "Combines arm-specific outcome regression with sieve-based debiasing."
+          "Combines arm-specific outcome regression with sieve-based debiasing. When modifiers define a reduced target set V, this is a target-aligned choice for E[Y(1)-Y(0) | V] in the supported binary/categorical-treatment setting."
       },
       t: {
         label: "T-learner",
