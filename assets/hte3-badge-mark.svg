@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">hte3 circular badge</title>
+  <desc id="desc">Circular badge with a simple regression tree inside a boxed panel, whose leaves show smaller and larger treatment contrasts, and plain hte3 text beneath it.</desc>
+  <g fill="none" fill-rule="evenodd">
+    <circle cx="512" cy="512" r="336" fill="#FFF8F0" stroke="#16323D" stroke-width="24"/>
+    <circle cx="512" cy="512" r="292" fill="none" stroke="#0D8A7A" stroke-opacity="0.14" stroke-width="10"/>
+
+    <rect x="310" y="318" width="404" height="224" rx="42" fill="#FFFDF9" stroke="#16323D" stroke-width="18"/>
+    <path d="M364 484h296" stroke="#16323D" stroke-opacity="0.12" stroke-linecap="round" stroke-width="8"/>
+    <path d="M364 404h296" stroke="#16323D" stroke-opacity="0.08" stroke-linecap="round" stroke-width="8"/>
+
+    <path d="M512 366v38" stroke="#0D8A7A" stroke-linecap="round" stroke-width="18"/>
+    <path d="M512 404L438 458" stroke="#0D8A7A" stroke-linecap="round" stroke-linejoin="round" stroke-width="18"/>
+    <path d="M512 404L586 458" stroke="#0D8A7A" stroke-linecap="round" stroke-linejoin="round" stroke-width="18"/>
+    <path d="M438 458H392" stroke="#0D8A7A" stroke-linecap="round" stroke-width="18"/>
+    <path d="M586 458H632" stroke="#0D8A7A" stroke-linecap="round" stroke-width="18"/>
+
+    <circle cx="512" cy="350" r="16" fill="#FFB562" stroke="#16323D" stroke-width="8"/>
+    <circle cx="438" cy="458" r="14" fill="#FFB562" stroke="#16323D" stroke-width="8"/>
+    <circle cx="586" cy="458" r="14" fill="#FFB562" stroke="#16323D" stroke-width="8"/>
+
+    <path d="M392 472V444" stroke="#16323D" stroke-opacity="0.24" stroke-linecap="round" stroke-width="8"/>
+    <circle cx="392" cy="444" r="13" fill="#0D8A7A" stroke="#16323D" stroke-width="8"/>
+    <circle cx="392" cy="472" r="13" fill="#FFB562" stroke="#16323D" stroke-width="8"/>
+
+    <path d="M632 500V428" stroke="#16323D" stroke-opacity="0.24" stroke-linecap="round" stroke-width="8"/>
+    <circle cx="632" cy="428" r="13" fill="#0D8A7A" stroke="#16323D" stroke-width="8"/>
+    <circle cx="632" cy="500" r="13" fill="#FFB562" stroke="#16323D" stroke-width="8"/>
+
+    <text x="512" y="668" fill="#16323D" font-family="'Avenir Next', 'Helvetica Neue', Arial, sans-serif" font-size="72" font-weight="700" text-anchor="middle">hte3</text>
+  </g>
+</svg>
