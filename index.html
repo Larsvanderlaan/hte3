@@ -201,7 +201,9 @@ pred &lt;- predict(fit)</code></pre>
             <div class="callout" style="margin-bottom: 18px;">
               <strong>Wrapper note:</strong>
               <code>fit_cate()</code> supports DR, R, EP, and T in the high-level API. <code>fit_crr()</code>
-              supports EP, IPW, and T. Lower-level CRR classes remain available through the advanced interface.
+              supports EP, IPW, and T. For continuous-treatment CATE, the supported high-level path is the
+              R-learner under a partially linear <code>A * tau(X)</code> effect model. Lower-level CRR classes
+              remain available through the advanced interface.
             </div>
             <div class="tab-row" data-method-buttons role="tablist" aria-label="Method choice"></div>
 
