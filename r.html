@@ -77,18 +77,19 @@
           <aside class="hero-panel" data-reveal>
             <div class="panel-card gradient-card" id="install">
               <p class="panel-label">Install</p>
-              <pre><code>if (!requireNamespace("remotes", quietly = TRUE)) {
+              <!-- BEGIN:install_block -->
+<pre><code>if (!requireNamespace("remotes", quietly = TRUE)) {
   install.packages("remotes")
 }
 
-remotes::install_github("Larsvanderlaan/hte3")</code></pre>
+remotes::install_github("Larsvanderlaan/hte3", dependencies = TRUE)</code></pre>
+              <!-- END:install_block -->
             </div>
             <div class="panel-card">
               <p class="panel-label">Default Modeling Stack</p>
-              <p class="panel-note">
-                If you do not pass learners manually, <code>hte3</code> uses
-                <code>get_autoML()</code> for the default nuisance and base-learner stack.
-              </p>
+              <!-- BEGIN:default_stack_note -->
+<p class="panel-note"> If you do not pass learners manually, <code>hte3</code> uses <code>get_autoML()</code> for the default nuisance and base-learner stack. That stack always includes <code>Lrnr_glmnet</code> and <code>Lrnr_gam</code>, and it adds the <code>earth</code>, <code>ranger</code>, and <code>xgboost</code> learners when those optional runtime packages are installed. </p>
+              <!-- END:default_stack_note -->
             </div>
           </aside>
         </div>
@@ -159,7 +160,7 @@ remotes::install_github("Larsvanderlaan/hte3")</code></pre>
                 </div>
                 <div class="summary-row">
                   <span>Default behavior</span>
-                  Propensity and outcome learners default to <code>get_autoML()</code>; override them only when custom nuisance models are required.
+                  Propensity and outcome learners default to <code>get_autoML()</code>; override them only when custom nuisance models are required. The stack always includes core learners and adds the optional <code>earth</code>, <code>ranger</code>, and <code>xgboost</code> components when they are installed.
                 </div>
               </div>
             </article>
@@ -184,7 +185,7 @@ remotes::install_github("Larsvanderlaan/hte3")</code></pre>
                 </div>
                 <div class="summary-row">
                   <span>Use when</span>
-                  Your target is a conditional mean difference. For continuous-treatment CATE tasks, the supported high-level method is currently <code>"r"</code>, using the partially linear R-learner effect model <code>A * tau(X)</code>. When <code>modifiers</code> are a strict subset of <code>confounders</code>, DR and EP target <code>E[Y(1)-Y(0) | V]</code>; the current R-learner warns because it does not generally target that reduced-modifier estimand.
+                  Your target is a conditional mean difference. For continuous-treatment CATE tasks, the supported high-level method is currently <code>"r"</code>, using the partially linear R-learner effect model <code>A * tau(X)</code>. When <code>modifiers</code> are a strict subset of <code>confounders</code>, DR, EP, and the default two-stage T-learner target <code>E[Y(1)-Y(0) | V]</code>; the current R-learner warns because it does not generally target that reduced-modifier estimand.
                 </div>
               </div>
             </article>
@@ -295,9 +296,9 @@ remotes::install_github("Larsvanderlaan/hte3")</code></pre>
           <div class="argument-grid argument-grid-four">
             <article class="argument-card">
               <h3><code>get_autoML()</code></h3>
-              <p>
-                <code>hte_task()</code> defaults the propensity and outcome learners to <code>get_autoML()</code>, and the fit wrappers default <code>base_learner</code> to the same stack.
-              </p>
+              <!-- BEGIN:r_defaults_note -->
+<p> <code>hte_task()</code> defaults the propensity and outcome learners to <code>get_autoML()</code>, and the fit wrappers default <code>base_learner</code> to the same stack. The stack always includes its core learners and adds <code>earth</code>, <code>ranger</code>, and <code>xgboost</code> components when those optional packages are available. </p>
+              <!-- END:r_defaults_note -->
             </article>
             <article class="argument-card">
               <h3><code>cross_fit</code> in <code>hte_task()</code></h3>
@@ -387,6 +388,13 @@ summary(fit)</code></pre>
               <p>Use this vignette when relative effects and nonnegative outcomes are the appropriate target.</p>
               <div class="resource-links">
                 <a class="resource-link" href="https://github.com/Larsvanderlaan/hte3/blob/main/vignettes/crr.Rmd">Open source vignette</a>
+              </div>
+            </article>
+            <article class="resource-card">
+              <h3>EP-learner sieve tuning</h3>
+              <p>Explains the Sieve-based EP construction, basis ordering, and paper-faithful sieve CV grids.</p>
+              <div class="resource-links">
+                <a class="resource-link" href="https://github.com/Larsvanderlaan/hte3/blob/main/vignettes/ep-learner.Rmd">Open source vignette</a>
               </div>
             </article>
             <article class="resource-card">

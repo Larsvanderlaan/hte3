@@ -106,7 +106,7 @@ const hteMethodData = {
           "Fits outcome models separately by treatment arm and subtracts them."
       }
     },
-    defaultMethod: "r"
+    defaultMethod: "dr"
   },
   crr: {
     title: "Conditional Risk Ratios",
