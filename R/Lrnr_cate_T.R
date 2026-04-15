@@ -6,6 +6,7 @@
 #' @format An R6 class with public methods to initialize the learner, create a regression task, and access the base learner.
 #' @param stratify_by_treatment Logical indicating whether to estimate outcome regression separately in each treatment arm (i.e., T-learner) or pooled across treatment arms (i.e., S-learner).
 #' @param base_learner A \code{\link{sl3}} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.
+#' @details When \code{stratify_by_treatment = FALSE}, the learner acts as a pooled S-learner and estimates the contrast by counterfactual prediction under each treatment level. Heterogeneous effects will only be recovered if the supplied \code{base_learner} can represent treatment-modifier interactions.
 #' @export
 Lrnr_cate_T <- R6Class(
   classname = "Lrnr_cate_T", inherit = Lrnr_hte,
@@ -43,7 +44,7 @@ Lrnr_cate_T <- R6Class(
       self$check_treatment_type(hte3_task)
       learner_task <- self$make_metalearner_task(hte3_task)
       contrast <- resolve_treatment_levels(hte3_task, self$params$treatment_level, self$params$control_level)
-      train_tlearner_models(
+      fit_object <- train_tlearner_models(
         self$base_learner,
         learner_task,
         hte3_task,
@@ -51,11 +52,17 @@ Lrnr_cate_T <- R6Class(
         control_level = contrast$control_level,
         stratify_by_treatment = self$params$stratify_by_treatment
       )
+      fit_object$prediction_template <- make_prediction_template(hte3_task)
+      fit_object$contrast_levels <- contrast
+      fit_object
     },
     .predict = function(hte3_task) {
       fit_object <- self$fit_object
-      learner_task <- self$make_metalearner_task(hte3_task)
-      contrast <- resolve_treatment_levels(hte3_task, self$params$treatment_level, self$params$control_level)
+      contrast <- fit_object$contrast_levels
+      learner_task <- NULL
+      if (isTRUE(self$params$stratify_by_treatment)) {
+        learner_task <- hte3_task$next_in_chain(covariates = hte3_task$npsem$modifiers$variables)
+      }
       means <- predict_tlearner_means(
         fit_object,
         hte3_task,

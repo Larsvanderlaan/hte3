@@ -17,24 +17,17 @@ URL: https://github.com/Larsvanderlaan/hte3
 BugReports: https://github.com/Larsvanderlaan/hte3/issues
 VignetteBuilder: knitr
 Imports: 
-  assertthat,
   data.table,
-  digest,
-  doMC,
-  earth,
-  fastglm,
-  future,
   glmnet,
-  hal9001,
-  origami,
   R6,
   Sieve,
   sl3,
   stats,
-  stringr,
   tmle3,
   uuid
 Suggests:
+  earth,
+  fastglm,
   knitr,
   lintr,
   pkgdown,

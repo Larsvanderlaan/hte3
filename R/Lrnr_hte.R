@@ -163,7 +163,10 @@ Lrnr_hte <- R6Class(
       # some learners dont handle zero weights well for training
       learner_trained <- base_learner$train(learner_task)
       private$.base_learner <- learner_trained
-      fit_object = list(base_learner_trained = learner_trained)
+      fit_object = list(
+        base_learner_trained = learner_trained,
+        prediction_template = make_prediction_template(hte3_task)
+      )
       return(fit_object)
     },
     .predict = function(hte3_task) {

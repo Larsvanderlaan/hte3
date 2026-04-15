@@ -15,6 +15,23 @@ estimate_m(
   ...
 )
 }
+\arguments{
+\item{W}{Covariate matrix or data frame used to estimate the conditional mean outcome.}
+
+\item{Y}{Observed outcomes.}
+
+\item{learner}{Base \code{sl3} learner used for the regression fit.}
+
+\item{weights}{Optional observation weights.}
+
+\item{cross_fit_and_cv}{Whether to wrap the nuisance learner in cross-fitting and learner selection.}
+
+\item{return_learner}{Whether to include the trained learner in the returned list.}
+
+\item{folds}{Cross-validation fold specification passed to the constructed \code{sl3_Task}.}
+
+\item{...}{Additional arguments forwarded to \code{\link[sl3]{sl3_Task}}.}
+}
 \description{
 Helper function for estimation of treatment-averaged outcome regression using \code{sl3}.
 }

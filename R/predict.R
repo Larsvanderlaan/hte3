@@ -16,21 +16,31 @@ predict_hte3 <- function(hte3_learner, new_data) {
     return(hte3_learner$predict(new_data))
   }
 
-  new_data <- as.data.table(new_data)
+  new_data <- data.table::copy(as.data.table(new_data))
   if (!hte3_learner$is_trained) {
     stop("hte3_learner must be a trained hte3 learner object.")
   }
   task <- hte3_learner$training_task
-  required_covariates <- task$npsem$modifiers$variables
+  prediction_template <- hte3_learner$fit_object$prediction_template
+  npsem <- if (!is.null(prediction_template$npsem_spec)) {
+    rebuild_prediction_npsem(prediction_template$npsem_spec)
+  } else if (!is.null(prediction_template$npsem)) {
+    prediction_template$npsem
+  } else {
+    task$npsem
+  }
+  nodes <- if (!is.null(prediction_template)) prediction_template$nodes else task$nodes
+
+  required_covariates <- npsem$modifiers$variables
   assert_columns_present(new_data, required_covariates, "modifier")
 
-  id_var <- task$nodes$id
-  weight_var <- task$nodes$weights
-  npsem_columns <- unique(unlist(lapply(task$npsem, `[[`, "variables")))
+  id_var <- nodes$id
+  weight_var <- nodes$weights
+  npsem_columns <- unique(unlist(lapply(npsem, `[[`, "variables")))
 
   missing_npsem_cols <- setdiff(npsem_columns, names(new_data))
   for (column in missing_npsem_cols) {
-    new_data[[column]] <- NA
+    new_data[[column]] <- default_prediction_column(column, task, npsem, nrow(new_data))
   }
 
   if (!is.null(id_var) && !(id_var %in% names(new_data))) {
@@ -43,8 +53,8 @@ predict_hte3 <- function(hte3_learner, new_data) {
 
   new_task <- hte3_Task$new(
     new_data,
-    npsem = task$npsem,
-    likelihood = Likelihood$new(factor_list = list()),
+    npsem = npsem,
+    likelihood = NULL,
     id = id_var,
     weights = weight_var
   )

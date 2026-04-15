@@ -1,5 +1,4 @@
 
-#' @export
 loss_crr_quasibinomial <- function (pred, observed)
 {
   out <- log(1 + exp(pred)) - observed * pred

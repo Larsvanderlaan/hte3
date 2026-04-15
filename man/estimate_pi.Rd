@@ -7,7 +7,7 @@
 estimate_pi(
   W,
   A,
-  binomial_learner = Lrnr_gam$new(family = "gaussian"),
+  binomial_learner = Lrnr_gam$new(family = "binomial"),
   weights = NULL,
   treatment_level = max(A),
   cross_fit_and_cv = TRUE,
@@ -15,6 +15,25 @@ estimate_pi(
   folds = 10,
   ...
 )
+}
+\arguments{
+\item{W}{Covariate matrix or data frame used to estimate the propensity score.}
+
+\item{A}{Observed treatment assignments.}
+
+\item{binomial_learner}{Base \code{sl3} learner used for the binomial treatment regression.}
+
+\item{weights}{Optional observation weights.}
+
+\item{treatment_level}{Treatment level defining the positive class for the returned propensity estimates.}
+
+\item{cross_fit_and_cv}{Whether to wrap the nuisance learner in cross-fitting and learner selection.}
+
+\item{return_learner}{Whether to include the trained learner in the returned list.}
+
+\item{folds}{Cross-validation fold specification passed to the constructed \code{sl3_Task}.}
+
+\item{...}{Additional arguments forwarded to \code{\link[sl3]{sl3_Task}}.}
 }
 \description{
 Helper function for estimation of propensity score using \code{sl3}.

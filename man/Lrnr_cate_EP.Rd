@@ -70,7 +70,7 @@ The EP-learner is a robust and doubly-robust meta-learner that inherits desirabl
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{base_learner}}{A \code{\link{sl3}} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.}
+\item{\code{base_learner}}{A \pkg{sl3} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.}
 
 \item{\code{sieve_num_basis}}{The number of trigonometric basis functions to construct the EP-learner sieve space.
 This argument is passed as the argument \code{basisN} to the function \code{\link[Sieve]{sieve_preprocess}}.

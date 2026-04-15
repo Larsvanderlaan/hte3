@@ -44,14 +44,14 @@ hte3_Task <- R6Class(
 
       if (is.null(likelihood)) {
         likelihood <- Likelihood$new(factor_list = list())
-      } else {
+      } else if (length(likelihood$factor_list) > 0L) {
         likelihood$train(self)
       }
 
       private$.likelihood <- likelihood
     },
     add_nuisance_estimator = function(node, learner) {
-      factor <- LF_fit$new(node, learner, type = "mean")
+      factor <- LF_fit_hte3$new(node, learner, type = "mean")
       self$likelihood$add_factors(list(factor))
     },
     get_nuisance_estimates = function(nodes, hte3_task = NULL, fold_number = "validation") {
@@ -182,6 +182,7 @@ hte3_Task <- R6Class(
     },
     data = function() {
       all_variables <- unique(c(unlist(lapply(self$npsem, `[[`, "variables")), unlist(self$nodes )))
+      all_variables <- all_variables[!is.na(all_variables) & nzchar(all_variables)]
       self$get_data(columns = all_variables)
     }
   ),

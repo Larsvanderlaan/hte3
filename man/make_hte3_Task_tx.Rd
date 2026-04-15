@@ -77,7 +77,13 @@ If a \code{Stack} object, the best model is selected using cross-validation.}
 
 \item{for_prediction}{A \code{boolean} of whether to return an hte3_Task without the nuisance training and estimates. This can be useful when you wish to construct a task for predicting on a new dataset.}
 
-\item{...}{Additional arguments to pass to the \code{\link[sl3]{sl3_Task}} and \code{\link[tmle3]{tmle_Task}} constructors.}
+\item{treatment_type}{Treatment type declaration. Use \code{"default"} to infer the type from the observed treatment column or one of \code{"binomial"}, \code{"categorical"}, or \code{"continuous"} to set it explicitly.}
+
+\item{folds}{Cross-validation fold specification passed through to the constructed task.}
+
+\item{warn}{Whether to emit coercion warnings, for example when converting a categorical treatment column to a factor.}
+
+\item{...}{Additional arguments to pass to the \code{\link[sl3]{sl3_Task}} and \code{\link[tmle3]{tmle3_Task}} constructors.}
 
 \item{modifiers}{A character vector of variable names in \code{colnames(data)} for treatment effect moderators.}
 }

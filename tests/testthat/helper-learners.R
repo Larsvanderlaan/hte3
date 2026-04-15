@@ -10,7 +10,13 @@ make_sl3_regression_learner <- function(family = stats::gaussian()) {
   exports <- getNamespaceExports("sl3")
 
   if ("Lrnr_glm_fast" %in% exports) {
-    return(sl3::Lrnr_glm_fast$new(family = family))
+    learner <- tryCatch(
+      sl3::Lrnr_glm_fast$new(family = family),
+      error = function(...) NULL
+    )
+    if (!is.null(learner)) {
+      return(learner)
+    }
   }
 
   if ("Lrnr_glm" %in% exports) {
@@ -18,6 +24,16 @@ make_sl3_regression_learner <- function(family = stats::gaussian()) {
   }
 
   skip("Need `sl3::Lrnr_glm_fast` or `sl3::Lrnr_glm` for learner audit tests.")
+}
+
+make_sl3_interaction_learner <- function() {
+  exports <- getNamespaceExports("sl3")
+
+  if (!("Lrnr_earth" %in% exports) || !requireNamespace("earth", quietly = TRUE)) {
+    skip("Need `sl3::Lrnr_earth` and `earth` for pooled T-learner interaction tests.")
+  }
+
+  sl3::Lrnr_earth$new(degree = 2)
 }
 
 make_binary_cate_data <- function(n = 240, seed = 1) {
@@ -95,7 +111,13 @@ make_categorical_crr_data <- function(n = 360, seed = 4) {
   data.table::data.table(W1 = W1, W2 = W2, W3 = W3, A = A, Y = Y)
 }
 
-make_cate_task_for_test <- function(data, treatment = "A", outcome = "Y", treatment_type = "default") {
+make_cate_task_for_test <- function(data,
+                                    treatment = "A",
+                                    outcome = "Y",
+                                    treatment_type = "default",
+                                    propensity = NULL,
+                                    outcome_regression = NULL,
+                                    outcome_mean = NULL) {
   propensity_learner <- make_sl3_regression_learner(stats::binomial())
   outcome_learner <- make_sl3_regression_learner(stats::gaussian())
   mean_learner <- make_sl3_regression_learner(stats::gaussian())
@@ -107,6 +129,9 @@ make_cate_task_for_test <- function(data, treatment = "A", outcome = "Y", treatm
     treatment = treatment,
     outcome = outcome,
     treatment_type = treatment_type,
+    propensity = propensity,
+    outcome_regression = outcome_regression,
+    outcome_mean = outcome_mean,
     propensity_learner = propensity_learner,
     outcome_learner = outcome_learner,
     mean_learner = mean_learner,
@@ -114,7 +139,13 @@ make_cate_task_for_test <- function(data, treatment = "A", outcome = "Y", treatm
   )
 }
 
-make_crr_task_for_test <- function(data, treatment = "A", outcome = "Y", treatment_type = "default") {
+make_crr_task_for_test <- function(data,
+                                   treatment = "A",
+                                   outcome = "Y",
+                                   treatment_type = "default",
+                                   propensity = NULL,
+                                   outcome_regression = NULL,
+                                   outcome_mean = NULL) {
   propensity_learner <- make_sl3_regression_learner(stats::binomial())
   outcome_learner <- make_sl3_regression_learner(stats::binomial())
   mean_learner <- make_sl3_regression_learner(stats::binomial())
@@ -126,6 +157,9 @@ make_crr_task_for_test <- function(data, treatment = "A", outcome = "Y", treatme
     treatment = treatment,
     outcome = outcome,
     treatment_type = treatment_type,
+    propensity = propensity,
+    outcome_regression = outcome_regression,
+    outcome_mean = outcome_mean,
     propensity_learner = propensity_learner,
     outcome_learner = outcome_learner,
     mean_learner = mean_learner,
@@ -136,4 +170,8 @@ make_crr_task_for_test <- function(data, treatment = "A", outcome = "Y", treatme
 expect_monotone_signal <- function(predictions, signal, threshold = 0) {
   groups <- signal > stats::median(signal)
   expect_gt(mean(predictions[groups]), mean(predictions[!groups]) + threshold)
+}
+
+expect_positive_average_signal <- function(predictions, threshold = 0) {
+  expect_gt(mean(predictions), threshold)
 }

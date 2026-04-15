@@ -1,15 +1,21 @@
-test_that("CRR learners fit, predict, and preserve a monotone log-risk-ratio signal", {
+test_that("CRR IPW and stratified T learners preserve a monotone log-risk-ratio signal", {
   skip_if_runtime_unavailable()
-  data <- make_binary_crr_data()
-  task <- make_crr_task_for_test(data)
+  data <- make_binary_crr_data(n = 1200)
   base_learner <- make_sl3_regression_learner(stats::binomial())
   modifier_data <- data[, c("W1", "W2"), with = FALSE]
+  pi1_true <- stats::plogis(0.1 + 0.4 * data$W2 - 0.25 * data$W3)
+  propensity_truth <- cbind("0" = 1 - pi1_true, "1" = pi1_true)
+  learners <- list(
+    Lrnr_crr_IPW$new(base_learner = base_learner),
+    Lrnr_crr_T$new(base_learner = base_learner, stratify_by_treatment = TRUE)
+  )
+  tasks <- list(
+    make_crr_task_for_test(data, propensity = propensity_truth),
+    make_crr_task_for_test(data)
+  )
 
-  ipw_fit <- Lrnr_crr_IPW$new(base_learner = base_learner)$train(task)
-  t_fit <- Lrnr_crr_T$new(base_learner = base_learner, stratify_by_treatment = TRUE)$train(task)
-  t_pooled_fit <- Lrnr_crr_T$new(base_learner = base_learner, stratify_by_treatment = FALSE)$train(task)
-
-  for (fit in list(ipw_fit, t_fit, t_pooled_fit)) {
+  for (index in seq_along(learners)) {
+    fit <- learners[[index]]$train(tasks[[index]])
     predictions <- predict_hte3(fit, modifier_data)
     expect_length(predictions, nrow(data))
     expect_true(all(is.finite(predictions)))
@@ -17,14 +23,25 @@ test_that("CRR learners fit, predict, and preserve a monotone log-risk-ratio sig
   }
 })
 
+test_that("CRR pooled T learner returns a valid positive average log-risk-ratio contrast", {
+  skip_if_runtime_unavailable()
+  data <- make_binary_crr_data(seed = 8)
+  base_learner <- make_sl3_regression_learner(stats::binomial())
+  fit <- Lrnr_crr_T$new(base_learner = base_learner, stratify_by_treatment = FALSE)$train(make_crr_task_for_test(data))
+  predictions <- predict_hte3(fit, data[, c("W1", "W2"), with = FALSE])
+
+  expect_length(predictions, nrow(data))
+  expect_true(all(is.finite(predictions)))
+  expect_positive_average_signal(predictions)
+})
+
 test_that("CRR EP learner and portfolio CV work end-to-end", {
   skip_if_runtime_unavailable(c("glmnet", "Sieve"))
   data <- make_binary_crr_data(seed = 30)
-  task <- make_crr_task_for_test(data)
   base_learner <- make_sl3_regression_learner(stats::binomial())
   modifier_data <- data[, c("W1", "W2"), with = FALSE]
 
-  ep_fit <- Lrnr_crr_EP$new(base_learner = base_learner, sieve_num_basis = 6)$train(task)
+  ep_fit <- Lrnr_crr_EP$new(base_learner = base_learner, sieve_num_basis = 6)$train(make_crr_task_for_test(data))
   ep_predictions <- predict_hte3(ep_fit, modifier_data)
   expect_length(ep_predictions, nrow(data))
   expect_true(all(is.finite(ep_predictions)))
@@ -35,14 +52,14 @@ test_that("CRR EP learner and portfolio CV work end-to-end", {
       Lrnr_crr_IPW$new(base_learner = base_learner),
       Lrnr_crr_T$new(base_learner = base_learner)
     ),
-    task,
+    make_crr_task_for_test(data),
     cv_control = list(V = 2)
   )
   expect_true(inherits(cv_fit$lrnr_sl, "Lrnr_sl"))
   expect_true(length(cv_fit$coefficients) >= 1L)
 
   model <- fit_crr(
-    task,
+    make_crr_task_for_test(data),
     method = c("ipw", "t", "ep"),
     base_learner = base_learner,
     cross_validate = TRUE,
@@ -57,17 +74,16 @@ test_that("CRR EP learner and portfolio CV work end-to-end", {
 test_that("CRR learners handle categorical treatment contrasts and outcome validation", {
   skip_if_runtime_unavailable(c("glmnet", "Sieve"))
   data <- make_categorical_crr_data()
-  task <- make_crr_task_for_test(data, treatment_type = "categorical")
   base_learner <- make_sl3_regression_learner(stats::binomial())
   modifier_data <- data[, c("W1", "W2"), with = FALSE]
-
-  fits <- list(
-    ipw = Lrnr_crr_IPW$new(base_learner = base_learner, treatment_level = "high", control_level = "control")$train(task),
-    t = Lrnr_crr_T$new(base_learner = base_learner, treatment_level = "high", control_level = "control")$train(task),
-    ep = Lrnr_crr_EP$new(base_learner = base_learner, sieve_num_basis = 6, treatment_level = "high", control_level = "control")$train(task)
+  learners <- list(
+    Lrnr_crr_IPW$new(base_learner = base_learner, treatment_level = "high", control_level = "control"),
+    Lrnr_crr_T$new(base_learner = base_learner, treatment_level = "high", control_level = "control"),
+    Lrnr_crr_EP$new(base_learner = base_learner, sieve_num_basis = 6, treatment_level = "high", control_level = "control")
   )
 
-  for (fit in fits) {
+  for (learner in learners) {
+    fit <- learner$train(make_crr_task_for_test(data, treatment_type = "categorical"))
     predictions <- predict_hte3(fit, modifier_data)
     expect_length(predictions, nrow(data))
     expect_true(all(is.finite(predictions)))

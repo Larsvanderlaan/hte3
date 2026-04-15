@@ -10,6 +10,10 @@ make_ep_stack(base_learner, hte3_task, treatment_level = 1, control_level = 0)
 \item{base_learner}{The base learner of \code{Lrnr_cate_EP}.}
 
 \item{hte3_task}{A \code{hte3_Task} object containing the data and necessary information for the heterogeneous treatment effect estimation.}
+
+\item{treatment_level}{Treatment level used for the treated arm in each EP learner in the stack.}
+
+\item{control_level}{Reference treatment level used for the control arm in each EP learner in the stack.}
 }
 \value{
 A stack of CATE EP meta-learners with varying sieve basis sizes.

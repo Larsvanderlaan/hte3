@@ -19,12 +19,123 @@ call_with_args <- function(fun, args, silent = FALSE) {
   }
 }
 
+make_prediction_template <- function(hte3_task) {
+  npsem_spec <- lapply(hte3_task$npsem, function(node) {
+    variable_type <- node$variable_type
+    variable_type_spec <- NULL
+
+    if (!is.null(variable_type)) {
+      variable_type_spec <- list(
+        type = variable_type$type,
+        levels = variable_type$levels,
+        bounds = variable_type$bounds
+      )
+    }
+
+    list(
+      name = node$name,
+      variables = node$variables,
+      parents = node$parents,
+      variable_type = variable_type_spec,
+      censoring_node = node$censoring_node,
+      scale = node$scale
+    )
+  })
+
+  list(
+    npsem_spec = npsem_spec,
+    nodes = unserialize(serialize(hte3_task$nodes, NULL))
+  )
+}
+
+rebuild_prediction_npsem <- function(npsem_spec) {
+  lapply(npsem_spec, function(node_spec) {
+    variable_type <- NULL
+    if (!is.null(node_spec$variable_type)) {
+      variable_type <- sl3::variable_type(
+        type = node_spec$variable_type$type,
+        levels = node_spec$variable_type$levels,
+        bounds = node_spec$variable_type$bounds
+      )
+    }
+
+    define_node(
+      node_spec$name,
+      node_spec$variables,
+      node_spec$parents,
+      variable_type = variable_type,
+      censoring_node = node_spec$censoring_node,
+      scale = isTRUE(node_spec$scale)
+    )
+  })
+}
+
+default_prediction_column <- function(column, task, npsem, n) {
+  if (!is.null(task) && column %in% names(task$data)) {
+    reference <- task$data[[column]]
+    first_observed <- which(!is.na(reference))[1]
+    if (!is.na(first_observed)) {
+      value <- reference[[first_observed]]
+      if (is.factor(reference)) {
+        return(factor(rep(as.character(value), n), levels = levels(reference)))
+      }
+      return(rep(value, n))
+    }
+  }
+
+  node_index <- which(vapply(npsem, function(node) column %in% node$variables, logical(1)))[1]
+  if (!is.na(node_index)) {
+    variable_type <- npsem[[node_index]]$variable_type
+    if (!is.null(variable_type)) {
+      if (identical(variable_type$type, "categorical") && length(variable_type$levels) > 0L) {
+        return(factor(rep(variable_type$levels[[1]], n), levels = variable_type$levels))
+      }
+      if (identical(variable_type$type, "binomial")) {
+        return(rep(0, n))
+      }
+    }
+  }
+
+  rep(0, n)
+}
+
 coerce_prediction_matrix <- function(predictions) {
   if (inherits(predictions, "packed_predictions")) {
+    unpacked <- predictions[[1]]
+    if (is.atomic(unpacked)) {
+      output <- matrix(as.numeric(unpacked), nrow = 1L)
+      if (!is.null(names(unpacked))) {
+        colnames(output) <- names(unpacked)
+      }
+      return(output)
+    }
+
     return(as.matrix(predictions))
   }
 
   if (is.matrix(predictions)) {
+    if (is.list(predictions)) {
+      unpacked <- lapply(as.vector(predictions), coerce_prediction_matrix)
+      row_dims <- vapply(unpacked, nrow, integer(1))
+      col_dims <- vapply(unpacked, ncol, integer(1))
+
+      if (ncol(predictions) == 1L &&
+          length(unique(row_dims)) == 1L &&
+          unique(row_dims) > 1L &&
+          length(unique(col_dims)) == 1L &&
+          unique(col_dims) == 1L) {
+        return(do.call(rbind, lapply(unpacked, t)))
+      }
+
+      if (length(unique(row_dims)) == 1L && unique(row_dims) == 1L) {
+        return(do.call(rbind, unpacked))
+      }
+
+      if (length(unique(col_dims)) == 1L && unique(col_dims) == 1L) {
+        return(do.call(cbind, unpacked))
+      }
+    }
+
     return(predictions)
   }
 
@@ -37,9 +148,16 @@ coerce_prediction_matrix <- function(predictions) {
       return(coerce_prediction_matrix(predictions[[1]]))
     }
 
-    same_length <- vapply(predictions, length, integer(1))
-    if (length(unique(same_length)) == 1L) {
-      return(do.call(cbind, predictions))
+    unpacked <- lapply(predictions, coerce_prediction_matrix)
+    row_dims <- vapply(unpacked, nrow, integer(1))
+    col_dims <- vapply(unpacked, ncol, integer(1))
+
+    if (length(unique(row_dims)) == 1L && unique(row_dims) == 1L) {
+      return(do.call(rbind, unpacked))
+    }
+
+    if (length(unique(col_dims)) == 1L && unique(col_dims) == 1L) {
+      return(do.call(cbind, unpacked))
     }
   }
 
@@ -221,7 +339,7 @@ validate_finite_vector <- function(x, label, lower = -Inf, upper = Inf, allow_na
 }
 
 get_nuisance_matrix <- function(hte3_task, node, label = node) {
-  estimates <- as.matrix(hte3_task$get_nuisance_estimates(node))
+  estimates <- coerce_prediction_matrix(hte3_task$get_nuisance_estimates(node))
   validate_matrix_n(estimates, hte3_task$nrow, label)
   validate_finite_vector(as.vector(estimates), label)
 
@@ -233,7 +351,13 @@ get_nuisance_matrix <- function(hte3_task, node, label = node) {
 }
 
 get_nuisance_vector <- function(hte3_task, node, label = node) {
-  estimates <- as.vector(hte3_task$get_nuisance_estimates(node))
+  estimates <- coerce_prediction_matrix(hte3_task$get_nuisance_estimates(node))
+
+  if (ncol(estimates) != 1L) {
+    stop(sprintf("`%s` must have exactly one column.", label), call. = FALSE)
+  }
+
+  estimates <- as.vector(estimates[, 1])
   validate_vector_n(estimates, hte3_task$nrow, label)
   validate_finite_vector(estimates, label)
   estimates
@@ -348,19 +472,16 @@ compute_crr_ratio_pseudo_data <- function(hte3_task, treatment_level = NULL, con
 }
 
 make_tlearner_task <- function(hte3_task) {
-  training_task <- hte3_task$next_in_chain(
-    covariates = c(hte3_task$npsem$modifiers$variables, hte3_task$npsem$treatment$variables),
-    outcome = hte3_task$npsem$outcome$variables
-  )
+  covariates <- c(hte3_task$npsem$modifiers$variables, hte3_task$npsem$treatment$variables)
+  outcome <- hte3_task$npsem$outcome$variables
 
-  # Rebuild as an sl3 task so outcome typing does not force binomial models in
-  # meta-learners that regress treatment-specific means on modifiers.
   sl3_Task$new(
-    training_task$internal_data,
-    column_names = training_task$column_names,
-    row_index = training_task$row_index,
-    nodes = training_task$nodes,
-    folds = training_task$folds
+    data.table::copy(hte3_task$data),
+    covariates = covariates,
+    outcome = outcome,
+    id = hte3_task$nodes$id,
+    weights = hte3_task$nodes$weights,
+    folds = hte3_task$folds
   )
 }
 
@@ -393,6 +514,35 @@ make_counterfactual_treatment_task <- function(hte3_task, treatment_level) {
   hte3_task$generate_counterfactual_task(uuid::UUIDgenerate(), counterfactual_data)
 }
 
+make_tlearner_prediction_task <- function(hte3_task, treatment_level) {
+  treatment_name <- hte3_task$npsem$treatment$variables
+  data <- data.table::copy(hte3_task$data)
+  treatment_type <- canonicalize_treatment_type(hte3_task$npsem$treatment$variable_type$type)
+  replacement <- rep(treatment_level, nrow(data))
+
+  if (identical(treatment_type, "categorical")) {
+    treatment_levels <- hte3_task$npsem$treatment$variable_type$levels
+    replacement <- factor(as.character(replacement), levels = treatment_levels)
+  } else if (identical(treatment_type, "binomial") || identical(treatment_type, "continuous")) {
+    replacement <- as.numeric(replacement)
+  }
+
+  data.table::set(data, , treatment_name, replacement)
+
+  prediction_task <- hte3_Task$new(
+    data,
+    npsem = hte3_task$npsem,
+    likelihood = NULL,
+    id = hte3_task$nodes$id,
+    weights = hte3_task$nodes$weights
+  )
+
+  prediction_task$next_in_chain(
+    covariates = c(hte3_task$npsem$modifiers$variables, treatment_name),
+    outcome = hte3_task$npsem$outcome$variables
+  )
+}
+
 predict_tlearner_means <- function(fit_object, hte3_task, learner_task, treatment_level, control_level, stratify_by_treatment = TRUE) {
   modifiers <- hte3_task$npsem$modifiers$variables
 
@@ -404,12 +554,9 @@ predict_tlearner_means <- function(fit_object, hte3_task, learner_task, treatmen
     ))
   }
 
-  cf0_hte3_task <- make_counterfactual_treatment_task(hte3_task, control_level)
-  cf1_hte3_task <- make_counterfactual_treatment_task(hte3_task, treatment_level)
-
   list(
-    mu0.hat = fit_object$learner_trained_pooled$predict(make_tlearner_task(cf0_hte3_task)),
-    mu1.hat = fit_object$learner_trained_pooled$predict(make_tlearner_task(cf1_hte3_task))
+    mu0.hat = fit_object$learner_trained_pooled$predict(make_tlearner_prediction_task(hte3_task, control_level)),
+    mu1.hat = fit_object$learner_trained_pooled$predict(make_tlearner_prediction_task(hte3_task, treatment_level))
   )
 }
 
@@ -575,14 +722,17 @@ Lrnr_stratified_multivariate <- R6Class(
       strata_levels <- self$strata_levels
 
       prediction_mat <- as.matrix(do.call(cbind, lapply(strata_levels, function(strata) {
-        if (all(is.numeric(task$data[[variable_stratify]]))) {
-          strata <- as.numeric(strata)
-        } else {
-          strata <- as.character(strata)
-        }
-
         new_data <- data.table::copy(task$data)
-        data.table::set(new_data, , variable_stratify, rep(strata, nrow(new_data)))
+        strata_values <- task$data[[variable_stratify]]
+        replacement <- rep(strata, nrow(new_data))
+        if (is.factor(strata_values)) {
+          replacement <- factor(as.character(replacement), levels = levels(strata_values))
+        } else if (is.numeric(strata_values)) {
+          replacement <- as.numeric(replacement)
+        } else {
+          replacement <- as.character(replacement)
+        }
+        data.table::set(new_data, , variable_stratify, replacement)
         new_task <- sl3_Task$new(new_data, nodes = task$nodes)
         learner_trained$predict(new_task)
       })))

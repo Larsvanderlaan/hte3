@@ -98,7 +98,7 @@ This class serves as a general template for constructing meta-learners to estima
 \describe{
 \item{\code{params}}{A list of parameters for the meta-learning algorithm.}
 
-\item{\code{base_learner}}{A \code{\link{sl3}} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.}
+\item{\code{base_learner}}{A \pkg{sl3} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.}
 
 \item{\code{transform_function}}{A function to transform the predictions of the base learner. Default is the identity transform.}
 

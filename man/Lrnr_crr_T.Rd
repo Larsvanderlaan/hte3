@@ -9,6 +9,12 @@ An R6 class with public methods to initialize the learner, create a regression t
 \description{
 This class constructs a T-learner for estimation of the conditional relative average treatment effect (crr)
 }
+\details{
+When \code{stratify_by_treatment = FALSE}, the learner estimates
+log-risk-ratio contrasts by predicting the pooled outcome model under each
+treatment level. Heterogeneous contrasts require a \code{base_learner} that
+can represent treatment-modifier interactions.
+}
 \section{Super classes}{
 \code{\link[sl3:Lrnr_base]{sl3::Lrnr_base}} -> \code{hte3::Lrnr_hte} -> \code{Lrnr_crr_T}
 }
@@ -65,7 +71,9 @@ This class constructs a T-learner for estimation of the conditional relative ave
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{base_learner}}{A \code{\link{sl3}} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.}
+\item{\code{base_learner}}{A \pkg{sl3} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.}
+
+\item{\code{stratify_by_treatment}}{Logical indicating whether to estimate outcome regressions separately in each treatment arm (i.e., T-learner) or with a pooled S-learner-style outcome model.}
 }
 \if{html}{\out{</div>}}
 }

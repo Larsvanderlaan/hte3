@@ -104,19 +104,22 @@ make_hte3_Task_tx <- function(data,
 
   node_list <- list(confounders = confounders, treatment = treatment, outcome = outcome, modifiers = modifiers)
   if (treatment_type == "default") {
-    var_type_trt <- variable_type(type = NULL, x = data[[treatment]])
+    var_type_trt <- sl3::variable_type(type = NULL, x = data[[treatment]])
   } else {
-    var_type_trt <- variable_type(type = treatment_type, levels = treatment_levels)
+    var_type_trt <- sl3::variable_type(type = treatment_type, levels = treatment_levels)
   }
+  var_type_modifiers <- sl3::variable_type(x = data[, modifiers, with = FALSE])
+  var_type_confounders <- sl3::variable_type(x = data[, confounders, with = FALSE])
+  var_type_outcome <- sl3::variable_type(x = data[[outcome]])
 
   npsem <- list(
-    define_node("modifiers", node_list$modifiers),
-    define_node("confounders", node_list$confounders),
+    define_node("modifiers", node_list$modifiers, variable_type = var_type_modifiers),
+    define_node("confounders", node_list$confounders, variable_type = var_type_confounders),
     define_node("treatment", node_list$treatment, c("confounders"), variable_type = var_type_trt),
-    define_node("outcome", node_list$outcome, c("treatment", "confounders")),
-    define_node("pi", node_list$treatment, c("confounders"), variable_type = variable_type(type = "categorical", levels = treatment_levels)),
-    define_node("mu", node_list$outcome, c("treatment", "confounders")),
-    define_node("m", node_list$outcome, c("confounders"))
+    define_node("outcome", node_list$outcome, c("treatment", "confounders"), variable_type = var_type_outcome),
+    define_node("pi", node_list$treatment, c("confounders"), variable_type = sl3::variable_type(type = "categorical", levels = treatment_levels)),
+    define_node("mu", node_list$outcome, c("treatment", "confounders"), variable_type = var_type_outcome),
+    define_node("m", node_list$outcome, c("confounders"), variable_type = var_type_outcome)
   )
 
   if (for_prediction) {
@@ -162,7 +165,7 @@ make_hte3_Task_tx <- function(data,
     if (!is.null(multinomial_learner)) {
       learner_pi <- multinomial_learner$new(learner_pi)
     }
-    factor_list$pi <- LF_fit$new("pi", learner_pi, type = "mean")
+    factor_list$pi <- LF_fit_hte3$new("pi", learner_pi, type = "mean")
   }
 
   if (!is.null(mu.hat)) {
@@ -172,11 +175,11 @@ make_hte3_Task_tx <- function(data,
     factor_list$mu <- LF_known$new("mu", mean_fun = mean_fun, type = "mean")
   } else if (!is.null(learner_mu)) {
     learner_mu <- Lrnr_stratified_multivariate$new(learner = learner_mu, variable_stratify = treatment)
-    factor_list$mu <- LF_fit$new("mu", learner_mu, type = "mean")
+    factor_list$mu <- LF_fit_hte3$new("mu", learner_mu, type = "mean")
   }
 
   if (!is.null(learner_m) && is.null(m.hat)) {
-    factor_list$m <- LF_fit$new("m", learner_m, type = "mean")
+    factor_list$m <- LF_fit_hte3$new("m", learner_m, type = "mean")
   }
 
   likelihood <- Likelihood$new(factor_list = factor_list)
