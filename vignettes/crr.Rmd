@@ -11,7 +11,7 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-This vignette shows the production workflow for conditional risk-ratio style
+This vignette shows the high-level workflow for conditional risk-ratio style
 targets using a non-negative outcome.
 
 ```{r}
@@ -43,7 +43,7 @@ head(predict(crr_model, data))
 summary(crr_model)
 ```
 
-The production pattern is the same as for CATE:
+The wrapper pattern is the same as for CATE:
 
 - build an `hte3_Task` with `hte_task()`
 - choose a CRR learner family with `method`
@@ -75,8 +75,7 @@ selector.
 
 ## Low-Level Cross-Validation
 
-If you want to control the exact learner list directly, use
-`cross_validate_crr()`.
+For direct control of the learner list, use `cross_validate_crr()`.
 
 ```{r}
 cv_fit <- cross_validate_crr(

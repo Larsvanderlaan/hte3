@@ -60,7 +60,7 @@
             </p>
             <p class="summary-text">
               Use the API section for function-level details, the quickstart for a minimal runnable example,
-              and the <code>sl3</code> guide when you need to customize learners.
+              and the <code>sl3</code> guide for learner customization.
             </p>
             <div class="hero-actions">
               <a class="button button-primary" href="#api">Open API guide</a>
@@ -101,7 +101,7 @@ remotes::install_github("Larsvanderlaan/hte3")</code></pre>
               <p class="eyebrow">High-Level API</p>
               <h2>What to call, what to pass, and what you get back</h2>
               <p>
-                These are the public entrypoints most users need. Start with <code>hte_task()</code>, fit with
+                These are the main public entrypoints. Start with <code>hte_task()</code>, fit with
                 <code>fit_cate()</code> or <code>fit_crr()</code>, then inspect the result with <code>predict()</code>
                 and <code>summary()</code>.
               </p>
@@ -134,7 +134,7 @@ remotes::install_github("Larsvanderlaan/hte3")</code></pre>
                 </div>
                 <div class="summary-row">
                   <span>Use when</span>
-                  You want a runnable example or a quick smoke test before using real data.
+                  You want a runnable example or a small test run before using real data.
                 </div>
               </div>
             </article>
@@ -159,7 +159,7 @@ remotes::install_github("Larsvanderlaan/hte3")</code></pre>
                 </div>
                 <div class="summary-row">
                   <span>Default behavior</span>
-                  Propensity and outcome learners default to <code>get_autoML()</code>; you only need to override them when you want custom nuisance models.
+                  Propensity and outcome learners default to <code>get_autoML()</code>; override them only when custom nuisance models are required.
                 </div>
               </div>
             </article>
@@ -326,9 +326,6 @@ remotes::install_github("Larsvanderlaan/hte3")</code></pre>
               <p class="eyebrow">Quickstart</p>
               <h2>A minimal CATE analysis</h2>
             </div>
-            <p class="section-side-note">
-              This keeps the example focused on the workflow instead of on learner tuning.
-            </p>
           </div>
 
           <div class="code-block-card">
@@ -402,31 +399,6 @@ summary(fit)</code></pre>
           </div>
         </section>
 
-        <section class="section" id="paths" data-reveal>
-          <div class="section-heading">
-            <p class="eyebrow">Workflow Levels</p>
-            <h2>Choose the level of control you need</h2>
-          </div>
-
-          <div class="comparison-grid">
-            <article class="comparison-card">
-              <span class="comparison-kicker">Default entrypoint</span>
-              <h3>High-level API</h3>
-              <p>
-                Use <code>hte_task()</code>, then <code>fit_cate()</code> or <code>fit_crr()</code>.
-                This is the default interface for most analyses.
-              </p>
-            </article>
-            <article class="comparison-card">
-              <span class="comparison-kicker">Advanced entrypoint</span>
-              <h3>Lower-level learner control</h3>
-              <p>
-                Use <code>make_hte3_Task_tx()</code> and the <code>Lrnr_*</code> classes when you need direct control of nuisance models or learner libraries.
-              </p>
-            </article>
-          </div>
-        </section>
-
         <section class="section" id="legacy" data-reveal>
           <div class="section-heading">
             <p class="eyebrow">Legacy Reproducibility</p>
@@ -445,15 +417,6 @@ summary(fit)</code></pre>
               <div class="resource-links">
                 <a class="resource-link" href="https://github.com/Larsvanderlaan/hte3/blob/main/vignettes/legacy-paper-repro.Rmd">Open source vignette</a>
                 <a class="resource-link" href="https://github.com/Larsvanderlaan/hte3/blob/main/paper_EPlearner_experiments/install_legacy_paper_repro.R">Install script</a>
-              </div>
-            </article>
-            <article class="resource-card">
-              <h3>Need learner help?</h3>
-              <p>
-                The dedicated <code>sl3</code> page explains where learners plug in and which defaults are already built into the package.
-              </p>
-              <div class="resource-links">
-                <a class="resource-link" href="./sl3.html">Open the sl3 guide</a>
               </div>
             </article>
           </div>

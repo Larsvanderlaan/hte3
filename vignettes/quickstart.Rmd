@@ -11,7 +11,7 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-`hte3` now supports a production-oriented workflow built around three steps:
+`hte3` supports a three-step high-level workflow:
 
 1. Create example or analysis data.
 2. Build an `hte3_Task` with `hte_task()`.
@@ -48,7 +48,7 @@ summary(model)
 
 ## Cross-Fit vs Cross-Validate
 
-Two different arguments control model selection in the production workflow:
+Two arguments control different stages of the workflow:
 
 - `cross_fit` in `hte_task()` controls nuisance estimation. When `TRUE`,
   nuisance learners such as the propensity score and outcome regression are
@@ -56,7 +56,7 @@ Two different arguments control model selection in the production workflow:
 - `cross_validate` in `fit_cate()` or `fit_crr()` controls model selection
   across candidate HTE learners.
 
-These are different stages of the pipeline. A typical production run uses
+These act at different stages of the pipeline. A common analysis uses
 cross-fitting for nuisances and optionally uses HTE-level cross-validation to
 select among candidate learners.
 
@@ -109,5 +109,5 @@ crr_portfolio <- fit_crr(
 head(predict(crr_portfolio, data))
 ```
 
-Use the other vignettes for CATE-specific, CRR-specific, low-level `sl3`
-integration, and legacy reproducibility workflows.
+See the other vignettes for CATE-specific, CRR-specific, low-level `sl3`
+integration, and legacy reproducibility material.

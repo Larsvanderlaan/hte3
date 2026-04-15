@@ -11,8 +11,8 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-This vignette shows the recommended production workflow for conditional
-average treatment effect estimation.
+This vignette shows the high-level workflow for conditional average treatment
+effect estimation.
 
 ```{r}
 library(hte3)
@@ -50,7 +50,7 @@ head(predict(dr_model, data))
 head(predict(t_model, data))
 ```
 
-The simplest production pattern is:
+The basic pattern is:
 
 - build a task with `hte_task()`
 - choose a CATE learner family with `method`
@@ -85,7 +85,7 @@ DR-style CATE selector.
 
 ## Low-Level Cross-Validation
 
-If you want explicit control over the candidate learner objects, use
+For explicit control over candidate learner objects, use
 `cross_validate_cate()` directly.
 
 ```{r}

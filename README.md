@@ -1,12 +1,12 @@
 # hte3
 
 `hte3` provides causal machine learning tools for heterogeneous treatment
-effects with a production-oriented wrapper API on top of the `sl3` and
+effects with a high-level wrapper API on top of the `sl3` and
 `tmle3` ecosystems.
 
-The package now has two supported workflows:
+The package has two supported workflows:
 
-- Production workflow: use `hte_task()`, `fit_cate()`, and `fit_crr()`.
+- High-level workflow: use `hte_task()`, `fit_cate()`, and `fit_crr()`.
 - Advanced workflow: use the lower-level `Lrnr_*` classes and
   `make_hte3_Task_tx()` directly.
 
@@ -144,11 +144,11 @@ cv_fit <- cross_validate_cate(
 - Continuous-treatment CATE tasks currently support `method = "r"` only.
 - CRR workflows require a non-negative outcome.
 - In the examples above, `cross_fit = FALSE` keeps the code lightweight. For
-  serious analyses, nuisance cross-fitting is usually the safer default.
+  analyses beyond simple examples, nuisance cross-fitting is generally preferred.
 
 ## What Changed
 
-- Added a simpler production API for common CATE and CRR workflows.
+- Added a high-level API for common CATE and CRR workflows.
 - Hardened package metadata and dependency declarations for GitHub-first
   releases.
 - Added CI, pkgdown scaffolding, tests, and a legacy reproducibility
@@ -157,7 +157,7 @@ cv_fit <- cross_validate_cate(
 
 ## Documentation
 
-The planned pkgdown site is organized around:
+The documentation site is organized around:
 
 - Quickstart
 - CATE workflow
@@ -165,8 +165,7 @@ The planned pkgdown site is organized around:
 - Advanced `sl3` integration
 - Legacy paper reproduction
 
-Until the site is published, the vignettes in `vignettes/` are the canonical
-user documentation. In particular:
+The vignettes in `vignettes/` mirror that documentation. In particular:
 
 - [`quickstart`](vignettes/quickstart.Rmd) explains the high-level workflow and the difference between cross-fitting and cross-validation.
 - [`cate`](vignettes/cate.Rmd) shows single-learner and portfolio CV CATE workflows.

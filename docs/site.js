@@ -8,7 +8,7 @@ const hteMethodData = {
         badge: "Recommended first",
         title: "Doubly robust pseudo-outcome regression for CATE",
         summary:
-          "Builds a doubly robust pseudo-outcome from the propensity and outcome models, then regresses that signal on the effect modifiers. This is the most natural first stop for many binary or categorical treatment analyses.",
+          "Builds a doubly robust pseudo-outcome from the propensity and outcome models, then regresses that signal on the effect modifiers. This is a common default for binary or categorical treatment analyses.",
         good: [
           "You want a strong default CATE workflow.",
           "Treatment is binary or categorical and you can estimate both nuisance models.",
@@ -26,7 +26,7 @@ const hteMethodData = {
           Call: 'fit_cate(task, method = "dr", ...)'
         },
         note:
-          "If you are new to hte3 and your treatment is not continuous, start here."
+          "Recommended default for non-continuous-treatment CATE analyses."
       },
       r: {
         label: "R-learner",
@@ -51,7 +51,7 @@ const hteMethodData = {
           Call: 'fit_cate(task, method = "r", ...)'
         },
         note:
-          "Use this when continuous treatment support matters or when you explicitly want an R-learner workflow."
+          "Use for continuous treatment or residual-based CATE estimation."
       },
       ep: {
         label: "EP-learner",
@@ -76,14 +76,14 @@ const hteMethodData = {
           Call: 'fit_cate(task, method = "ep", ...)'
         },
         note:
-          "Great when you want more flexibility than DR, but still want a production wrapper."
+          "Use when a more flexible CATE surface is needed."
       },
       t: {
         label: "T-learner",
         badge: "Simple baseline",
         title: "Separate treatment-arm models, then subtract",
         summary:
-          "Fits outcome models by treatment arm and subtracts the fitted means to get the effect surface. This is often the easiest baseline to explain and compare against more robust methods.",
+          "Fits outcome models by treatment arm and subtracts the fitted means to get the effect surface. This is a common benchmark for comparison against more robust methods.",
         good: [
           "You want a simple baseline for comparison.",
           "You expect separate arm-specific outcome models to capture the signal.",
@@ -101,7 +101,7 @@ const hteMethodData = {
           Call: 'fit_cate(task, method = "t", ...)'
         },
         note:
-          "Useful as a clean benchmark, especially when you want to compare against DR or EP."
+          "Useful benchmark for comparison against DR or EP."
       }
     },
     defaultMethod: "dr"
@@ -115,7 +115,7 @@ const hteMethodData = {
         badge: "Default CRR workflow",
         title: "Flexible debiasing for conditional risk-ratio estimation",
         summary:
-          "Starts from arm-specific outcome regressions, debiases them with a sieve basis, and returns a conditional risk-ratio surface. This is the package default for CRR because it balances flexibility with a clear high-level interface.",
+          "Starts from arm-specific outcome regressions, debiases them with a sieve basis, and returns a conditional risk-ratio surface. This is the default high-level CRR method.",
         good: [
           "Outcome is binary or otherwise nonnegative.",
           "You want the main production-path CRR method.",
@@ -133,14 +133,14 @@ const hteMethodData = {
           Call: 'fit_crr(task, method = "ep", ...)'
         },
         note:
-          "If you want a practitioner-friendly default for CRR, this is the first method to try."
+          "Default high-level CRR method."
       },
       ipw: {
         label: "IPW",
         badge: "Weighting baseline",
         title: "Inverse-probability weighted CRR learning",
         summary:
-          "Uses inverse-probability weights to learn how treated-versus-control risk changes across modifier values. It is a useful baseline when you want to lean less on outcome regression and more on the weighting side of the problem.",
+          "Uses inverse-probability weights to learn how treated-versus-control risk changes across modifier values. This is a benchmark that places more weight on the propensity model than on outcome regression.",
         good: [
           "You want a weighting-based CRR benchmark.",
           "Outcome is nonnegative and you trust the propensity model more than the outcome model.",
@@ -158,14 +158,14 @@ const hteMethodData = {
           Call: 'fit_crr(task, method = "ipw", ...)'
         },
         note:
-          "A good comparison point when you want to see how much the outcome model is buying you."
+          "Useful comparison against outcome-model-based methods."
       },
       t: {
         label: "T-learner",
         badge: "Simple CRR baseline",
         title: "Arm-specific outcome models on the risk-ratio scale",
         summary:
-          "Fits separate outcome models by treatment arm and then takes the log or ratio transformation needed for conditional risk-ratio estimation. This keeps the workflow intuitive, but it is best thought of as a baseline rather than the most robust choice.",
+          "Fits separate outcome models by treatment arm and then takes the log or ratio transformation needed for conditional risk-ratio estimation. This is best treated as a benchmark rather than the primary analysis.",
         good: [
           "You want an easy-to-explain benchmark.",
           "Most of your signal is expected to come from the outcome model.",
@@ -183,7 +183,7 @@ const hteMethodData = {
           Call: 'fit_crr(task, method = "t", ...)'
         },
         note:
-          "Keep this in the comparison set when you want a simple, interpretable benchmark."
+          "Use as a simple CRR benchmark."
       }
     },
     defaultMethod: "ep"

@@ -59,7 +59,6 @@
             </p>
             <p class="summary-text">
               Most analyses follow three steps: build a task, fit the estimand, then generate predictions or summaries.
-              The <code>sl3</code> guide explains how to customize learners when the defaults are not enough.
             </p>
             <div class="hero-actions">
               <a class="button button-primary" href="#methods">Explore methods</a>
@@ -110,9 +109,6 @@ pred &lt;- predict(fit)</code></pre>
               <p class="eyebrow">Start Here</p>
               <h2>What does the package actually estimate?</h2>
             </div>
-            <p class="section-side-note">
-              <code>hte3</code> is designed for estimating effect surfaces, not only one-number summaries.
-            </p>
           </div>
 
           <div class="comparison-grid">
@@ -136,10 +132,7 @@ pred &lt;- predict(fit)</code></pre>
             </article>
           </div>
 
-          <div class="callout">
-            <strong>Practical guidance:</strong>
-            start by choosing the estimand that matches your reporting goal, then choose the method inside that estimand.
-          </div>
+          <div class="callout">Choose the estimand that matches your reporting goal, then choose the method inside that estimand.</div>
         </section>
 
         <section class="section" id="why-hte3" data-reveal>
@@ -169,8 +162,7 @@ pred &lt;- predict(fit)</code></pre>
             <article class="argument-card">
               <h3>Learner customization</h3>
               <p>
-                If you need custom nuisance learners, learner libraries, or cross-fitting behavior,
-                the <code>sl3</code> guide explains how those components fit into <code>hte3</code>.
+                See the <code>sl3</code> guide for custom nuisance learners, learner libraries, and cross-fitting behavior.
               </p>
             </article>
           </div>
@@ -252,10 +244,7 @@ pred &lt;- predict(fit)</code></pre>
         <section class="section" id="workflow" data-reveal>
           <div class="section-heading">
             <p class="eyebrow">Workflow</p>
-            <h2>The workflow is intentionally short</h2>
-            <p>
-              Most analyses start with three decisions: build the task, choose the estimand, then choose the method.
-            </p>
+            <h2>Three-step workflow</h2>
           </div>
 
           <div class="workflow-strip">
@@ -278,14 +267,9 @@ pred &lt;- predict(fit)</code></pre>
               <p class="step-number">Step 3</p>
               <h3>Predict and compare</h3>
               <p>
-                Use <code>predict()</code> and <code>summary()</code> to inspect the fitted surface, then compare simpler and richer methods when needed.
+                Use <code>predict()</code> and <code>summary()</code> to inspect the fitted surface.
               </p>
             </article>
-          </div>
-
-          <div class="callout">
-            <strong>Tip:</strong>
-            if you are not sure what learner library to use, keep the default <code>get_autoML()</code> stack at first and tune later.
           </div>
         </section>
 

@@ -8,9 +8,9 @@ vignette: >
 ---
 
 The EP-learner paper experiments are preserved in this repository, but they
-are intentionally separated from the production package build.
+are separated from the main package build.
 
-Use the frozen legacy ref when you want to reproduce the paper pipeline:
+Use the frozen legacy ref to reproduce the paper pipeline:
 
 ```r
 source("paper_EPlearner_experiments/install_legacy_paper_repro.R")
@@ -20,7 +20,7 @@ That script installs:
 
 - `Larsvanderlaan/hte3@legacy-paper-repro`
 
-The production branch can then evolve independently without invalidating the
+This allows the main branch to evolve independently without changing the
 paper workflow.
 
 For automated verification, see `inst/legacy/run_smoke.R` and the

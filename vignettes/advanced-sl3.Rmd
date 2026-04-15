@@ -11,11 +11,11 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-The production API is the recommended starting point, but the original
-advanced `hte3` interfaces remain available when you need fine-grained
-control over nuisance learners or meta-learners.
+The high-level API covers common analyses, but the original advanced `hte3`
+interfaces remain available for fine-grained control over nuisance learners
+or meta-learners.
 
-The advanced API is where you should work if you want to:
+Use the advanced API to:
 
 - construct the `hte3_Task` manually
 - specify the exact low-level `Lrnr_*` candidates
@@ -103,6 +103,6 @@ head(crr_cv$lrnr_sl$predict(crr_task))
 - If a candidate learner itself contains a stacked `sl3` base learner, that
   base learner can internally cross-validate as well.
 
-The advanced API is intentionally lower-level and closer to the original
-research implementation, but it remains the most flexible route when you need
-full control over candidate portfolios.
+The advanced API is lower-level and closer to the original research
+implementation. Use it when full control over candidate portfolios is
+required.
