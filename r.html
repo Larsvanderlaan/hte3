@@ -184,7 +184,7 @@ remotes::install_github("Larsvanderlaan/hte3")</code></pre>
                 </div>
                 <div class="summary-row">
                   <span>Use when</span>
-                  Your target is a conditional mean difference. For continuous-treatment CATE tasks, the supported high-level method is currently <code>"r"</code>, using the partially linear R-learner effect model <code>A * tau(X)</code>.
+                  Your target is a conditional mean difference. For continuous-treatment CATE tasks, the supported high-level method is currently <code>"r"</code>, using the partially linear R-learner effect model <code>A * tau(X)</code>. When <code>modifiers</code> are a strict subset of <code>confounders</code>, DR and EP target <code>E[Y(1)-Y(0) | V]</code>; the current R-learner warns because it does not generally target that reduced-modifier estimand.
                 </div>
               </div>
             </article>
