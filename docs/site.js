@@ -5,10 +5,10 @@ const hteMethodData = {
     methods: {
       dr: {
         label: "DR-learner",
-        badge: "Recommended first",
+        badge: "Binary/categorical treatment",
         title: "Doubly robust pseudo-outcome regression for CATE",
         summary:
-          "Builds a doubly robust pseudo-outcome from the propensity and outcome models, then regresses that signal on the effect modifiers. This is a common default for binary or categorical treatment analyses.",
+          "Builds a doubly robust pseudo-outcome from the propensity and outcome models, then regresses that signal on the effect modifiers.",
         good: [
           "You want a strong default CATE workflow.",
           "Treatment is binary or categorical and you can estimate both nuisance models.",
@@ -26,7 +26,7 @@ const hteMethodData = {
           Call: 'fit_cate(task, method = "dr", ...)'
         },
         note:
-          "Recommended default for non-continuous-treatment CATE analyses."
+          "Uses both propensity and outcome nuisance estimates to form a doubly robust pseudo-outcome."
       },
       r: {
         label: "R-learner",
@@ -51,7 +51,7 @@ const hteMethodData = {
           Call: 'fit_cate(task, method = "r", ...)'
         },
         note:
-          "Use for continuous treatment or residual-based CATE estimation."
+          "Residualizes treatment and outcome before learning the effect surface."
       },
       ep: {
         label: "EP-learner",
@@ -76,7 +76,7 @@ const hteMethodData = {
           Call: 'fit_cate(task, method = "ep", ...)'
         },
         note:
-          "Use when a more flexible CATE surface is needed."
+          "Combines arm-specific outcome regression with sieve-based debiasing."
       },
       t: {
         label: "T-learner",
@@ -101,10 +101,10 @@ const hteMethodData = {
           Call: 'fit_cate(task, method = "t", ...)'
         },
         note:
-          "Useful benchmark for comparison against DR or EP."
+          "Fits outcome models separately by treatment arm and subtracts them."
       }
     },
-    defaultMethod: "dr"
+    defaultMethod: "r"
   },
   crr: {
     title: "Conditional Risk Ratios",
@@ -112,10 +112,10 @@ const hteMethodData = {
     methods: {
       ep: {
         label: "EP-learner",
-        badge: "Default CRR workflow",
+        badge: "Sieve debiasing",
         title: "Flexible debiasing for conditional risk-ratio estimation",
         summary:
-          "Starts from arm-specific outcome regressions, debiases them with a sieve basis, and returns a conditional risk-ratio surface. This is the default high-level CRR method.",
+          "Starts from arm-specific outcome regressions, debiases them with a sieve basis, and returns a conditional risk-ratio surface.",
         good: [
           "Outcome is binary or otherwise nonnegative.",
           "You want the main production-path CRR method.",
@@ -133,7 +133,7 @@ const hteMethodData = {
           Call: 'fit_crr(task, method = "ep", ...)'
         },
         note:
-          "Default high-level CRR method."
+          "Uses sieve-based debiasing on top of arm-specific outcome regression."
       },
       ipw: {
         label: "IPW",
@@ -158,7 +158,7 @@ const hteMethodData = {
           Call: 'fit_crr(task, method = "ipw", ...)'
         },
         note:
-          "Useful comparison against outcome-model-based methods."
+          "Places more emphasis on weighting than on outcome regression."
       },
       t: {
         label: "T-learner",
@@ -183,7 +183,7 @@ const hteMethodData = {
           Call: 'fit_crr(task, method = "t", ...)'
         },
         note:
-          "Use as a simple CRR benchmark."
+          "Computes the ratio from separate arm-specific outcome models."
       }
     },
     defaultMethod: "ep"
