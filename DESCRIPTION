@@ -1,45 +1,50 @@
 Package: hte3
 Type: Package
-Title: supervised causal machine learning for heterogeneous treatment effects
+Title: Causal Machine Learning for Heterogeneous Treatment Effects
 Version: 0.1.0
 Author: Lars van der Laan
 Maintainer: Lars van der Laan <lvdlaan@uw.edu>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Description: Tools for estimating heterogeneous treatment effects using
+    supervised causal machine learning. The package provides low-level
+    learner classes built on top of the 'sl3' and 'tmle3' ecosystems,
+    along with higher-level task construction and model fitting helpers
+    for conditional average treatment effects and conditional risk ratios.
+License: MIT + file LICENSE
 Encoding: UTF-8
-LazyData: true
+Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
+URL: https://github.com/Larsvanderlaan/hte3
+BugReports: https://github.com/Larsvanderlaan/hte3/issues
+VignetteBuilder: knitr
 Imports: 
-  Sieve,
-  tmle3,
-  hal9001,
-  sl3,
-  stats,
+  assertthat,
   data.table,
-  R6,
-  stringr,
-  origami,
-  delayed,
-  future,
-  fastglm,
+  digest,
   doMC,
-  glmnet
-Depends:
-  tmle3,
-  hal9001,
-  sl3,
-  stats,
-  data.table,
-  R6,
-  stringr,
-  origami,
-  delayed,
-  future,
   earth,
   fastglm,
-  doMC,
-  glmnet
+  future,
+  glmnet,
+  hal9001,
+  origami,
+  R6,
+  Sieve,
+  sl3,
+  stats,
+  stringr,
+  tmle3,
+  uuid
+Suggests:
+  knitr,
+  lintr,
+  pkgdown,
+  remotes,
+  rmarkdown,
+  testthat (>= 3.0.0),
+  withr
+Config/testthat/edition: 3
+Depends:
+  R (>= 4.1.0)
 Remotes: 
   github::tlverse/hal9001@screeningHAL, 
   github::tlverse/tmle3@devel, 

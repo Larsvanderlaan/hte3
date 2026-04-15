@@ -1,3 +1,4 @@
 introExample.Rmd contains code used to generate the illustrative figures
 and tables for the CATE and relative risk (RR) examples in Section 3 of the
-EP-learner paper.
+EP-learner paper. Use the frozen `legacy-paper-repro` package ref before
+running it so the paper scripts continue to match the original implementation.

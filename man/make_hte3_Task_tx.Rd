@@ -55,31 +55,31 @@ This argument can be used by R-type learners. Alternatively, the estimates can b
 \item{learner_pi}{A binomial \code{sl3_Learner} or \code{Stack} object specifying the learning algorithm to estimate the propensity score \code{w -> pi(a_star | w)}
 at a given treatment level \code{a_star}. During training, this learner is passed an \code{sl3_Task} object \code{task} that contains a feature matrix \code{task$X}
 of \code{confounders} and an outcome vector \code{task$Y} corresponding to the binary treatment indicator \code{1(A = a_star)}.
-By default, \code{cross_fit_and_cv = TRUE}, and \code{learner_m} is fit with 10-fold cross-fitting using the \code{\link[causaltools]{make_cross_fitted}} function.
+By default, \code{cross_fit_and_cv = TRUE}, and \code{learner_m} is fit with 10-fold cross-fitting using \code{\link{make_cross_fitted}}.
 If a \code{Stack} object, the best model is selected using cross-validation.}
 
 \item{learner_mu}{A \code{sl3_Learner} or \code{sl3_Task} object specifying the learning algorithm to estimate the outcome regression \code{w -> mu(a_star, w)}
 at a given treatment level \code{a_star}. The outcome regression is estimated via a treatment-stratified regression.
 During training, this learner is passed an \code{sl3_Task} object \code{task} that is subsetted to variables with treatment \code{A = a_star},
 and contains a feature matrix \code{task$X} of \code{confounders} and an outcome vector \code{task$Y} corresponding to \code{outcome}.
-By default, \code{cross_fit_and_cv = TRUE}, and \code{learner_m} is fit with 10-fold cross-fitting using the \code{\link[causaltools]{make_cross_fitted}} function.
+By default, \code{cross_fit_and_cv = TRUE}, and \code{learner_m} is fit with 10-fold cross-fitting using \code{\link{make_cross_fitted}}.
 If a \code{Stack} object, the best model is selected using cross-validation.}
 
 \item{learner_m}{A \code{sl3_Learner} or \code{sl3_Task} object specifying the learning algorithm to estimate the conditional mean outcome \code{m}.
 During training, this learner is passed an \code{sl3_Task} object \code{task} that contains a feature matrix \code{task$X} of \code{confounders}
 and an outcome vector \code{task$Y} corresponding to \code{outcome}.
-By default, \code{cross_fit_and_cv = TRUE}, and \code{learner_m} is fit with 10-fold cross-fitting using the \code{\link[causaltools]{make_cross_fitted}} function.
+By default, \code{cross_fit_and_cv = TRUE}, and \code{learner_m} is fit with 10-fold cross-fitting using \code{\link{make_cross_fitted}}.
 If a \code{Stack} object, the best model is selected using cross-validation.}
 
 \item{multinomial_learner}{A \code{multinomial} \code{Lrnr_base} object to convert \code{learner_pi} from a \code{binomial} learner to a \code{multinomial} learner.}
 
-\item{cross_fit_and_cv}{Whether to cross-fit the specified nuisance learners by applying \code{learner <- causaltools::make_cross_fitted(learner)}.}
+\item{cross_fit_and_cv}{Whether to cross-fit the specified nuisance learners by applying \code{learner <- make_cross_fitted(learner)}.}
 
 \item{for_prediction}{A \code{boolean} of whether to return an hte3_Task without the nuisance training and estimates. This can be useful when you wish to construct a task for predicting on a new dataset.}
 
 \item{...}{Additional arguments to pass to the \code{\link[sl3]{sl3_Task}} and \code{\link[tmle3]{tmle_Task}} constructors.}
 
-\item{modifers}{A character vector of variable names in \code{colnames(data)} for treatment effect moderators.}
+\item{modifiers}{A character vector of variable names in \code{colnames(data)} for treatment effect moderators.}
 }
 \value{
 A \code{hte3_Task} object for the point-treatment data-structure

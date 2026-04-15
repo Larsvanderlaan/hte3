@@ -38,11 +38,11 @@ contents of this directory.
   cluster and may require modification to run on a different cluster or
   job scheduling system.
 
-- code_for_experiments_and_figures/
+- code_for_main_experiments_section_7/
   Core experiment code for data generation, estimator fitting, evaluation,
   and result saving.
 
-- code_for_examples_and_figures_from_text/
+- code_for_example_figures_section_3/
   Code corresponding directly to examples and illustrative figures and
   tables from Section 3 of the paper (including the CATE and relative risk
   examples).
@@ -58,10 +58,10 @@ Each subfolder contains its own README with more detailed instructions.
 
 ## Dependencies
 
-All experiments rely on the `hte3` R package, which must be installed from
-source:
+All experiments rely on the frozen legacy `hte3` package ref used for paper
+reproducibility. Install it from the provided helper script:
 
-    devtools::install_github("Larsvanderlaan/hte3")
+    source("install_legacy_paper_repro.R")
 
 Additional package dependencies are documented in the `hte3` package and are
 handled automatically upon installation.
@@ -72,9 +72,9 @@ handled automatically upon installation.
 A typical workflow is:
 
 1. Open EPlearner.Rproj in RStudio.
-2. Install and load the `hte3` package.
+2. Install and load the legacy `hte3` package from `legacy-paper-repro`.
 3. Run the appropriate scripts in BatchScripts/ or
-   code_for_experiments_and_figures/ to generate raw results.
+   code_for_main_experiments_section_7/ to generate raw results.
 4. Use the figure scripts to regenerate plots from experiment_results/.
 
 The BatchScripts/ directory assumes access to a SLURM-based cluster. The same

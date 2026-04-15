@@ -200,7 +200,7 @@ one_sim <- function(iter) {
     W <- hte3_task$get_tmle_node("treatment")
     Y <- hte3_task$get_tmle_node("outcome")
     W.hat <- as.matrix(hte3_task$get_nuisance_estimates("pi"))[,2]
-    W.hat <- causalutils::truncate_propensity(W.hat, W, treatment_level = 1, truncation_method = "adaptive")
+    W.hat <- hte3::truncate_propensity(W.hat, W, treatment_level = 1, truncation_method = "adaptive")
     Y.hat <- as.vector(hte3_task$get_nuisance_estimates("m"))
     cf_fit <- grf::causal_forest(X = as.matrix(X),
                                  Y = as.vector(as.matrix(Y)),

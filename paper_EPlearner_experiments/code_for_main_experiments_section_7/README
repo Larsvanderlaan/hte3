@@ -77,8 +77,9 @@ After plotting scripts are run, code in nice_experiment_plots.Rmd can be run to 
 
 ## Running experiments manually (without batch scripts)
 
-You can run an experiment locally by setting the expected environment variables
-and calling the experiment script directly, e.g.:
+You can run an experiment locally after installing the frozen legacy package
+ref via `../install_legacy_paper_repro.R`, then setting the expected
+configuration variables and calling the experiment script directly, e.g.:
 
 ```bash
 Rscript experiment_CATE.R

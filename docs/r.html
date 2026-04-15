@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hte3 R Package Guide</title>
+    <meta
+      name="description"
+      content="R package guide for hte3, covering installation, main functions, workflows, and practitioner-facing entry points."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./site.css" />
+    <script defer src="./site.js"></script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <nav class="topbar">
+          <div class="brand"><a href="./index.html">hte3</a></div>
+          <div class="toplinks">
+            <a href="./index.html">Overview</a>
+            <a href="./r.html">R Package</a>
+            <a href="#api">API</a>
+            <a href="#quickstart">Quickstart</a>
+            <a href="#defaults">Defaults</a>
+            <a href="./sl3.html">sl3 Guide</a>
+            <a href="#workflows">Workflows</a>
+          </div>
+          <a class="paper-link" href="https://github.com/Larsvanderlaan/hte3">
+            <span class="paper-link-icon" aria-hidden="true"></span>
+            <span>GitHub</span>
+          </a>
+        </nav>
+
+        <div class="hero-grid">
+          <section class="hero-copy" data-reveal>
+            <p class="eyebrow">R Package Guide</p>
+            <div class="hero-head">
+              <div>
+                <h1>The shortest path from raw data to an effect surface</h1>
+              </div>
+              <div class="hero-art">
+                <img
+                  src="./assets/hte3-badge-mark.svg"
+                  alt="hte3 package badge"
+                  width="1024"
+                  height="1024"
+                />
+              </div>
+            </div>
+            <p class="lede">
+              The recommended user path is simple:
+              <strong>create a task, fit the estimand, then predict.</strong>
+              This page doubles as both the quickstart and the high-level API guide for the public wrappers.
+            </p>
+            <p class="summary-text">
+              Use the API section when you want signatures, key arguments, returns, and when-to-use guidance.
+              Use the quickstart when you want the shortest runnable path end to end.
+            </p>
+            <div class="hero-actions">
+              <a class="button button-primary" href="#api">Open API guide</a>
+              <a class="button button-secondary" href="#quickstart">See quickstart</a>
+              <a class="button button-secondary" href="./sl3.html">Learner guide</a>
+            </div>
+            <ul class="hero-pills">
+              <li><code>hte_task()</code> for setup</li>
+              <li><code>fit_cate()</code> and <code>fit_crr()</code> for fitting</li>
+              <li><code>predict()</code> and <code>summary()</code> for output</li>
+            </ul>
+          </section>
+
+          <aside class="hero-panel" data-reveal>
+            <div class="panel-card gradient-card" id="install">
+              <p class="panel-label">Install</p>
+              <pre><code>if (!requireNamespace("remotes", quietly = TRUE)) {
+  install.packages("remotes")
+}
+
+remotes::install_github("Larsvanderlaan/hte3")</code></pre>
+            </div>
+            <div class="panel-card">
+              <p class="panel-label">Default Modeling Stack</p>
+              <p class="panel-note">
+                If you do not pass learners manually, <code>hte3</code> uses its
+                internal <code>get_autoML()</code> stack so you can start with a sensible default and refine later.
+              </p>
+            </div>
+          </aside>
+        </div>
+      </header>
+
+      <main>
+        <section class="section" id="api" data-reveal>
+          <div class="section-heading split">
+            <div>
+              <p class="eyebrow">High-Level API</p>
+              <h2>What to call, what to pass, and what you get back</h2>
+              <p>
+                These are the public entrypoints most users need. Start with <code>hte_task()</code>, fit with
+                <code>fit_cate()</code> or <code>fit_crr()</code>, then inspect the result with <code>predict()</code>
+                and <code>summary()</code>.
+              </p>
+            </div>
+            <p class="section-side-note">
+              Need learner customization rather than function signatures? The <a href="./sl3.html">sl3 guide</a> is the
+              best next page.
+            </p>
+          </div>
+
+          <div class="chip-row">
+            <a class="chip-link" href="#quickstart">Jump to quickstart</a>
+            <a class="chip-link" href="#defaults">See common defaults</a>
+            <a class="chip-link" href="./sl3.html">Open the sl3 guide</a>
+          </div>
+
+          <div class="resource-grid">
+            <article class="resource-card">
+              <p class="mini-label">Starter data</p>
+              <h3><code>hte3_example_data()</code></h3>
+              <p>Creates a small synthetic data set so you can try the package before wiring in your own analysis data.</p>
+              <pre class="inline-code"><code>hte3_example_data(n = 200, seed = 123)</code></pre>
+              <div class="summary-stack">
+                <div class="summary-row">
+                  <span>Key args</span>
+                  <code>n</code> number of rows, <code>seed</code> random seed for reproducibility
+                </div>
+                <div class="summary-row">
+                  <span>Returns</span>
+                  A <code>data.table</code> with simulated covariates, treatment, outcomes, and truth columns such as <code>tau</code>.
+                </div>
+                <div class="summary-row">
+                  <span>Use when</span>
+                  You want a runnable example or a quick smoke test before using real data.
+                </div>
+              </div>
+            </article>
+
+            <article class="resource-card">
+              <p class="mini-label">Recommended entrypoint</p>
+              <h3><code>hte_task()</code></h3>
+              <p>Builds the main analysis task from raw data, modifier columns, confounders, treatment, and outcome.</p>
+              <pre class="inline-code"><code>hte_task(data, modifiers, confounders = modifiers, treatment, outcome, ...)</code></pre>
+              <div class="summary-stack">
+                <div class="summary-row">
+                  <span>Key args</span>
+                  <code>data</code>, <code>modifiers</code>, <code>confounders</code>, <code>treatment</code>, <code>outcome</code>, <code>cross_fit</code>
+                </div>
+                <div class="summary-row">
+                  <span>Returns</span>
+                  An <code>hte3_Task</code> object that stores the analysis inputs and nuisance setup.
+                </div>
+                <div class="summary-row">
+                  <span>Use when</span>
+                  You are starting a new analysis from raw data and want the main production-oriented workflow.
+                </div>
+                <div class="summary-row">
+                  <span>Default behavior</span>
+                  Propensity and outcome learners default to <code>get_autoML()</code>; you only need to override them when you want custom nuisance models.
+                </div>
+              </div>
+            </article>
+
+            <article class="resource-card">
+              <p class="mini-label">CATE wrapper</p>
+              <h3><code>fit_cate()</code></h3>
+              <p>Fits a conditional average treatment effect model from an <code>hte3_Task</code>.</p>
+              <pre class="inline-code"><code>fit_cate(task, method = c("dr", "r", "t", "ep"), ...)</code></pre>
+              <div class="summary-stack">
+                <div class="summary-row">
+                  <span>Key args</span>
+                  <code>task</code>, <code>method</code>, <code>base_learner</code>, <code>treatment_level</code>, <code>control_level</code>, <code>cross_validate</code>
+                </div>
+                <div class="summary-row">
+                  <span>Methods</span>
+                  Supported methods are <code>"dr"</code>, <code>"r"</code>, <code>"t"</code>, and <code>"ep"</code>. A character vector creates a cross-validated portfolio.
+                </div>
+                <div class="summary-row">
+                  <span>Returns</span>
+                  An <code>hte3_model</code> object that you can pass to <code>predict()</code> and <code>summary()</code>.
+                </div>
+                <div class="summary-row">
+                  <span>Use when</span>
+                  Your target is a conditional mean difference. For continuous-treatment CATE tasks, the supported high-level method is currently <code>"r"</code>.
+                </div>
+              </div>
+            </article>
+
+            <article class="resource-card">
+              <p class="mini-label">CRR wrapper</p>
+              <h3><code>fit_crr()</code></h3>
+              <p>Fits a conditional risk-ratio model when a relative effect scale is more natural than a difference.</p>
+              <pre class="inline-code"><code>fit_crr(task, method = c("ep", "ipw", "t"), ...)</code></pre>
+              <div class="summary-stack">
+                <div class="summary-row">
+                  <span>Key args</span>
+                  <code>task</code>, <code>method</code>, <code>base_learner</code>, <code>treatment_level</code>, <code>control_level</code>, <code>cross_validate</code>
+                </div>
+                <div class="summary-row">
+                  <span>Methods</span>
+                  Supported methods are <code>"ep"</code>, <code>"ipw"</code>, and <code>"t"</code>. A character vector creates a cross-validated portfolio.
+                </div>
+                <div class="summary-row">
+                  <span>Returns</span>
+                  An <code>hte3_model</code> object for CRR prediction and summary.
+                </div>
+                <div class="summary-row">
+                  <span>Use when</span>
+                  You want a conditional risk ratio and the outcome is nonnegative.
+                </div>
+              </div>
+            </article>
+
+            <article class="resource-card">
+              <p class="mini-label">Prediction</p>
+              <h3><code>predict()</code></h3>
+              <p>Generates fitted effect predictions on the training task or on a new data set.</p>
+              <pre class="inline-code"><code>predict(object, new_data = NULL)</code></pre>
+              <div class="summary-stack">
+                <div class="summary-row">
+                  <span>Key args</span>
+                  <code>object</code>, <code>new_data</code>
+                </div>
+                <div class="summary-row">
+                  <span>Returns</span>
+                  A numeric vector of predicted heterogeneous treatment effects on the chosen data.
+                </div>
+                <div class="summary-row">
+                  <span>New data rules</span>
+                  If <code>new_data = NULL</code>, predictions are returned on the training task. For a data frame or data table, the required modifier columns must be present; missing non-modifier analysis columns are filled internally when possible.
+                </div>
+                <div class="summary-row">
+                  <span>Use when</span>
+                  You want fitted values on the training sample or effect predictions for a new cohort with the same modifier schema.
+                </div>
+              </div>
+            </article>
+
+            <article class="resource-card">
+              <p class="mini-label">Model summary</p>
+              <h3><code>summary()</code></h3>
+              <p>Prints the main training metadata for a fitted production model.</p>
+              <pre class="inline-code"><code>summary(object)</code></pre>
+              <div class="summary-stack">
+                <div class="summary-row">
+                  <span>Key args</span>
+                  <code>object</code>
+                </div>
+                <div class="summary-row">
+                  <span>Returns</span>
+                  A compact summary object containing the target, method, cross-validation flag, row count, modifiers, and treatment variable.
+                </div>
+                <div class="summary-row">
+                  <span>Use when</span>
+                  You want a fast check of what model was fit before moving on to downstream analysis or comparison.
+                </div>
+              </div>
+            </article>
+
+            <article class="resource-card">
+              <p class="mini-label">Advanced entrypoint</p>
+              <h3><code>make_hte3_Task_tx()</code></h3>
+              <p>The lower-level task constructor for users who want tighter control over nuisance learners or user-supplied nuisance estimates.</p>
+              <pre class="inline-code"><code>make_hte3_Task_tx(data, modifiers, confounders, treatment, outcome, ...)</code></pre>
+              <div class="summary-stack">
+                <div class="summary-row">
+                  <span>Key args</span>
+                  <code>learner_pi</code>, <code>learner_mu</code>, <code>learner_m</code>, user-supplied nuisances <code>pi.hat</code>/<code>mu.hat</code>/<code>m.hat</code>, and <code>cross_fit_and_cv</code>
+                </div>
+                <div class="summary-row">
+                  <span>Returns</span>
+                  An <code>hte3_Task</code> object closer to the original advanced interface.
+                </div>
+                <div class="summary-row">
+                  <span>Use when</span>
+                  You need direct nuisance control, external nuisance estimates, or a workflow closer to the original learner-level API.
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="defaults" data-reveal>
+          <div class="section-heading">
+            <p class="eyebrow">Common Defaults</p>
+            <h2>What you can usually leave alone</h2>
+            <p>
+              The defaults are meant to get you moving. Most users can ignore deeper tuning until they are comparing methods or customizing learners.
+            </p>
+          </div>
+
+          <div class="argument-grid argument-grid-four">
+            <article class="argument-card">
+              <h3><code>get_autoML()</code></h3>
+              <p>
+                <code>hte_task()</code> defaults the propensity and outcome learners to <code>get_autoML()</code>, and the fit wrappers default <code>base_learner</code> to the same stack.
+              </p>
+            </article>
+            <article class="argument-card">
+              <h3><code>cross_fit</code> in <code>hte_task()</code></h3>
+              <p>
+                This controls nuisance cross-fitting. Leave it at the default unless you need a faster, simpler experimental loop.
+              </p>
+            </article>
+            <article class="argument-card">
+              <h3><code>cross_validate</code> in <code>fit_*()</code></h3>
+              <p>
+                This controls selection across candidate learners. It turns on automatically for learner portfolios and for stacked base learners.
+              </p>
+            </article>
+            <article class="argument-card">
+              <h3>When to ignore tuning</h3>
+              <p>
+                If you are just getting started, keep the default learners, fit one method at a time, and postpone EP tuning or learner-library customization until later.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="quickstart" data-reveal>
+          <div class="section-heading split">
+            <div>
+              <p class="eyebrow">Quickstart</p>
+              <h2>A minimal CATE analysis</h2>
+            </div>
+            <p class="section-side-note">
+              This keeps the example focused on the workflow instead of on learner tuning.
+            </p>
+          </div>
+
+          <div class="code-block-card">
+            <pre><code>library(hte3)
+
+data &lt;- hte3_example_data(n = 150, seed = 1)
+
+task &lt;- hte_task(
+  data = data,
+  modifiers = c("W1", "W2", "W3"),
+  confounders = c("W1", "W2", "W3"),
+  treatment = "A",
+  outcome = "Y",
+  cross_fit = FALSE
+)
+
+fit &lt;- fit_cate(
+  task,
+  method = "dr",
+  cross_validate = FALSE
+)
+
+pred &lt;- predict(fit, data)
+summary(fit)</code></pre>
+          </div>
+
+          <div class="callout">
+            <strong>For CRR:</strong>
+            switch the outcome to a nonnegative column such as <code>Y_binary</code> and call <code>fit_crr()</code> instead.
+          </div>
+        </section>
+
+        <section class="section" id="workflows" data-reveal>
+          <div class="section-heading">
+            <p class="eyebrow">Workflows</p>
+            <h2>Choose the guide that matches where you are</h2>
+            <p>
+              The package vignettes are organized by analysis type, not only by internals.
+            </p>
+          </div>
+
+          <div class="resource-grid">
+            <article class="resource-card">
+              <h3>Quickstart</h3>
+              <p>Best first read if you want to go from data to a fitted model as quickly as possible.</p>
+              <div class="resource-links">
+                <a class="resource-link" href="https://github.com/Larsvanderlaan/hte3/blob/main/vignettes/quickstart.Rmd">Open source vignette</a>
+              </div>
+            </article>
+            <article class="resource-card">
+              <h3>CATE workflow</h3>
+              <p>Examples of the production path for conditional average treatment effect estimation.</p>
+              <div class="resource-links">
+                <a class="resource-link" href="https://github.com/Larsvanderlaan/hte3/blob/main/vignettes/cate.Rmd">Open source vignette</a>
+              </div>
+            </article>
+            <article class="resource-card">
+              <h3>CRR workflow</h3>
+              <p>Use this when relative effects and nonnegative outcomes are the right target.</p>
+              <div class="resource-links">
+                <a class="resource-link" href="https://github.com/Larsvanderlaan/hte3/blob/main/vignettes/crr.Rmd">Open source vignette</a>
+              </div>
+            </article>
+            <article class="resource-card">
+              <h3>Advanced sl3 integration</h3>
+              <p>Drops closer to the original learner classes and manual control path.</p>
+              <div class="resource-links">
+                <a class="resource-link" href="https://github.com/Larsvanderlaan/hte3/blob/main/vignettes/advanced-sl3.Rmd">Open source vignette</a>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="paths" data-reveal>
+          <div class="section-heading">
+            <p class="eyebrow">Two Paths</p>
+            <h2>Start simple, then go deeper only if you need to</h2>
+          </div>
+
+          <div class="comparison-grid">
+            <article class="comparison-card">
+              <span class="comparison-kicker">Recommended path</span>
+              <h3>Production API</h3>
+              <p>
+                Use <code>hte_task()</code>, then <code>fit_cate()</code> or <code>fit_crr()</code>.
+                This is the right default if you mainly care about getting to a trustworthy analysis quickly.
+              </p>
+            </article>
+            <article class="comparison-card">
+              <span class="comparison-kicker">Advanced path</span>
+              <h3>Direct learner control</h3>
+              <p>
+                Use <code>make_hte3_Task_tx()</code> and the <code>Lrnr_*</code> classes when you want to tune the lower-level metalearner workflow directly.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="legacy" data-reveal>
+          <div class="section-heading">
+            <p class="eyebrow">Legacy Reproducibility</p>
+            <h2>Paper reproduction stays available without cluttering the main workflow</h2>
+            <p>
+              The package preserves the original paper-reproduction path, but the website keeps it separate so new users do not have to start there.
+            </p>
+          </div>
+
+          <div class="resource-grid">
+            <article class="resource-card">
+              <h3>Legacy paper reproduction</h3>
+              <p>
+                Use the frozen reproducibility path if your goal is to rerun the older research scripts rather than start a fresh analysis.
+              </p>
+              <div class="resource-links">
+                <a class="resource-link" href="https://github.com/Larsvanderlaan/hte3/blob/main/vignettes/legacy-paper-repro.Rmd">Open source vignette</a>
+                <a class="resource-link" href="https://github.com/Larsvanderlaan/hte3/blob/main/paper_EPlearner_experiments/install_legacy_paper_repro.R">Install script</a>
+              </div>
+            </article>
+            <article class="resource-card">
+              <h3>Need learner help?</h3>
+              <p>
+                The dedicated <code>sl3</code> page explains where learners plug in and which defaults are already built into the package.
+              </p>
+              <div class="resource-links">
+                <a class="resource-link" href="./sl3.html">Open the sl3 guide</a>
+              </div>
+            </article>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <p>R package guide for hte3.</p>
+      </footer>
+    </div>
+  </body>
+</html>

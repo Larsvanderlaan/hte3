@@ -5,7 +5,7 @@
 #' @format An R6 class with public methods to initialize the learner, create a regression task, and access the base learner.
 #'
 #' @param params A list of parameters for the meta-learning algorithm.
-#' @param modifers A character vector of variable names for treatment effect moderators.
+#' @param modifiers A character vector of variable names for treatment effect moderators.
 #' If \code{NULL}, then the \code{modifiers} variable of the \code{hte3_Task} object is used.
 #' See \code{make_hte3_Task_tx} for more details.
 #' @param base_learner A \code{\link{sl3}} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.
@@ -53,11 +53,7 @@ Lrnr_hte <- R6Class(
     #'
     #' @keywords internal
     check_treatment_type = function(hte3_task) {
-      type <- hte3_task$npsem$treatment$variable_type$type
-      valid_types <- paste0("c(", paste0(private$.treatment_type, collapse = ", "), ")")
-      if(!(type %in% private$.treatment_type)) {
-        stop(paste0(self$name, "is not compatible with ", type, " treatments. Only treatments of the following type are permitted for this learner: ", valid_types))
-      }
+      validate_supported_treatment_type(hte3_task, private$.treatment_type, self$name)
     },
     get_modifiers = function(hte3_task, return_matrix = FALSE) {
       if("modifiers" %in% names(self$params)) {
@@ -157,6 +153,7 @@ Lrnr_hte <- R6Class(
       "continuous", "binomial", "categorical", "importance",
       "weights"),
     .train = function(hte3_task) {
+      self$check_treatment_type(hte3_task)
       args <- self$params
       learner_task <- self$make_metalearner_task(hte3_task)
       base_learner <- self$base_learner
@@ -201,7 +198,7 @@ Lrnr_hte <- R6Class(
         column_names = new_col_names
       ))
     },
-    .treatment_type = c("binomial_treatment", "categorical_treatment", "continuous_treatment"),
+    .treatment_type = c("binomial", "categorical", "continuous"),
     .required_packages = c("sl3"),
     .base_learner = NULL,
     .pseudo_outcome_type = "continuous",

@@ -20,58 +20,36 @@ Lrnr_crr_EP <- R6Class(
     control_level = NULL,
     ...
     ) {
-      params <- sl3:::args_to_list()
+      params <- list(
+        base_learner = base_learner,
+        sieve_num_basis = sieve_num_basis,
+        sieve_interaction_order = sieve_interaction_order,
+        treatment_level = treatment_level,
+        control_level = control_level,
+        ...
+      )
       super$initialize(params = params, base_learner = base_learner,
-                       transform_function = stats::qlogis,
+                       transform_function = bounded_qlogis,
                        pseudo_outcome_type = "quasibinomial",
                        pseudo_family = quasibinomial(),
                        ...)
     },
     get_pseudo_data = function(hte3_task, treatment_level = NULL, control_level = NULL, train = TRUE, ...) {
-      data <- hte3_task$data
-      A <- hte3_task$get_tmle_node("treatment")
-      Y <- hte3_task$get_tmle_node("outcome")
-      if(is.null(treatment_level)) treatment_level <- levels(factor(A))[2]
-      if(is.null(control_level)) control_level <- levels(factor(A))[1]
-      # should output a matrix where each column corresponds to a treatment level
-      pi.hat <- as.matrix(hte3_task$get_nuisance_estimates("pi"))
-      mu.hat <- as.matrix(hte3_task$get_nuisance_estimates("mu"))
-
-      # get estimates for relevant treatment levels
-      # assumes column names are treatment levels
-      index.pi.1 <- match(as.character(treatment_level), as.character(colnames(pi.hat)))
-      index.pi.0 <- match(as.character(control_level), as.character(colnames(pi.hat)))
-      pi.hat.1 <- pi.hat[, index.pi.1]
-      pi.hat.0 <- pi.hat[, index.pi.0]
-      pi.hat.1 <- causalutils::truncate_propensity(pi.hat.1, A, treatment_level = treatment_level, truncation_method = "adaptive")
-      pi.hat.0 <- causalutils::truncate_propensity(pi.hat.0, A, treatment_level = control_level, truncation_method = "adaptive")
-
-      index.mu.1 <- match(as.character(treatment_level), as.character(colnames(mu.hat)))
-      index.mu.0 <- match(as.character(control_level), as.character(colnames(mu.hat)))
-      mu.hat.1 <- mu.hat[, index.mu.1]
-      mu.hat.0 <- mu.hat[, index.mu.0]
-
-      #pseudo_outcome <- mu.hat.1 - mu.hat.0
-      # + (A == treatment_level)/pi.hat.1 * (Y - mu.hat.1)
-      #- (A == control_level)/pi.hat.0 * (Y - mu.hat.0)
-
+      nuisance <- resolve_contrast_nuisances(
+        hte3_task,
+        treatment_level = treatment_level,
+        control_level = control_level
+      )
+      validate_nonnegative_outcome(nuisance$Y, label = "CRR outcomes")
       X <- self$get_modifiers(hte3_task, return_matrix = TRUE)
-      args <- self$params
-      args$X <- X
-      basisN <- self$params$sieve_num_basis
-      if(is.null(basisN)) {
-        basisN <- ceiling((nrow(X))^(1/3)*ncol(X))
-      }
-      basisN <- basisN + 1
-      interaction_order <- self$params$sieve_interaction_order
-      sieve_basis <- Sieve::sieve_preprocess(as.matrix(X),
-                                             basisN = basisN,
-                                             interaction_order = interaction_order,
-                                             type = "cosine")$Phi
+      sieve_basis <- make_sieve_basis(
+        X,
+        basisN = self$params$sieve_num_basis,
+        interaction_order = self$params$sieve_interaction_order
+      )
 
-
-
-      weights_invpi <- (A == treatment_level)/pi.hat.1 +  (A == control_level)/pi.hat.0
+      weights_invpi <- (nuisance$A == nuisance$treatment_level) / nuisance$pi.hat.1 +
+        (nuisance$A == nuisance$control_level) / nuisance$pi.hat.0
 
       # if(self$params$screen_basis_with_lasso) {
       #
@@ -86,26 +64,39 @@ Lrnr_crr_EP <- R6Class(
       #   keep <- union(c(1), which(coef(glmnet_fit, s = "lambda.min")[-1] != 0))
       #   sieve_basis <- sieve_basis[, keep, drop = FALSE]
       # }
-      print(dim(sieve_basis))
-
-      sieve_basis_train <- cbind(sieve_basis * (A == treatment_level), sieve_basis * (A == control_level))
-      mu.hat <- (A == treatment_level) * (mu.hat.1) + (A == control_level) * (mu.hat.0)
+      sieve_basis_train <- cbind(
+        sieve_basis * (nuisance$A == nuisance$treatment_level),
+        sieve_basis * (nuisance$A == nuisance$control_level)
+      )
+      mu.hat <- (nuisance$A == nuisance$treatment_level) * nuisance$mu.hat.1 +
+        (nuisance$A == nuisance$control_level) * nuisance$mu.hat.0
 
       # Determine link function for debiasing step of outcome regression
-      if(all(Y %in% c(0,1))) {
+      if(all(nuisance$Y %in% c(0,1))) {
         glmnet_family <- "binomial"
         family <- binomial()
-      } else if(all(Y >= 0 & Y <= 1)) {
+      } else if(all(nuisance$Y >= 0 & nuisance$Y <= 1)) {
         glmnet_family <- binomial()
         family <- binomial()
-      } else if(all(Y >= 0)) {
+      } else if(all(nuisance$Y >= 0)) {
         glmnet_family <- "poisson"
         family <- poisson()
       } else {
         stop("Outcome must be nonnegative for crr estimation.")
       }
+
+      if (identical(family$family, "binomial")) {
+        mu.hat <- bound_probability(mu.hat)
+        nuisance$mu.hat.1 <- bound_probability(nuisance$mu.hat.1)
+        nuisance$mu.hat.0 <- bound_probability(nuisance$mu.hat.0)
+      } else {
+        mu.hat <- bound_positive(mu.hat)
+        nuisance$mu.hat.1 <- bound_positive(nuisance$mu.hat.1)
+        nuisance$mu.hat.0 <- bound_positive(nuisance$mu.hat.0)
+      }
+
       # perform EP-learner debiasing algorithm of outcome regression nuisance
-      glmnet_fit <- glmnet::glmnet(sieve_basis_train, Y,
+      glmnet_fit <- glmnet::glmnet(sieve_basis_train, nuisance$Y,
                                    offset = family$linkfun(mu.hat),
                                    weights = weights_invpi,
                                    family = glmnet_family,
@@ -118,11 +109,13 @@ Lrnr_crr_EP <- R6Class(
       # get sieve-debiased estimates.
       sieve_basis_1 <- cbind(sieve_basis * 1, sieve_basis * 0)
       sieve_basis_0 <- cbind(sieve_basis * 0, sieve_basis * 1)
-      mu.hat.1.star <- family$linkinv(family$linkfun(mu.hat.1) + sieve_basis_1 %*% beta)
-      mu.hat.0.star <- family$linkinv(family$linkfun(mu.hat.0) + sieve_basis_0 %*% beta)
+      mu.hat.1.star <- family$linkinv(family$linkfun(nuisance$mu.hat.1) + sieve_basis_1 %*% beta)
+      mu.hat.0.star <- family$linkinv(family$linkfun(nuisance$mu.hat.0) + sieve_basis_0 %*% beta)
+      mu.hat.1.star <- if (identical(family$family, "binomial")) bound_probability(mu.hat.1.star) else bound_positive(mu.hat.1.star)
+      mu.hat.0.star <- if (identical(family$family, "binomial")) bound_probability(mu.hat.0.star) else bound_positive(mu.hat.0.star)
       # get pseudo outcomes and weights for logistic regression.
-      pseudo_outcome <- mu.hat.1.star  /  (mu.hat.1.star + mu.hat.0.star)
-      pseudo_weights <- (mu.hat.1.star + mu.hat.0.star) # note, observation weights are automatically added to the task and should not be added to pseudo_weights
+      pseudo_weights <- bound_positive(mu.hat.1.star + mu.hat.0.star)
+      pseudo_outcome <- bound_probability(mu.hat.1.star / pseudo_weights)
       return(list(pseudo_outcome = pseudo_outcome, pseudo_weights = pseudo_weights))
     }
   ),
@@ -130,7 +123,7 @@ Lrnr_crr_EP <- R6Class(
 
   ),
   private = list(
-    .treatment_type = c("binary_treatment", "categorical_treatment"),
+    .treatment_type = c("binomial", "categorical"),
     .properties = c(
       "crr", "EP"
     )

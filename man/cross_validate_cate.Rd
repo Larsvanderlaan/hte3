@@ -14,15 +14,19 @@ cross_validate_cate(
 )
 }
 \arguments{
-\item{hte_learners}{A single \code{Lrnr_hte} meta-learner or a \code{Stack} of \code{Lrnr_hte} meta-learners to cross-validate.}
+\item{hte_learners}{A single \code{Lrnr_hte} learner, a list of
+\code{Lrnr_hte} learners, or a \code{Stack} of \code{Lrnr_hte} learners
+to cross-validate.}
 
 \item{hte3_task}{An \code{hte3_Task} object containing the data and necessary information for heterogeneous treatment effect estimation.}
 
 \item{cv_control}{A list of control parameters for cross-validation passed to \code{\link[sl3]{Lrnr_sl}}. Default is \code{NULL}.}
 
-\item{treatment_level}{The specific level of the treatment variable to be considered as the treated group. This parameter is crucial for models that differentiate between treated and control groups in estimating treatment effects.}
+\item{treatment_level}{The treatment level to be considered the treated
+group in the contrast used for selection.}
 
-\item{control_level}{The specific level of the treatment variable to be considered as the control group. Similar to `treatment_level`, this parameter helps in identifying the control group for the purpose of treatment effect estimation.}
+\item{control_level}{The treatment level to be considered the control
+group in the contrast used for selection.}
 
 \item{...}{Additional arguments to pass to the loss function and other functions.}
 }
@@ -33,5 +37,5 @@ A list containing the following elements:
   - `coefficients`: The coefficients derived from the cross-validation process, providing insights into the relative importance of different learners within the ensemble.
 }
 \description{
-Cross-validates a collection of CATE (hte3) learners using the DR-learner loss for the CATE.
+Cross-validates a collection of CATE learners using the CATE selector loss.
 }

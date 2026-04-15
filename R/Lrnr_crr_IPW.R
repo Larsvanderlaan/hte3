@@ -11,41 +11,33 @@ Lrnr_crr_IPW <- R6Class(
   portable = TRUE, class = TRUE,
   public = list(
     initialize = function(base_learner, treatment_level = NULL, control_level = NULL, ...) {
-      params <- sl3:::args_to_list()
+      params <- list(base_learner = base_learner, treatment_level = treatment_level, control_level = control_level, ...)
       super$initialize(params = params, base_learner = base_learner,
-                       transform_function = stats::qlogis,
+                       transform_function = bounded_qlogis,
                        pseudo_outcome_type = "binomial",
                        pseudo_family = binomial(),
                        ...)
     },
     get_pseudo_data = function(hte3_task, treatment_level = NULL, control_level = NULL, train = TRUE, ...) {
-      data <- hte3_task$data
-      n <- nrow(data)
       A <- hte3_task$get_tmle_node("treatment")
       Y <- hte3_task$get_tmle_node("outcome")
-      if(is.null(treatment_level)) treatment_level <- levels(factor(A))[2]
-      if(is.null(control_level)) control_level <- levels(factor(A))[1]
-      # should output a matrix where each column corresponds to a treatment level
-      pi.hat <- as.matrix(hte3_task$get_nuisance_estimates("pi"))
+      validate_nonnegative_outcome(Y, label = "CRR outcomes")
 
-      # get estimates for relevant treatment levels
-      # assumes column names are treatment levels
-      index.pi.1 <- match(as.character(treatment_level), as.character(colnames(pi.hat)))
-      index.pi.0 <- match(as.character(control_level), as.character(colnames(pi.hat)))
-      pi.hat.1 <- pi.hat[, index.pi.1]
-      pi.hat.0 <- pi.hat[, index.pi.0]
+      contrast <- resolve_treatment_levels(hte3_task, treatment_level, control_level)
+      pi.hat <- get_nuisance_matrix(hte3_task, "pi", "pi")
+      pi.hat.1 <- extract_treatment_column(pi.hat, contrast$treatment_level, "pi")
+      pi.hat.0 <- extract_treatment_column(pi.hat, contrast$control_level, "pi")
+      n <- length(Y)
       truncation_method <- ifelse(n >= 500, "isotonic", "adaptive")
-      truncation_method <- "adaptive"
-      pi.hat.1 <- truncate_propensity(pi.hat.1, A, treatment_level = treatment_level, truncation_method = truncation_method)
-      pi.hat.0 <- truncate_propensity(pi.hat.0, A, treatment_level = control_level, truncation_method = truncation_method)
-      pi.hat.1 <- pmax(pi.hat.1, 1e-10)
-      pi.hat.0 <- pmax(pi.hat.0, 1e-10)
+      pi.hat.1 <- truncate_propensity(pi.hat.1, A, treatment_level = contrast$treatment_level, truncation_method = truncation_method)
+      pi.hat.0 <- truncate_propensity(pi.hat.0, A, treatment_level = contrast$control_level, truncation_method = truncation_method)
 
-
-
-      pseudo_outcome <- as.numeric(A == treatment_level)
-      invpi <- (A==treatment_level)/pi.hat.1 + (A==control_level)/pi.hat.0
+      pseudo_outcome <- as.numeric(A == contrast$treatment_level)
+      invpi <- (A == contrast$treatment_level) / pi.hat.1 + (A == contrast$control_level) / pi.hat.0
       pseudo_weights <- Y * invpi
+      if (!any(pseudo_weights > 0, na.rm = TRUE)) {
+        stop("`Lrnr_crr_IPW` requires at least one observation with positive CRR weight.", call. = FALSE)
+      }
       return(list(pseudo_outcome = pseudo_outcome, pseudo_weights = pseudo_weights))
     }
   ),
@@ -53,7 +45,7 @@ Lrnr_crr_IPW <- R6Class(
 
   ),
   private = list(
-    .treatment_type = c("binary_treatment", "categorical_treatment"),
+    .treatment_type = c("binomial", "categorical"),
     .properties = c(
       "crr", "IPW"
     )

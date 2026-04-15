@@ -11,7 +11,13 @@ Lrnr_crr_T <- R6Class(
   portable = TRUE, class = TRUE,
   public = list(
     initialize = function(base_learner, treatment_level = 1, control_level = 0, stratify_by_treatment = TRUE, ...) {
-      params <- sl3:::args_to_list()
+      params <- list(
+        base_learner = base_learner,
+        treatment_level = treatment_level,
+        control_level = control_level,
+        stratify_by_treatment = stratify_by_treatment,
+        ...
+      )
       super$initialize(params = params, base_learner = base_learner,
                        ...)
     },
@@ -19,17 +25,7 @@ Lrnr_crr_T <- R6Class(
       stop("Not used by T-learner.")
     },
     make_metalearner_task = function(hte3_task, train = TRUE) {
-      params <- self$params
-      training_task <- hte3_task$next_in_chain(covariates = c(hte3_task$npsem$modifiers$variables, hte3_task$npsem$treatment$variables),
-                                               outcome = hte3_task$npsem$outcome$variables)
-
-      # remake task so outcome type is continuous
-      training_task <- sl3_Task$new(training_task$internal_data,
-                                    column_names =  training_task$column_names,
-                                    row_index = training_task$row_index,
-                                    nodes = training_task$nodes,
-                                    folds = training_task$folds)
-      return(training_task)
+      make_tlearner_task(hte3_task)
     }
   ),
   active = list(
@@ -38,53 +34,39 @@ Lrnr_crr_T <- R6Class(
     }
   ),
   private = list(
+    .treatment_type = c("binomial", "categorical"),
     .properties = c(
       "continuous", "binomial", "categorical", "importance",
       "weights"),
     .train = function(hte3_task) {
-      args <- self$params
+      self$check_treatment_type(hte3_task)
+      validate_nonnegative_outcome(hte3_task$get_tmle_node("outcome"), label = "CRR outcomes")
       learner_task <- self$make_metalearner_task(hte3_task)
-      if(self$params$stratify_by_treatment) {
-        trt <- hte3_task$get_tmle_node("treatment")
-        learner_task <- learner_task$next_in_chain(covariates = hte3_task$npsem$modifiers$variables)
-        learner_trained_trt <- self$base_learner$train(learner_task[trt == self$params$treatment_level])
-        learner_trained_control <- self$base_learner$train(learner_task[trt == self$params$control_level])
-        fit_object = list(learner_trained_trt = learner_trained_trt, learner_trained_control = learner_trained_control)
-      } else{
-        learner_trained_pooled <- self$base_learner$train(learner_task)
-        fit_object = list(learner_trained_pooled = learner_trained_pooled)
-      }
-
-      return(fit_object)
+      contrast <- resolve_treatment_levels(hte3_task, self$params$treatment_level, self$params$control_level)
+      train_tlearner_models(
+        self$base_learner,
+        learner_task,
+        hte3_task,
+        treatment_level = contrast$treatment_level,
+        control_level = contrast$control_level,
+        stratify_by_treatment = self$params$stratify_by_treatment
+      )
     },
     .predict = function(hte3_task) {
       fit_object <- self$fit_object
       learner_task <- self$make_metalearner_task(hte3_task)
-      if(self$params$stratify_by_treatment) {
-        learner_trained_trt <- fit_object$learner_trained_trt
-        learner_trained_control <- fit_object$learner_trained_control
-        learner_task <- learner_task$next_in_chain(covariates = hte3_task$npsem$modifiers$variables)
-        mu0.hat <- learner_trained_control$predict(learner_task)
-        mu1.hat <- learner_trained_trt$predict(learner_task)
-      } else{
-        learner_trained_pooled <- fit_object$learner_trained_pooled
-        # generate counterfactual tasks
-        dat0 <- data.table(rep(self$params$control_level, hte3_task$nrow))
-        dat1 <- data.table(rep(self$params$treatment_level, hte3_task$nrow))
-        names(dat0) <- names(dat1) <-  hte3_task$npsem$treatment$variables
-        cf0_hte3_task <- hte3_task$generate_counterfactual_task(uuid::UUIDgenerate(), dat0)
-        cf1_hte3_task <- hte3_task$generate_counterfactual_task(uuid::UUIDgenerate(), dat1)
-        mu0.hat <- learner_trained_pooled$predict(self$make_metalearner_task(cf0_hte3_task))
-        mu1.hat <- learner_trained_pooled$predict(self$make_metalearner_task(cf1_hte3_task))
-      }
-      mu0.hat <- pmax(mu0.hat, 1e-10)
-      mu1.hat <- pmax(mu1.hat, 1e-10)
-      predictions <- log(mu1.hat) - log(mu0.hat)
-      return(predictions)
+      contrast <- resolve_treatment_levels(hte3_task, self$params$treatment_level, self$params$control_level)
+      means <- predict_tlearner_means(
+        fit_object,
+        hte3_task,
+        learner_task,
+        treatment_level = contrast$treatment_level,
+        control_level = contrast$control_level,
+        stratify_by_treatment = self$params$stratify_by_treatment
+      )
+      log(bound_positive(means$mu1.hat)) - log(bound_positive(means$mu0.hat))
     },
     .required_packages = c("sl3"),
     .base_learner = NULL
   )
 )
-
-

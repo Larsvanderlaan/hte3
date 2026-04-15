@@ -12,11 +12,11 @@ truncate_propensity(
 )
 }
 \arguments{
-\item{pi.hat}{A numeric vector containing estimates of the propensity score \(\hat{\pi}(W)\) corresponding to \code{treatment_level}.}
+\item{pi.hat}{A numeric vector containing estimates of the propensity score for \code{treatment_level}.}
 
 \item{A}{A numeric vector of treatment values.}
 
-\item{treatment_level}{A numeric value indicating the treatment level to calibrate (default is the maximum value of \(\mathbf{A}\)).}
+\item{treatment_level}{A numeric value indicating the treatment level to calibrate.}
 
 \item{truncation_method}{A character string indicating the truncation method: "isotonic", "adaptive", "deterministic", or "none".}
 }

@@ -1,12 +1,13 @@
 
 #' Cross-Validate Heterogeneous Treatment Effect Models
 #'
-#' Cross-validates a collection of heterogeneous treatment effect (hte3) learners using the specified loss function.
+#' Cross-validates a collection of heterogeneous treatment effect learners.
 #'
-#' @param hte_learners A single \code{Lrnr_hte} meta-learner or a \code{Stack} of \code{Lrnr_hte} meta-learners to cross-validate.
+#' @param hte_learners A single \code{Lrnr_hte} learner, a list of
+#'   \code{Lrnr_hte} learners, or a \code{Stack} of \code{Lrnr_hte} learners
+#'   to cross-validate.
 #' @param hte3_task An \code{hte3_Task} object containing the data and necessary information for heterogeneous treatment effect estimation.
 #' @param cv_metalearner An optional metalearner (\code{Lrnr_base} object) used to combine the cross-validated learners. Default is \code{Lrnr_cv_selector$new(loss_squared_error)}.
-#' @param cv_loss_spec A function specifying the loss function to use for cross-validation. Default is \code{loss_spec_cate_DR_binary}.
 #' @param cv_control A list of control parameters for cross-validation passed to \code{\link[sl3]{Lrnr_sl}}. Default is \code{NULL}.
 #' @param ... Additional arguments to pass to the loss function and other functions.
 #'
@@ -17,7 +18,7 @@
 cross_validate <- function(hte_learners, hte3_task, cv_metalearner = Lrnr_cv_selector$new(loss_squared_error), cv_control = NULL, ...) {
   args <- list(hte3_task = hte3_task, ...)
   if(is.list(hte_learners)) {
-    hte_learners <- Stack$new(hte_learners)
+    hte_learners <- do.call(Stack$new, hte_learners)
   }
   lrnr_sl <- Lrnr_sl$new(learners = hte_learners, metalearner = cv_metalearner, cv_control = cv_control, ...)$train(hte3_task)
   return(lrnr_sl)
@@ -28,10 +29,12 @@ cross_validate <- function(hte_learners, hte3_task, cv_metalearner = Lrnr_cv_sel
 
 #' Cross-Validate CATE Models
 #'
-#' Cross-validates a collection of CATE (hte3) learners using the DR-learner loss for the CATE.
+#' Cross-validates a collection of CATE learners using the CATE selector loss.
 #'
-#' @param treatment_level The specific level of the treatment variable to be considered as the treated group. This parameter is crucial for models that differentiate between treated and control groups in estimating treatment effects.
-#' @param control_level The specific level of the treatment variable to be considered as the control group. Similar to `treatment_level`, this parameter helps in identifying the control group for the purpose of treatment effect estimation.
+#' @param treatment_level The treatment level to be considered the treated
+#'   group in the contrast used for selection.
+#' @param control_level The treatment level to be considered the control
+#'   group in the contrast used for selection.
 #' @inheritParams cross_validate
 #' @return A list containing the following elements:
 #'   - `lrnr_sl`: A `Lrnr_sl` object that represents the cross-validated ensemble of CATE learners.
@@ -49,13 +52,15 @@ cross_validate_cate <- function(hte_learners, hte3_task, cv_control = NULL, trea
 
 #' Cross-Validate CRR Models
 #'
-#' Cross-validates a collection of CRR (hte3) learners using a DR-learner loss for the CRR.
+#' Cross-validates a collection of CRR learners using the CRR selector loss.
 #'
-#' @param treatment_level The specific level of the treatment variable to be considered as the treated group. This parameter is crucial for models that differentiate between treated and control groups in estimating treatment effects.
-#' @param control_level The specific level of the treatment variable to be considered as the control group. Similar to `treatment_level`, this parameter helps in identifying the control group for the purpose of treatment effect estimation.
+#' @param treatment_level The treatment level to be considered the treated
+#'   group in the contrast used for selection.
+#' @param control_level The treatment level to be considered the control
+#'   group in the contrast used for selection.
 #' @inheritParams cross_validate
 #' @return A list containing the following elements:
-#'   - `lrnr_sl`: A `Lrnr_sl` object that represents the cross-validated ensemble of CATE learners.
+#'   - `lrnr_sl`: A `Lrnr_sl` object that represents the cross-validated ensemble of CRR learners.
 #'   - `cv_risk`: The cross-validation risk associated with the ensemble, which serves as a measure of the ensemble's predictive performance.
 #'   - `coefficients`: The coefficients derived from the cross-validation process, providing insights into the relative importance of different learners within the ensemble.
 #' @export
@@ -76,7 +81,7 @@ cross_validate_crr <- function(hte_learners, hte3_task, cv_control = NULL, treat
 #   if(is.list(hte_learners)) {
 #     hte_learners <- Stack$new(hte_learners)
 #   }
-#   pseudo_data <- sl3:::call_with_args(cv_loss_spec, args, silent = TRUE)
+#   pseudo_data <- call_with_args(cv_loss_spec, args, silent = TRUE)
 #   if(is.character(pseudo_data$family)) pseudo_data$family <- get(pseudo_data$family)
 #   pseudo_outcome <- pseudo_data$pseudo_outcome
 #   pseudo_weights <- pseudo_data$pseudo_weights
@@ -101,5 +106,3 @@ cross_validate_crr <- function(hte_learners, hte3_task, cv_control = NULL, treat
 #   lrnr_sl <- Lrnr_sl$new(learners = hte_learners, cv_metalearner = cv_metalearner, cv_control = cv_control, ...)$train(new_hte3_task)
 #   return(lrnr_sl)
 # }
-
-

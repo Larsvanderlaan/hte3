@@ -1,12 +1,13 @@
 # ----------------------------
 # Reproducible paths via BASE_PATH
-# (matches your new convention)
-#   SIM_CODE_DIR <- file.path(BASE_PATH, "code_for_experiments_and_figures")
-#   RESULTS_DIR  <- file.path(BASE_PATH, "experiment_results")
+# BASE_PATH should point to this directory:
+#   paper_EPlearner_experiments/code_for_main_experiments_section_7
 # ----------------------------
 
 # generate synthetic dataset
-nsims <- 1000
+if (!exists("nsims", inherits = FALSE)) {
+  nsims <- 1000
+}
 
 n <- as.numeric(n)
 hard <- as.logical(hard)
@@ -41,23 +42,24 @@ if (is.na(BASE_PATH) || !nzchar(BASE_PATH)) {
   BASE_PATH <- normalizePath(path.expand(BASE_PATH), winslash = "/")
 }
 
-SIM_CODE_DIR <- file.path(BASE_PATH, "code_for_experiments_and_figures")
-RESULTS_DIR  <- file.path(BASE_PATH, "experiment_results")
+SIM_CODE_DIR <- BASE_PATH
+RESULTS_DIR  <- file.path(dirname(BASE_PATH), "experiment_results")
 dir.create(RESULTS_DIR, showWarnings = FALSE, recursive = TRUE)
 
 # ----------------------------
 # Generate data: source from SIM_CODE_DIR (no ~ paths)
 # ----------------------------
 if (sim_type == "CATEhigh") {
-  source(file.path(SIM_CODE_DIR, "simCATEHighDim.R"))
-  nsims <- 500
+  source(file.path(SIM_CODE_DIR, "generate_data_CATE_HighDim.R"))
+  if (!exists("nsims", inherits = FALSE)) {
+    nsims <- 500
+  }
   sim.fun <- sim.CATEHighDim
 } else if (sim_type == "CATElow") {
-  source(file.path(SIM_CODE_DIR, "simCATE.R"))
+  source(file.path(SIM_CODE_DIR, "generate_data_CATE.R"))
   sim.fun <- sim.CATE
 } else if (sim_type == "CRATE") {
-  # NOTE: assumes sim.LRR is defined in some sourced file.
-  # If it's also in SIM_CODE_DIR, source it here similarly.
+  source(file.path(SIM_CODE_DIR, "generate_data_RR.R"))
   sim.fun <- sim.LRR
 } else {
   stop(sprintf("Unknown sim_type: %s", sim_type))
@@ -250,7 +252,7 @@ one_sim <- function(iter) {
       Y <- hte3_task$get_tmle_node("outcome")
 
       W.hat <- as.matrix(hte3_task$get_nuisance_estimates("pi"))[, 2]
-      W.hat <- causalutils::truncate_propensity(W.hat, W, treatment_level = 1, truncation_method = "adaptive")
+      W.hat <- hte3::truncate_propensity(W.hat, W, treatment_level = 1, truncation_method = "adaptive")
       Y.hat <- as.vector(hte3_task$get_nuisance_estimates("m"))
 
       cf_fit <- grf::causal_forest(

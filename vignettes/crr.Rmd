@@ -1,0 +1,102 @@
+---
+title: "CRR Workflow"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{CRR Workflow}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+This vignette shows the production workflow for conditional risk-ratio style
+targets using a non-negative outcome.
+
+```{r}
+library(hte3)
+library(sl3)
+
+data <- hte3_example_data(n = 150, seed = 3)
+
+task <- hte_task(
+  data = data,
+  modifiers = c("W1", "W2", "W3"),
+  confounders = c("W1", "W2", "W3"),
+  treatment = "A",
+  outcome = "Y_binary",
+  propensity_learner = Lrnr_mean$new(),
+  outcome_learner = Lrnr_mean$new(),
+  mean_learner = Lrnr_mean$new(),
+  cross_fit = FALSE
+)
+
+crr_model <- fit_crr(
+  task,
+  method = "ipw",
+  base_learner = Lrnr_mean$new(),
+  cross_validate = FALSE
+)
+
+head(predict(crr_model, data))
+summary(crr_model)
+```
+
+The production pattern is the same as for CATE:
+
+- build an `hte3_Task` with `hte_task()`
+- choose a CRR learner family with `method`
+- optionally select among candidate learners with `cross_validate = TRUE`
+
+## Cross-Validation Across Learner Families
+
+```{r}
+cv_model <- fit_crr(
+  task,
+  method = c("ipw", "t", "ep"),
+  base_learner = Lrnr_mean$new(),
+  cross_validate = TRUE,
+  cv_control = list(V = 2)
+)
+
+cv_model
+head(predict(cv_model, data))
+```
+
+This portfolio evaluates:
+
+- the IPW CRR learner
+- the T learner on the log risk-ratio scale
+- a portfolio of EP learners with different sieve basis sizes
+
+The outer selection loss is handled by `cross_validate_crr()` using the CRR
+selector.
+
+## Low-Level Cross-Validation
+
+If you want to control the exact learner list directly, use
+`cross_validate_crr()`.
+
+```{r}
+cv_fit <- cross_validate_crr(
+  list(
+    Lrnr_crr_IPW$new(base_learner = Lrnr_mean$new()),
+    Lrnr_crr_T$new(base_learner = Lrnr_mean$new()),
+    Lrnr_crr_EP$new(base_learner = Lrnr_mean$new(), sieve_num_basis = 4)
+  ),
+  task,
+  cv_control = list(V = 2)
+)
+
+cv_fit$coefficients
+head(cv_fit$lrnr_sl$predict(task))
+```
+
+## Notes
+
+- CRR workflows require a non-negative outcome.
+- `cross_fit` in `hte_task()` controls nuisance estimation and is separate
+  from HTE learner selection.
+- If `method = "ep"` and `cross_validate = TRUE`, the wrapper performs
+  basis-size selection across EP candidates automatically.

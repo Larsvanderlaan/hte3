@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hte3</title>
+    <meta
+      name="description"
+      content="Causal machine learning for heterogeneous treatment effects, with practitioner-friendly workflows for CATE and CRR built on sl3."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./site.css" />
+    <script defer src="./site.js"></script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <nav class="topbar">
+          <div class="brand"><a href="./index.html">hte3</a></div>
+          <div class="toplinks">
+            <a href="./index.html">Overview</a>
+            <a href="./r.html">R Package</a>
+            <a href="./sl3.html">sl3 Guide</a>
+            <a href="#methods">Methods</a>
+            <a href="#workflow">Workflow</a>
+          </div>
+          <a class="paper-link" href="https://github.com/Larsvanderlaan/hte3">
+            <span class="paper-link-icon" aria-hidden="true"></span>
+            <span>GitHub</span>
+          </a>
+        </nav>
+
+        <div class="hero-grid">
+          <section class="hero-copy" data-reveal>
+            <p class="eyebrow">Heterogeneous Treatment Effects</p>
+            <div class="hero-head">
+              <div>
+                <h1>Causal machine learning for CATE and CRR in one R package</h1>
+              </div>
+              <div class="hero-art">
+                <img
+                  src="./assets/hte3-badge-mark.svg"
+                  alt="hte3 package badge showing branching treatment effect paths"
+                  width="1024"
+                  height="1024"
+                />
+              </div>
+            </div>
+            <p class="lede">
+              <code>hte3</code> helps practitioners estimate <strong>how treatment effects vary across people</strong>.
+              It offers a production-style workflow for <strong>conditional average treatment effects (CATE)</strong>
+              and <strong>conditional risk ratios (CRR)</strong>, while still exposing the lower-level
+              <code>sl3</code>-based machinery when you want tighter control.
+            </p>
+            <p class="summary-text">
+              In practice, that means you can start with a simple three-step flow
+              and only drop into advanced learners, stacks, and tuning when your analysis needs it.
+            </p>
+            <div class="hero-actions">
+              <a class="button button-primary" href="#methods">Explore methods</a>
+              <a class="button button-secondary" href="./r.html#api">Open the R guide</a>
+              <a class="button button-secondary" href="./sl3.html">See the sl3 guide</a>
+            </div>
+            <ul class="hero-pills">
+              <li>CATE and CRR workflows</li>
+              <li>Built on <code>sl3</code> and <code>tmle3</code></li>
+              <li>Production API plus advanced learner classes</li>
+            </ul>
+          </section>
+
+          <aside class="hero-panel" data-reveal>
+            <div class="panel-card gradient-card">
+              <p class="panel-label">What hte3 is for</p>
+              <ul class="quick-list">
+                <li>Estimating effect heterogeneity instead of only one average effect.</li>
+                <li>Working with effect modifiers and confounders in a clean task object.</li>
+                <li>Choosing between simple baselines and more flexible meta-learners.</li>
+                <li>Keeping an approachable user path while staying in the <code>sl3</code> ecosystem.</li>
+              </ul>
+            </div>
+            <div class="panel-card code-card">
+              <p class="panel-label">Quick Start</p>
+              <pre><code>library(hte3)
+
+task &lt;- hte_task(
+  data = hte3_example_data(),
+  modifiers = c("W1", "W2", "W3"),
+  confounders = c("W1", "W2", "W3"),
+  treatment = "A",
+  outcome = "Y",
+  cross_fit = FALSE
+)
+
+fit &lt;- fit_cate(task, method = "dr")
+pred &lt;- predict(fit)</code></pre>
+            </div>
+          </aside>
+        </div>
+      </header>
+
+      <main>
+        <section class="section" id="start-here" data-reveal>
+          <div class="section-heading split">
+            <div>
+              <p class="eyebrow">Start Here</p>
+              <h2>What does the package actually estimate?</h2>
+            </div>
+            <p class="section-side-note">
+              Think of <code>hte3</code> as a package for learning effect surfaces, not just one-number summaries.
+            </p>
+          </div>
+
+          <div class="comparison-grid">
+            <article class="comparison-card">
+              <span class="comparison-kicker">CATE</span>
+              <h3>Conditional average treatment effects</h3>
+              <p>
+                Use CATE when your question is <strong>"for which types of units is treatment more or less helpful?"</strong>
+                The output is a conditional mean difference, and the main entry point is <code>fit_cate()</code>.
+              </p>
+              <pre class="inline-code"><code>fit_cate(task, method = "dr")</code></pre>
+            </article>
+            <article class="comparison-card">
+              <span class="comparison-kicker">CRR</span>
+              <h3>Conditional risk ratios</h3>
+              <p>
+                Use CRR when a <strong>relative effect</strong> is more natural than a difference and the outcome is nonnegative.
+                The output is a conditional risk-ratio surface, and the main entry point is <code>fit_crr()</code>.
+              </p>
+              <pre class="inline-code"><code>fit_crr(task, method = "ep")</code></pre>
+            </article>
+          </div>
+
+          <div class="callout">
+            <strong>Practitioner takeaway:</strong>
+            start by choosing the estimand that matches your reporting goal, then choose the method inside that estimand.
+          </div>
+        </section>
+
+        <section class="section" id="why-hte3" data-reveal>
+          <div class="section-heading">
+            <p class="eyebrow">Why hte3</p>
+            <h2>User-friendly on the surface, flexible underneath</h2>
+            <p>
+              The package is designed so you can stay in a high-level workflow for common analyses,
+              while still having access to the lower-level learners and tuning controls that advanced users expect.
+            </p>
+          </div>
+
+          <div class="argument-grid">
+            <article class="argument-card">
+              <h3>Production-style workflow</h3>
+              <p>
+                Build an <code>hte3_Task</code> once with <code>hte_task()</code>, then fit with
+                <code>fit_cate()</code> or <code>fit_crr()</code>.
+              </p>
+            </article>
+            <article class="argument-card">
+              <h3>Method choice stays visible</h3>
+              <p>
+                You do not have to guess which meta-learner is active. The site and the API keep
+                DR, R, EP, T, and IPW workflows explicit.
+              </p>
+            </article>
+            <article class="argument-card">
+              <h3>sl3-native customization</h3>
+              <p>
+                If you want custom nuisance learners, stacks, selectors, or cross-fitting behavior,
+                the package stays close to the <code>sl3</code> idioms you already know.
+              </p>
+            </article>
+          </div>
+
+          <div class="callout">
+            <strong>Start with these functions:</strong>
+            the R guide now has concise API cards for <code>hte3_example_data()</code>, <code>hte_task()</code>,
+            <code>fit_cate()</code>, <code>fit_crr()</code>, <code>predict()</code>, and <code>summary()</code>.
+            <div class="chip-row">
+              <a class="chip-link" href="./r.html#api">Open the API guide</a>
+              <a class="chip-link" href="./r.html#quickstart">Jump to quickstart</a>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="methods" data-reveal>
+          <div class="section-heading split">
+            <div>
+              <p class="eyebrow">Method Explorer</p>
+              <h2>Choose the method after you choose the estimand</h2>
+            </div>
+            <p class="section-side-note">
+              The tabs below are organized the way practitioners usually think: first pick the estimand, then pick the modeling strategy.
+            </p>
+          </div>
+
+          <div class="method-explorer" data-module="hte-method-explorer">
+            <div class="tab-row tab-row-primary" role="tablist" aria-label="Estimand family">
+              <button type="button" class="tab-button is-active" data-estimand="cate">CATE</button>
+              <button type="button" class="tab-button" data-estimand="crr">CRR</button>
+            </div>
+            <div class="section-heading" style="margin-bottom: 16px;">
+              <p class="eyebrow" data-estimand-title>Conditional Average Treatment Effects</p>
+              <p data-estimand-subtitle>Estimate how treatment effects vary across effect modifiers.</p>
+            </div>
+            <div class="callout" style="margin-bottom: 18px;">
+              <strong>Wrapper note:</strong>
+              <code>fit_cate()</code> currently exposes DR, R, EP, and T at the high level. <code>fit_crr()</code>
+              currently exposes EP, IPW, and T, while lower-level CRR selector classes remain available through the advanced API.
+            </div>
+            <div class="tab-row" data-method-buttons role="tablist" aria-label="Method choice"></div>
+
+            <div class="method-panel">
+              <div class="panel-banner">
+                <span class="badge" data-method-badge>Recommended first</span>
+                <h3 data-method-title>Doubly robust pseudo-outcome regression for CATE</h3>
+              </div>
+              <p class="method-summary" data-method-summary></p>
+
+              <div class="method-layout">
+                <div>
+                  <div class="method-columns">
+                    <div class="info-box">
+                      <h4>Good when</h4>
+                      <ul data-method-good></ul>
+                    </div>
+                    <div class="info-box">
+                      <h4>Tradeoffs</h4>
+                      <ul data-method-tradeoffs></ul>
+                    </div>
+                  </div>
+                  <div class="method-code">
+                    <p class="panel-label">Main Call</p>
+                    <pre><code data-method-code></code></pre>
+                  </div>
+                </div>
+                <div>
+                  <div class="mini-grid" data-method-meta></div>
+                  <div class="callout" style="margin-top: 14px;">
+                    <strong>Recommendation:</strong>
+                    <span data-method-note></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="workflow" data-reveal>
+          <div class="section-heading">
+            <p class="eyebrow">Workflow</p>
+            <h2>The day-to-day workflow is intentionally short</h2>
+            <p>
+              Most analyses can start with three simple decisions: what data object to build, which estimand to target, and which learner to plug in.
+            </p>
+          </div>
+
+          <div class="workflow-strip">
+            <article class="workflow-step">
+              <p class="step-number">Step 1</p>
+              <h3>Build a task</h3>
+              <p>
+                Use <code>hte_task()</code> to define modifiers, confounders, treatment, and outcome.
+                The task object keeps the analysis inputs explicit.
+              </p>
+            </article>
+            <article class="workflow-step">
+              <p class="step-number">Step 2</p>
+              <h3>Fit the estimand</h3>
+              <p>
+                Call <code>fit_cate()</code> or <code>fit_crr()</code>, then choose the method that matches your analysis goal and comfort level.
+              </p>
+            </article>
+            <article class="workflow-step">
+              <p class="step-number">Step 3</p>
+              <h3>Predict and compare</h3>
+              <p>
+                Use <code>predict()</code> and <code>summary()</code> to inspect the fitted surface, then compare simpler and richer methods when needed.
+              </p>
+            </article>
+          </div>
+
+          <div class="callout">
+            <strong>Tip:</strong>
+            if you are not sure what learner library to use, keep the default <code>get_autoML()</code> stack at first and tune later.
+          </div>
+        </section>
+
+        <section class="section" id="guides" data-reveal>
+          <div class="section-heading">
+            <p class="eyebrow">Guides</p>
+            <h2>Where to go next</h2>
+            <p>
+              The landing page is for orientation. The two pages below are where you make concrete implementation choices.
+            </p>
+          </div>
+
+          <div class="resource-grid">
+            <article class="resource-card">
+              <h3>R package guide</h3>
+              <p>
+                Installation, the high-level API cards, a compact quickstart, and links to the core vignettes.
+              </p>
+              <div class="resource-links">
+                <a class="resource-link" href="./r.html#api">Open the R guide</a>
+              </div>
+            </article>
+            <article class="resource-card">
+              <h3>sl3 guide</h3>
+              <p>
+                Learn where learners plug into <code>hte3</code>, what the default stack uses, and which upstream <code>sl3</code> resources to read.
+              </p>
+              <div class="resource-links">
+                <a class="resource-link" href="./sl3.html">Open the sl3 guide</a>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="ecosystem" data-reveal>
+          <div class="section-heading">
+            <p class="eyebrow">Ecosystem</p>
+            <h2>Companion sites in the same calibration and causal-learning ecosystem</h2>
+            <p>
+              If you are moving across related methods, these companion packages give the broader context for the design language and ideas around this package.
+            </p>
+          </div>
+
+          <a class="companion-card" href="https://larsvanderlaan.github.io/calibratedDML/">
+            <img
+              src="https://larsvanderlaan.github.io/calibratedDML/assets/calibrateddml-badge-mark.svg"
+              alt="calibratedDML package badge"
+              width="160"
+              height="160"
+            />
+            <div class="companion-card-copy">
+              <p class="panel-label">Companion package</p>
+              <h3><code>calibratedDML</code></h3>
+              <p>
+                Calibrated debiased machine learning for causal effect inference with flexible nuisance learning.
+              </p>
+              <span class="companion-card-cta">Open the calibratedDML website</span>
+            </div>
+          </a>
+
+          <div class="footer-links">
+            <a class="footer-link" href="https://larsvanderlaan.github.io/ppi-aipw/">ppi_aipw</a>
+            <a class="footer-link" href="https://github.com/Larsvanderlaan/hte3">hte3 repository</a>
+            <a class="footer-link" href="./r.html">R package guide</a>
+            <a class="footer-link" href="./sl3.html">sl3 guide</a>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <p>Built for the hte3 package ecosystem.</p>
+      </footer>
+    </div>
+  </body>
+</html>

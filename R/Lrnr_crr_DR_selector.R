@@ -26,7 +26,7 @@ Lrnr_crr_DR_selector <- R6Class(
     control_level = NULL,
     ...
     ) {
-      params <- sl3:::args_to_list()
+      params <- list(treatment_level = treatment_level, control_level = control_level, ...)
       base_learner <- Lrnr_cv_selector$new(loss_crr_quasibinomial)
       super$initialize(params = params, base_learner = base_learner,
                        transform_function = NULL,
@@ -35,38 +35,11 @@ Lrnr_crr_DR_selector <- R6Class(
                        ...)
     },
     get_pseudo_data = function(hte3_task, treatment_level = NULL, control_level = NULL, train = TRUE, ...) {
-      data <- hte3_task$data
-      A <- hte3_task$get_tmle_node("treatment")
-      Y <- hte3_task$get_tmle_node("outcome")
-      if(is.null(treatment_level)) treatment_level <- levels(factor(A))[2]
-      if(is.null(control_level)) control_level <- levels(factor(A))[1]
-      # should output a matrix where each column corresponds to a treatment level
-      pi.hat <- as.matrix(hte3_task$get_nuisance_estimates("pi"))
-      mu.hat <- as.matrix(hte3_task$get_nuisance_estimates("mu"))
-
-      # get estimates for relevant treatment levels
-      # assumes column names are treatment levels
-      index.pi.1 <- match(as.character(treatment_level), as.character(colnames(pi.hat)))
-      index.pi.0 <- match(as.character(control_level), as.character(colnames(pi.hat)))
-      pi.hat.1 <- pi.hat[, index.pi.1]
-      pi.hat.0 <- pi.hat[, index.pi.0]
-      pi.hat.1 <- truncate_propensity(pi.hat.1, A, treatment_level = treatment_level, truncation_method = "adaptive")
-      pi.hat.0 <- truncate_propensity(pi.hat.0, A, treatment_level = control_level, truncation_method = "adaptive")
-
-      index.mu.1 <- match(as.character(treatment_level), as.character(colnames(mu.hat)))
-      index.mu.0 <- match(as.character(control_level), as.character(colnames(mu.hat)))
-      mu.hat.1 <- mu.hat[, index.mu.1]
-      mu.hat.0 <- mu.hat[, index.mu.0]
-
-
-
-
-      # get pseudo outcomes and weights for logistic regression.
-      mu.tilde.1 <- mu.hat.1 + 1*(A == treatment_level) / pi.hat.1 * (Y - mu.hat.1)
-      mu.tilde.0 <- mu.hat.0 + 1*(A == control_level) / pi.hat.0 * (Y - mu.hat.0)
-      pseudo_outcome <- mu.tilde.1 /  (mu.tilde.0 + mu.tilde.1)
-      pseudo_weights <- (mu.tilde.0 + mu.tilde.1) # note, observation weights are automatically added to the task and should not be added to pseudo_weights
-      return(list(pseudo_outcome = pseudo_outcome, pseudo_weights = pseudo_weights))
+      compute_crr_ratio_pseudo_data(
+        hte3_task,
+        treatment_level = treatment_level,
+        control_level = control_level
+      )
     }
   ),
   active = list(
@@ -81,7 +54,7 @@ Lrnr_crr_DR_selector <- R6Class(
 
   ),
   private = list(
-    .treatment_type = c("binary_treatment", "categorical_treatment"),
+    .treatment_type = c("binomial", "categorical"),
     .properties = c(
       "crr", "EP"
     )

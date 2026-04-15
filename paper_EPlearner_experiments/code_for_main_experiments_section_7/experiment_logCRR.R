@@ -1,8 +1,12 @@
 # ----------------------------
-# Reproducible paths via BASE_PATH / project root
+# Reproducible paths via BASE_PATH
+# BASE_PATH should point to this directory:
+#   paper_EPlearner_experiments/code_for_main_experiments_section_7
 # ----------------------------
 
-nsims <- 1000
+if (!exists("nsims", inherits = FALSE)) {
+  nsims <- 1000
+}
 
 n <- as.numeric(n)
 hard <- as.logical(hard)
@@ -24,28 +28,27 @@ library(hte3)
 library(SuperLearner)
 
 # ---- base path: single source of truth ----
-# Prefer: export BASE_PATH=/absolute/path/to/paper_EPlearner_experiments
+# Prefer: export BASE_PATH=/absolute/path/to/paper_EPlearner_experiments/code_for_main_experiments_section_7
 BASE_PATH <- Sys.getenv("BASE_PATH", unset = NA_character_)
 if (is.na(BASE_PATH) || !nzchar(BASE_PATH)) {
-  # fallback: parent of this script (works if you run this as a script, not in interactive)
   this_file <- tryCatch(normalizePath(sys.frame(1)$ofile, winslash = "/"), error = function(e) NA_character_)
   if (is.na(this_file)) {
-    stop("Set BASE_PATH env var, e.g. Sys.setenv(BASE_PATH='/path/to/paper_EPlearner_experiments')")
+    stop("Set BASE_PATH env var, e.g. Sys.setenv(BASE_PATH='/path/to/code_for_main_experiments_section_7')")
   }
-  BASE_PATH <- normalizePath(file.path(dirname(this_file)), winslash = "/")
+  BASE_PATH <- normalizePath(dirname(this_file), winslash = "/")
 } else {
   BASE_PATH <- normalizePath(path.expand(BASE_PATH), winslash = "/")
 }
 
-SIM_CODE_DIR <- file.path(BASE_PATH, "SimulationRCode")
-RESULTS_DIR  <- file.path(BASE_PATH, "results")
+SIM_CODE_DIR <- BASE_PATH
+RESULTS_DIR  <- file.path(dirname(BASE_PATH), "experiment_results")
 
 dir.create(RESULTS_DIR, showWarnings = FALSE, recursive = TRUE)
 
 set.seed(12345)
 
 # Source simulation code deterministically from BASE_PATH
-source(file.path(SIM_CODE_DIR, "simRR.R"))
+source(file.path(SIM_CODE_DIR, "generate_data_RR.R"))
 
 sim.fun <- sim.RR
 

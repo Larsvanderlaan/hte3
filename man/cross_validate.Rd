@@ -13,7 +13,9 @@ cross_validate(
 )
 }
 \arguments{
-\item{hte_learners}{A single \code{Lrnr_hte} meta-learner or a \code{Stack} of \code{Lrnr_hte} meta-learners to cross-validate.}
+\item{hte_learners}{A single \code{Lrnr_hte} learner, a list of
+\code{Lrnr_hte} learners, or a \code{Stack} of \code{Lrnr_hte} learners
+to cross-validate.}
 
 \item{hte3_task}{An \code{hte3_Task} object containing the data and necessary information for heterogeneous treatment effect estimation.}
 
@@ -22,12 +24,10 @@ cross_validate(
 \item{cv_control}{A list of control parameters for cross-validation passed to \code{\link[sl3]{Lrnr_sl}}. Default is \code{NULL}.}
 
 \item{...}{Additional arguments to pass to the loss function and other functions.}
-
-\item{cv_loss_spec}{A function specifying the loss function to use for cross-validation. Default is \code{loss_spec_cate_DR_binary}.}
 }
 \value{
 A trained \code{Lrnr_sl} object containing the cross-validated ensemble of heterogeneous treatment effect learners.
 }
 \description{
-Cross-validates a collection of heterogeneous treatment effect (hte3) learners using the specified loss function.
+Cross-validates a collection of heterogeneous treatment effect learners.
 }

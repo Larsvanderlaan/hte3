@@ -1,0 +1,112 @@
+---
+title: "CATE Workflow"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{CATE Workflow}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+This vignette shows the recommended production workflow for conditional
+average treatment effect estimation.
+
+```{r}
+library(hte3)
+library(sl3)
+
+data <- hte3_example_data(n = 150, seed = 2)
+
+task <- hte_task(
+  data = data,
+  modifiers = c("W1", "W2"),
+  confounders = c("W1", "W2", "W3"),
+  treatment = "A",
+  outcome = "Y",
+  propensity_learner = Lrnr_mean$new(),
+  outcome_learner = Lrnr_mean$new(),
+  mean_learner = Lrnr_mean$new(),
+  cross_fit = FALSE
+)
+
+dr_model <- fit_cate(
+  task,
+  method = "dr",
+  base_learner = Lrnr_mean$new(),
+  cross_validate = FALSE
+)
+
+t_model <- fit_cate(
+  task,
+  method = "t",
+  base_learner = Lrnr_mean$new(),
+  cross_validate = FALSE
+)
+
+head(predict(dr_model, data))
+head(predict(t_model, data))
+```
+
+The simplest production pattern is:
+
+- build a task with `hte_task()`
+- choose a CATE learner family with `method`
+- optionally use `cross_validate = TRUE` to select among candidates
+
+## Cross-Validation Across Learner Families
+
+Wrapper-level CATE cross-validation is controlled by `cross_validate` and
+`cv_control`.
+
+```{r}
+cv_model <- fit_cate(
+  task,
+  method = c("dr", "r", "ep"),
+  base_learner = Lrnr_mean$new(),
+  cross_validate = TRUE,
+  cv_control = list(V = 2)
+)
+
+cv_model
+head(predict(cv_model, data))
+```
+
+This portfolio example evaluates:
+
+- the DR learner
+- the R learner
+- a portfolio of EP learners with different sieve basis sizes
+
+The outer selection loss is handled by `cross_validate_cate()` using the
+DR-style CATE selector.
+
+## Low-Level Cross-Validation
+
+If you want explicit control over the candidate learner objects, use
+`cross_validate_cate()` directly.
+
+```{r}
+cv_fit <- cross_validate_cate(
+  list(
+    Lrnr_cate_DR$new(base_learner = Lrnr_mean$new()),
+    Lrnr_cate_R$new(base_learner = Lrnr_mean$new()),
+    Lrnr_cate_EP$new(base_learner = Lrnr_mean$new(), sieve_num_basis = 4)
+  ),
+  task,
+  cv_control = list(V = 2)
+)
+
+cv_fit$coefficients
+head(cv_fit$lrnr_sl$predict(task))
+```
+
+## Notes
+
+- `cross_fit` in `hte_task()` controls nuisance estimation and is separate
+  from learner-level cross-validation.
+- Continuous-treatment CATE tasks currently support `method = "r"` only.
+- For EP-learner tuning and more direct `Lrnr_*` control, see the advanced
+  vignette.

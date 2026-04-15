@@ -1,0 +1,35 @@
+template:
+  bootstrap: 5
+
+home:
+  title: hte3
+  description: Causal machine learning for heterogeneous treatment effects.
+
+reference:
+  - title: Production API
+    contents:
+      - hte_task
+      - fit_cate
+      - fit_crr
+      - predict.hte3_model
+      - hte3_example_data
+  - title: Advanced API
+    contents:
+      - make_hte3_Task_tx
+      - matches("^Lrnr_")
+      - cross_validate
+      - cross_validate_cate
+      - cross_validate_crr
+      - predict_hte3
+      - get_autoML
+      - truncate_propensity
+
+articles:
+  - title: Get Started
+    navbar: ~
+    contents:
+      - quickstart
+      - cate
+      - crr
+      - advanced-sl3
+      - legacy-paper-repro

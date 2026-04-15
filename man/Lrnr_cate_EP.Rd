@@ -72,7 +72,7 @@ The EP-learner is a robust and doubly-robust meta-learner that inherits desirabl
 \describe{
 \item{\code{base_learner}}{A \code{\link{sl3}} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.}
 
-\item{\code{sieve_num_basis}}{The number of trignometric basis functions to construct the EP-learner sieve space.
+\item{\code{sieve_num_basis}}{The number of trigonometric basis functions to construct the EP-learner sieve space.
 This argument is passed as the argument \code{basisN} to the function \code{\link[Sieve]{sieve_preprocess}}.
 By default, \code{sieve_num_basis = ceiling((n^(1/3)*d)} where \code{n} denotes the sample size and \code{d} is the number of effect modifiers.}
 
@@ -81,7 +81,7 @@ By default, \code{sieve_num_basis = ceiling((n^(1/3)*d)} where \code{n} denotes 
 This argument is passed as the argument \code{interaction_order} to the function \code{\link[Sieve]{sieve_preprocess}}.}
 
 \item{\code{screen_basis_with_lasso}}{EXPERIMENTAL. Whether to use a lasso-based DR-learner algorithm to screen sieve basis functions for EP-learner.
-There are no theoretical gaurantees for EP-learner with \code{screen_basis_with_lasso = TRUE}. However, this argument may be useful in high dimensional settings.
+There are no theoretical guarantees for EP-learner with \code{screen_basis_with_lasso = TRUE}. However, this argument may be useful in high dimensional settings.
 It also reduces the computational complexity of EP-learner, as the argument \code{sieve_num_basis} does not need to be externally cross-validated.}
 
 \item{\code{...}}{Additional arguments to pass to the initialization function.}

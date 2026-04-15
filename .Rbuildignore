@@ -1,3 +1,13 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
-.csv
+^\.github$
+^\.DS_Store$
+^\.lintr$
+^LICENSE\.md$
+^paper_EPlearner_experiments$
+^paper_EPlearner_experiments/
+^introDRlearner_bydepth_presentation\.pdf$
+^hte3_.*\.tar\.gz$
+^\.{2}Rcheck$
+^\(\)$
+\.csv$

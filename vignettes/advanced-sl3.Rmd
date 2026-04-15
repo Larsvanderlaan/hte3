@@ -1,0 +1,108 @@
+---
+title: "Advanced sl3 Integration"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Advanced sl3 Integration}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+The production API is the recommended starting point, but the original
+advanced `hte3` interfaces remain available when you need fine-grained
+control over nuisance learners or meta-learners.
+
+The advanced API is where you should work if you want to:
+
+- construct the `hte3_Task` manually
+- specify the exact low-level `Lrnr_*` candidates
+- call `cross_validate_cate()` or `cross_validate_crr()` yourself
+
+```{r}
+library(hte3)
+library(sl3)
+
+data <- hte3_example_data(n = 100, seed = 4)
+
+task <- make_hte3_Task_tx(
+  data = data,
+  modifiers = c("W1", "W2", "W3"),
+  confounders = c("W1", "W2", "W3"),
+  treatment = "A",
+  outcome = "Y",
+  learner_pi = Lrnr_mean$new(),
+  learner_mu = Lrnr_mean$new(),
+  learner_m = Lrnr_mean$new(),
+  cross_fit_and_cv = FALSE
+)
+
+learner <- Lrnr_cate_DR$new(base_learner = Lrnr_mean$new())
+trained <- learner$train(task)
+
+head(predict_hte3(trained, data))
+```
+
+## Low-Level CATE Portfolios
+
+You can cross-validate across low-level CATE learners directly:
+
+```{r}
+cate_cv <- cross_validate_cate(
+  list(
+    Lrnr_cate_DR$new(base_learner = Lrnr_mean$new()),
+    Lrnr_cate_R$new(base_learner = Lrnr_mean$new()),
+    Lrnr_cate_EP$new(base_learner = Lrnr_mean$new(), sieve_num_basis = 4)
+  ),
+  task,
+  cv_control = list(V = 2)
+)
+
+cate_cv$coefficients
+head(cate_cv$lrnr_sl$predict(task))
+```
+
+## Low-Level CRR Portfolios
+
+The analogous CRR workflow is:
+
+```{r}
+crr_task <- make_hte3_Task_tx(
+  data = data,
+  modifiers = c("W1", "W2", "W3"),
+  confounders = c("W1", "W2", "W3"),
+  treatment = "A",
+  outcome = "Y_binary",
+  learner_pi = Lrnr_mean$new(),
+  learner_mu = Lrnr_mean$new(),
+  learner_m = Lrnr_mean$new(),
+  cross_fit_and_cv = FALSE
+)
+
+crr_cv <- cross_validate_crr(
+  list(
+    Lrnr_crr_IPW$new(base_learner = Lrnr_mean$new()),
+    Lrnr_crr_T$new(base_learner = Lrnr_mean$new()),
+    Lrnr_crr_EP$new(base_learner = Lrnr_mean$new(), sieve_num_basis = 4)
+  ),
+  crr_task,
+  cv_control = list(V = 2)
+)
+
+crr_cv$coefficients
+head(crr_cv$lrnr_sl$predict(crr_task))
+```
+
+## How Advanced CV Fits Together
+
+- `cross_fit_and_cv` in `make_hte3_Task_tx()` controls nuisance estimation.
+- `cross_validate_cate()` and `cross_validate_crr()` control selection among
+  HTE learners.
+- If a candidate learner itself contains a stacked `sl3` base learner, that
+  base learner can internally cross-validate as well.
+
+The advanced API is intentionally lower-level and closer to the original
+research implementation, but it remains the most flexible route when you need
+full control over candidate portfolios.

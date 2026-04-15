@@ -12,7 +12,6 @@
 #'
 #' @importFrom R6 R6Class
 #' @importFrom sl3 sl3_Task
-#' @importFrom digest digest
 #' @import data.table tmle3
 #'
 #' @keywords data
@@ -40,12 +39,10 @@ hte3_Task <- R6Class(
   class = TRUE,
   inherit = tmle3_Task,
   public = list(
-    initialize = function(data, npsem, likelihood = NULL,   ...) {
+    initialize = function(data, npsem, likelihood = NULL, ...) {
       super$initialize(data, npsem, ...)
-      dot_args <- list(...)
 
-
-      if(is.null(likelihood)) {
+      if (is.null(likelihood)) {
         likelihood <- Likelihood$new(factor_list = list())
       } else {
         likelihood$train(self)
@@ -58,13 +55,11 @@ hte3_Task <- R6Class(
       self$likelihood$add_factors(list(factor))
     },
     get_nuisance_estimates = function(nodes, hte3_task = NULL, fold_number = "validation") {
-      if(is.null(hte3_task)) hte3_task <- self
-      estimates <- self$likelihood$get_likelihoods(hte3_task, nodes, fold_number = fold_number)
-
-      if(class(estimates[[1]]) %in% c("packed_predictions")) {
-        estimates <- sl3:::unpack_predictions(as.matrix(estimates))
+      if (is.null(hte3_task)) {
+        hte3_task <- self
       }
-      return(estimates)
+      estimates <- self$likelihood$get_likelihoods(hte3_task, nodes, fold_number = fold_number)
+      coerce_prediction_matrix(estimates)
     },
     next_in_chain = function(covariates = NULL, outcome = NULL, id = NULL,
                              weights = NULL, offset = NULL, time = NULL,
@@ -111,23 +106,17 @@ hte3_Task <- R6Class(
       # verify nodes are contained in dataset
       missing_cols <- setdiff(all_nodes, names(column_names))
 
-      assertthat::assert_that(
-        length(missing_cols) == 0,
-        msg = sprintf(
-          "Couldn't find %s",
-          paste(missing_cols, collapse = " ")
-        )
-      )
+      if (length(missing_cols) > 0L) {
+        stop(sprintf("Couldn't find %s", paste(missing_cols, collapse = " ")), call. = FALSE)
+      }
       new_task <- self$clone()
 
-      if(is.null(new_outcome_type)) {
+      if (is.null(new_outcome_type)) {
         if ((is.null(new_nodes$outcome) &&
              is.null(self$nodes$outcome)) ||
             all(new_nodes$outcome == self$nodes$outcome)) {
-          # if we have the same outcome, transfer outcome properties
           new_outcome_type <- self$outcome_type
         } else {
-          # otherwise, let the new task guess
           new_outcome_type <- NULL
         }
       }
@@ -189,7 +178,7 @@ hte3_Task <- R6Class(
   ),
   active = list(
     likelihood = function() {
-      return(private$.likelihood)
+      private$.likelihood
     },
     data = function() {
       all_variables <- unique(c(unlist(lapply(self$npsem, `[[`, "variables")), unlist(self$nodes )))
