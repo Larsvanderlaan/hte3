@@ -17,6 +17,6 @@ The following base learners are included in the stack:
   \item \code{Lrnr_gam}: Generalized Additive Model.
   \item \code{Lrnr_earth}: Multivariate Adaptive Regression Spline Model.
   \item \code{Lrnr_ranger}: Random Forest Model.
-  \item \code{Lrnr_xgboost}: XGBoost Model with different depth configurations.
+  \item \code{Lrnr_xgboost_early_stopping}: XGBoost models with early stopping across a small set of depth and shrinkage configurations.
 }
 }

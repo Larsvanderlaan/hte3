@@ -632,9 +632,11 @@ get_autoML <- function() {
     Lrnr_gam$new(),
     Lrnr_earth$new(degree = 2),
     Lrnr_ranger$new(max.depth = 10),
-    Lrnr_xgboost$new(min_child_weight = 15, max_depth = 3, nrounds = 40, eta = 0.15, subsample = 0.9),
-    Lrnr_xgboost$new(min_child_weight = 15, max_depth = 4, nrounds = 40, eta = 0.15, subsample = 0.9),
-    Lrnr_xgboost$new(min_child_weight = 15, max_depth = 5, nrounds = 40, eta = 0.15, subsample = 0.9)
+    Lrnr_xgboost_early_stopping$new(min_child_weight = 15, max_depth = 2, eta = 0.20, subsample = 0.8, colsample_bytree = 0.8),
+    Lrnr_xgboost_early_stopping$new(min_child_weight = 15, max_depth = 3, eta = 0.15, subsample = 0.9),
+    Lrnr_xgboost_early_stopping$new(min_child_weight = 15, max_depth = 4, eta = 0.15, subsample = 0.9),
+    Lrnr_xgboost_early_stopping$new(min_child_weight = 15, max_depth = 5, eta = 0.15, subsample = 0.9),
+    Lrnr_xgboost_early_stopping$new(min_child_weight = 15, max_depth = 4, eta = 0.08, subsample = 0.8, colsample_bytree = 0.8)
   )
 }
 

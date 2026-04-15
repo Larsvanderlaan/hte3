@@ -34,7 +34,8 @@ Suggests:
   remotes,
   rmarkdown,
   testthat (>= 3.0.0),
-  withr
+  withr,
+  xgboost
 Config/testthat/edition: 3
 Depends:
   R (>= 4.1.0)
