@@ -2,6 +2,10 @@
 #'
 #' This class defines the R-learner of Xie and Wager (2021) for estimation of the conditional average treatment effect.
 #'
+#' For continuous treatment, this implementation follows the partially linear
+#' effect-model view in which the outcome regression is decomposed using an
+#' `A * tau(X)` term rather than a fully general treatment-response surface.
+#'
 #' @format An R6 class with public methods to initialize the learner, create a regression task, and access the base learner.
 #' @param base_learner A \code{\link{sl3}} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.
 #' @export

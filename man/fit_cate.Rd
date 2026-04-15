@@ -48,3 +48,8 @@ High-level wrapper for fitting conditional average treatment effect models.
 The wrapper supports both single-method fits and cross-validated portfolios
 across multiple learner families.
 }
+\details{
+For continuous-treatment CATE tasks, the supported high-level method is
+\code{"r"} only. That path uses the partially linear R-learner effect model
+\code{A * tau(X)}.
+}

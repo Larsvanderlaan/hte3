@@ -107,6 +107,7 @@ head(cv_fit$lrnr_sl$predict(task))
 
 - `cross_fit` in `hte_task()` controls nuisance estimation and is separate
   from learner-level cross-validation.
-- Continuous-treatment CATE tasks currently support `method = "r"` only.
+- Continuous-treatment CATE tasks currently support `method = "r"` only, via
+  the partially linear R-learner effect model `A * tau(X)`.
 - For EP-learner tuning and more direct `Lrnr_*` control, see the advanced
   vignette.

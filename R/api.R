@@ -249,7 +249,7 @@ fit_cate <- function(task,
   task_treatment_type <- get_task_treatment_type(task)
 
   if (task_treatment_type == "continuous" && any(methods %in% c("dr", "t", "ep"))) {
-    stop("Only `method = \"r\"` is supported for continuous-treatment CATE tasks.", call. = FALSE)
+    stop("Only `method = \"r\"` is supported for continuous-treatment CATE tasks because the current high-level continuous-treatment path uses the partially linear R-learner effect model `A * tau(X)`.", call. = FALSE)
   }
 
   needs_contrast <- any(methods %in% c("dr", "t", "ep"))

@@ -8,6 +8,10 @@ An R6 class with public methods to initialize the learner, create a regression t
 }
 \description{
 This class defines the R-learner of Xie and Wager (2021) for estimation of the conditional average treatment effect.
+
+For continuous treatment, this implementation follows the partially linear
+effect-model view in which the outcome regression is decomposed using an
+\code{A * tau(X)} term rather than a fully general treatment-response surface.
 }
 \section{Super classes}{
 \code{\link[sl3:Lrnr_base]{sl3::Lrnr_base}} -> \code{hte3::Lrnr_hte} -> \code{Lrnr_cate_R}

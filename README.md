@@ -141,7 +141,8 @@ cv_fit <- cross_validate_cate(
 
 ## Notes
 
-- Continuous-treatment CATE tasks currently support `method = "r"` only.
+- Continuous-treatment CATE tasks currently support `method = "r"` only, via
+  the partially linear R-learner effect model `A * tau(X)`.
 - CRR workflows require a non-negative outcome.
 - In the examples above, `cross_fit = FALSE` keeps the code lightweight. For
   analyses beyond simple examples, nuisance cross-fitting is generally preferred.

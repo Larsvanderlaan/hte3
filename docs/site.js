@@ -33,7 +33,7 @@ const hteMethodData = {
         badge: "Continuous treatment supported",
         title: "Residual-on-residual learning for effect heterogeneity",
         summary:
-          "Residualizes the outcome and treatment first, then learns the heterogeneity surface from those residuals. In the production API, this is the CATE method that extends to continuous treatment when treatment is numerically coded.",
+          "Residualizes the outcome and treatment first, then learns the heterogeneity surface from those residuals. In the production API, this is the CATE method that extends to continuous treatment when treatment is numerically coded, using the partially linear effect-model view with an A times tau(X) term.",
         good: [
           "Treatment is continuous or numerically coded.",
           "You want a CATE surface without choosing treated and control labels.",
@@ -41,6 +41,7 @@ const hteMethodData = {
         ],
         tradeoffs: [
           "Requires numeric treatment coding.",
+          "For continuous treatment, relies on the partially linear A times tau(X) effect-model assumption.",
           "Can become unstable when treatment residuals are near zero.",
           "Does not use the same contrast-style interface as DR, EP, or T."
         ],

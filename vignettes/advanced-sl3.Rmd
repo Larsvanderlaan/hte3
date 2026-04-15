@@ -106,3 +106,7 @@ head(crr_cv$lrnr_sl$predict(crr_task))
 The advanced API is lower-level and closer to the original research
 implementation. Use it when full control over candidate portfolios is
 required.
+
+For continuous-treatment CATE, the low-level `Lrnr_cate_R` path is the one
+implemented in the package. It follows the partially linear effect-model view
+with an `A * tau(X)` term.
