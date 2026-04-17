@@ -1,0 +1,269 @@
+# hte3
+
+`hte3` provides R workflows for estimating conditional average treatment
+effects (CATE) and conditional risk ratios (CRR). Use the high-level
+wrappers for standard analyses, the GRF wrappers for forest-based fits,
+and the lower-level `sl3` interface when you need direct control over
+nuisance learners or candidate HTE models.
+
+## Installation
+
+``` r
+if (!requireNamespace("remotes", quietly = TRUE)) {
+  install.packages("remotes")
+}
+
+remotes::install_github("Larsvanderlaan/hte3", dependencies = TRUE)
+```
+
+Install `grf` separately if you want the causal-forest wrappers:
+
+``` r
+install.packages("grf")
+```
+
+## Quickstart
+
+``` r
+library(hte3)
+library(sl3)
+
+data <- hte3_example_data(n = 150, seed = 1)
+
+task <- hte_task(
+  data = data,
+  modifiers = c("W1", "W2", "W3"),
+  confounders = c("W1", "W2", "W3"),
+  treatment = "A",
+  outcome = "Y",
+  propensity_learner = Lrnr_mean$new(),
+  outcome_learner = Lrnr_mean$new(),
+  mean_learner = Lrnr_mean$new(),
+  cross_fit = FALSE
+)
+
+fit <- fit_cate(
+  task,
+  method = "dr",
+  base_learner = Lrnr_mean$new(),
+  cross_validate = FALSE
+)
+
+pred <- predict(fit, data)
+head(pred)
+summary(fit)
+```
+
+## Choose Your Workflow
+
+### High-level wrappers
+
+Use
+[`hte_task()`](https://larsvanderlaan.github.io/hte3/reference/hte_task.md),
+[`fit_cate()`](https://larsvanderlaan.github.io/hte3/reference/fit_cate.md),
+and
+[`fit_crr()`](https://larsvanderlaan.github.io/hte3/reference/fit_crr.md)
+when you want the standard package interface for difference-scale or
+risk-ratio targets.
+
+### GRF / causal-forest path
+
+Use
+[`grf_cate()`](https://larsvanderlaan.github.io/hte3/reference/grf_cate.md)
+or
+[`grf_crr()`](https://larsvanderlaan.github.io/hte3/reference/grf_crr.md)
+when you want the optional `grf` engine and a wrapper that accepts raw
+data plus optional nuisance estimates.
+
+### Advanced / low-level sl3
+
+Use
+[`make_hte3_Task_tx()`](https://larsvanderlaan.github.io/hte3/reference/make_hte3_Task_tx.md),
+[`cross_validate_cate()`](https://larsvanderlaan.github.io/hte3/reference/cross_validate_cate.md),
+[`cross_validate_crr()`](https://larsvanderlaan.github.io/hte3/reference/cross_validate_crr.md),
+and the `Lrnr_*` classes when you want to assemble learner portfolios
+directly.
+
+## Where to Find Documentation
+
+- [Quickstart](https://larsvanderlaan.github.io/hte3/articles/quickstart.md):
+  one end-to-end example with the high-level wrappers.
+- [CATE
+  Workflow](https://larsvanderlaan.github.io/hte3/articles/cate.md):
+  choosing among `dr`, `r`, `t`, and `ep` for conditional mean
+  differences.
+- [CRR Workflow](https://larsvanderlaan.github.io/hte3/articles/crr.md):
+  fitting conditional risk ratios with
+  [`fit_crr()`](https://larsvanderlaan.github.io/hte3/reference/fit_crr.md).
+- [Causal Forests with
+  GRF](https://larsvanderlaan.github.io/hte3/articles/grf.md):
+  [`grf_cate()`](https://larsvanderlaan.github.io/hte3/reference/grf_cate.md),
+  [`grf_crr()`](https://larsvanderlaan.github.io/hte3/reference/grf_crr.md),
+  direct nuisance inputs, and GRF-specific arguments.
+- [Advanced sl3
+  Integration](https://larsvanderlaan.github.io/hte3/articles/advanced-sl3.md):
+  low-level task construction, learner control, and manual
+  cross-validation.
+- [Reference](https://larsvanderlaan.github.io/hte3/reference/index.md):
+  exported functions, helper constructors, and learner classes.
+
+## Important Constraints
+
+- [`fit_crr()`](https://larsvanderlaan.github.io/hte3/reference/fit_crr.md)
+  and
+  [`grf_crr()`](https://larsvanderlaan.github.io/hte3/reference/grf_crr.md)
+  require a non-negative outcome.
+- [`grf_cate()`](https://larsvanderlaan.github.io/hte3/reference/grf_cate.md)
+  and
+  [`grf_crr()`](https://larsvanderlaan.github.io/hte3/reference/grf_crr.md)
+  currently support binary treatment only.
+- Continuous-treatment CATE currently goes through the R-learner path
+  via `fit_cate(..., method = "r")`.
+
+# Package index
+
+## Production API
+
+- [`hte_task()`](https://larsvanderlaan.github.io/hte3/reference/hte_task.md)
+  : Create an hte3 Task with a Production-Oriented Interface
+- [`fit_cate()`](https://larsvanderlaan.github.io/hte3/reference/fit_cate.md)
+  : Fit a CATE Model
+- [`fit_crr()`](https://larsvanderlaan.github.io/hte3/reference/fit_crr.md)
+  : Fit a CRR Model
+- [`grf_cate()`](https://larsvanderlaan.github.io/hte3/reference/grf_cate.md)
+  : Fit GRF-Backed CATE Models
+- [`grf_crr()`](https://larsvanderlaan.github.io/hte3/reference/grf_crr.md)
+  : Fit GRF-Backed CRR Models
+- [`predict(`*`<hte3_model>`*`)`](https://larsvanderlaan.github.io/hte3/reference/hte3_model.md)
+  [`summary(`*`<hte3_model>`*`)`](https://larsvanderlaan.github.io/hte3/reference/hte3_model.md)
+  : S3 Methods for Production hte3 Models
+- [`hte3_example_data()`](https://larsvanderlaan.github.io/hte3/reference/hte3_example_data.md)
+  : Simulate Tiny Example Data for hte3
+
+## Advanced API
+
+- [`hte3_Task`](https://larsvanderlaan.github.io/hte3/reference/hte3_Task.md)
+  : Task object for meta-learners in causal data structures.
+
+- [`make_hte3_Task_tx()`](https://larsvanderlaan.github.io/hte3/reference/make_hte3_Task_tx.md)
+  : Task object for meta-learners in the point-treatment setting.
+
+- [`make_cross_fitted()`](https://larsvanderlaan.github.io/hte3/reference/make_cross_fitted.md)
+  : Create Cross-Fitted Learner
+
+- [`calibrate()`](https://larsvanderlaan.github.io/hte3/reference/calibrate.md)
+  : Calibrate Predictor-Outcome Relationship
+
+- [`estimate_m()`](https://larsvanderlaan.github.io/hte3/reference/estimate_m.md)
+  :
+
+  Helper function for estimation of treatment-averaged outcome
+  regression using `sl3`.
+
+- [`estimate_mu()`](https://larsvanderlaan.github.io/hte3/reference/estimate_mu.md)
+  :
+
+  Helper function for estimation of outcome regression using `sl3`.
+
+- [`estimate_pi()`](https://larsvanderlaan.github.io/hte3/reference/estimate_pi.md)
+  :
+
+  Helper function for estimation of propensity score using `sl3`.
+
+- [`make_ep_stack()`](https://larsvanderlaan.github.io/hte3/reference/make_ep_stack.md)
+  : Create an Ensemble of CATE EP-learners with Varying Sieve Basis
+  Sizes
+
+- [`make_grf_nuisance_learners()`](https://larsvanderlaan.github.io/hte3/reference/make_grf_nuisance_learners.md)
+  : Build Default GRF Nuisance Learners
+
+- [`make_grf_cate_learners()`](https://larsvanderlaan.github.io/hte3/reference/make_grf_cate_learners.md)
+  : Build GRF-Backed CATE Learners
+
+- [`make_grf_crr_learners()`](https://larsvanderlaan.github.io/hte3/reference/make_grf_crr_learners.md)
+  : Build GRF-Backed CRR Learners
+
+- [`Lrnr_cate_DR`](https://larsvanderlaan.github.io/hte3/reference/Lrnr_cate_DR.md)
+  : Lrnr_cate_DR Class
+
+- [`Lrnr_cate_DR_selector`](https://larsvanderlaan.github.io/hte3/reference/Lrnr_cate_DR_selector.md)
+  : Lrnr_cate_DR_selector Class
+
+- [`Lrnr_cate_EP`](https://larsvanderlaan.github.io/hte3/reference/Lrnr_cate_EP.md)
+  : Lrnr_cate_EP Class
+
+- [`Lrnr_cate_R`](https://larsvanderlaan.github.io/hte3/reference/Lrnr_cate_R.md)
+  : Lrnr_cate_R Class
+
+- [`Lrnr_cate_T`](https://larsvanderlaan.github.io/hte3/reference/Lrnr_cate_T.md)
+  : Lrnr_cate_T Class
+
+- [`Lrnr_crr_DR_selector`](https://larsvanderlaan.github.io/hte3/reference/Lrnr_crr_DR_selector.md)
+  : Lrnr_crr_DR_nonconvex Class
+
+- [`Lrnr_crr_EP`](https://larsvanderlaan.github.io/hte3/reference/Lrnr_crr_EP.md)
+  : Lrnr_crr_EP Class
+
+- [`Lrnr_crr_IPW`](https://larsvanderlaan.github.io/hte3/reference/Lrnr_crr_IPW.md)
+  : Lrnr_crr_IPW Class
+
+- [`Lrnr_crr_T`](https://larsvanderlaan.github.io/hte3/reference/Lrnr_crr_T.md)
+  : Lrnr_crr_T Class
+
+- [`Lrnr_grf_causal_forest`](https://larsvanderlaan.github.io/hte3/reference/Lrnr_grf_causal_forest.md)
+  : GRF Causal Forest Learner
+
+- [`Lrnr_grf_forest`](https://larsvanderlaan.github.io/hte3/reference/Lrnr_grf_forest.md)
+  : GRF Forest Learner
+
+- [`Lrnr_stratified_multivariate`](https://larsvanderlaan.github.io/hte3/reference/Lrnr_stratified_multivariate.md)
+  : Internal use. Converts a single outcome learner into a multivariate
+  outcome learner that predicts a matrix of predictions obtained by
+  evaluating the single outcome learner at each possible value of
+  variable_stratify.
+
+- [`Lrnr_xgboost_early_stopping`](https://larsvanderlaan.github.io/hte3/reference/Lrnr_xgboost_early_stopping.md)
+  : XGBoost Learner with Early Stopping
+
+- [`cross_validate()`](https://larsvanderlaan.github.io/hte3/reference/cross_validate.md)
+  : Cross-Validate Heterogeneous Treatment Effect Models
+
+- [`cross_validate_cate()`](https://larsvanderlaan.github.io/hte3/reference/cross_validate_cate.md)
+  : Cross-Validate CATE Models
+
+- [`cross_validate_crr()`](https://larsvanderlaan.github.io/hte3/reference/cross_validate_crr.md)
+  : Cross-Validate CRR Models
+
+- [`predict_hte3()`](https://larsvanderlaan.github.io/hte3/reference/predict_hte3.md)
+  : Predict Heterogeneous Treatment Effects using hte3 Learners
+
+- [`get_autoML()`](https://larsvanderlaan.github.io/hte3/reference/get_autoML.md)
+  : Get Automated Machine Learning (AutoML) Learner
+
+- [`truncate_propensity()`](https://larsvanderlaan.github.io/hte3/reference/truncate_propensity.md)
+  : Truncate and Calibrate Propensity Scores
+
+# Articles
+
+### Start Here
+
+- [Quickstart](https://larsvanderlaan.github.io/hte3/articles/quickstart.md):
+- [CATE
+  Workflow](https://larsvanderlaan.github.io/hte3/articles/cate.md):
+- [CRR Workflow](https://larsvanderlaan.github.io/hte3/articles/crr.md):
+- [Causal Forests with
+  GRF](https://larsvanderlaan.github.io/hte3/articles/grf.md):
+
+### Methods
+
+- [EP-Learner Sieve
+  Tuning](https://larsvanderlaan.github.io/hte3/articles/ep-learner.md):
+- [Advanced sl3
+  Integration](https://larsvanderlaan.github.io/hte3/articles/advanced-sl3.md):
+
+### Development
+
+- [Extending hte3 with Custom
+  Learners](https://larsvanderlaan.github.io/hte3/articles/extending-hte3.md):
+- [Contributing to
+  hte3](https://larsvanderlaan.github.io/hte3/articles/contributing.md):
