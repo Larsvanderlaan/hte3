@@ -76,3 +76,24 @@ T-learner align with that modifier-conditional target. The current R-learner
 does not generally target that object when \code{V} is a strict subset of
 \code{W}; it warns at fit time.
 }
+\examples{
+\dontrun{
+library(sl3)
+
+data <- hte3_example_data(n = 80, seed = 1)
+
+task <- hte_task(
+  data = data,
+  modifiers = c("W1", "W2"),
+  confounders = c("W1", "W2", "W3"),
+  treatment = "A",
+  outcome = "Y",
+  propensity_learner = Lrnr_mean$new(),
+  outcome_learner = Lrnr_mean$new(),
+  mean_learner = Lrnr_mean$new(),
+  cross_fit = FALSE
+)
+
+task
+}
+}

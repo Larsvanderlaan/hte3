@@ -4,6 +4,15 @@
 #'
 #' @format An R6 class with public methods to initialize the learner, create a regression task, and access the base learner.
 #' @param base_learner A \code{\link{sl3}} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.
+#' @param sieve_num_basis The number of trigonometric basis functions used to
+#'   construct the CRR EP sieve space through
+#'   \code{\link[Sieve]{sieve_preprocess}}. Use \code{sieve_num_basis} for one
+#'   fixed EP fit and \code{sieve_basis_grid} in \code{fit_crr()} for
+#'   wrapper-level EP basis-size selection.
+#' @param sieve_interaction_order The maximum interaction degree of
+#'   tensor-product basis functions in the EP sieve basis.
+#' @param treatment_level Optional treated level used for the contrast.
+#' @param control_level Optional control level used for the contrast.
 #' @import Sieve
 #' @export
 Lrnr_crr_EP <- R6Class(

@@ -10,17 +10,15 @@ An R6 class with public methods to initialize the learner, create a regression t
 This class constructs a T-learner (or S-learner) for estimation of the conditional average treatment effect (CATE)
 }
 \details{
-The learner first estimates outcome regressions as functions of the adjustment
-set \code{W}. By default, it then regresses the resulting first-stage contrast
-\code{tau(W)} onto the modifier set \code{V}. When
-\code{stratify_by_treatment = FALSE}, the first-stage outcome model is fit as a
-pooled S-learner-style regression and evaluated counterfactually under each
-treatment level. In the reduced-modifier setting \eqn{V \subset W}, this
-default second stage is what aligns the learner with the
-\code{V}-conditional CATE target.
+The learner first estimates outcome regressions as functions of the
+adjustment set \code{W}. By default, it then regresses the resulting
+first-stage contrast \code{tau(W)} onto the modifier set \code{V}. When
+\code{stratify_by_treatment = FALSE}, the first-stage outcome model is fit as
+a pooled S-learner-style regression and evaluated counterfactually under each
+treatment level.
 }
 \section{Super classes}{
-\code{\link[sl3:Lrnr_base]{sl3::Lrnr_base}} -> \code{hte3::Lrnr_hte} -> \code{Lrnr_cate_T}
+\code{\link[sl3:Lrnr_base]{sl3::Lrnr_base}} -> \code{\link[hte3:Lrnr_hte]{hte3::Lrnr_hte}} -> \code{Lrnr_cate_T}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -76,14 +74,14 @@ default second stage is what aligns the learner with the
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{base_learner}}{A \pkg{sl3} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.}
+\item{\code{base_learner}}{A \code{\link{sl3}} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.}
 
 \item{\code{stratify_by_treatment}}{Logical indicating whether to estimate outcome regression separately in each treatment arm (i.e., T-learner) or pooled across treatment arms (i.e., S-learner).}
 
 \item{\code{second_stage_regression}}{Logical indicating whether to regress the
 first-stage contrast estimates onto the modifier set. This defaults to
-\code{TRUE}. Setting it to \code{FALSE} is only supported when the modifier set
-and confounder set are the same.}
+\code{TRUE}. Setting it to \code{FALSE} is only supported when the modifier
+set and confounder set are the same.}
 }
 \if{html}{\out{</div>}}
 }

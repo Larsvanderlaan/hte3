@@ -41,7 +41,7 @@ Lrnr_cate_R <- R6Class(
       e.hat <- as.vector(pi.hat %*% A_levels)
       m.hat <- get_nuisance_vector(hte3_task, "m", "m")
       residual_treatment <- A_numeric - e.hat
-      safe_residual <- ifelse(abs(residual_treatment) < 1e-8, sign(residual_treatment + (residual_treatment == 0)) * 1e-8, residual_treatment)
+      safe_residual <- stabilize_treatment_residual(residual_treatment)
 
       # compute R-learner pseudo-outcome based on EIF
       pseudo_outcome <- (Y - m.hat) / safe_residual

@@ -11,8 +11,9 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-This vignette shows the high-level workflow for conditional average treatment
-effect estimation.
+Read this article if you are fitting conditional average treatment effects
+with `hte_task()` and `fit_cate()` and need to choose among the supported CATE
+learner families.
 
 ```{r}
 library(hte3)
@@ -39,37 +40,46 @@ dr_model <- fit_cate(
   cross_validate = FALSE
 )
 
-t_model <- fit_cate(
-  task,
-  method = "t",
-  base_learner = Lrnr_mean$new(),
-  cross_validate = FALSE
-)
-
 head(predict(dr_model, data))
-head(predict(t_model, data))
+summary(dr_model)
 ```
 
-The basic pattern is:
+## Choose the Wrapper Method
 
-- build a task with `hte_task()`
-- choose a CATE learner family with `method`
-- optionally use `cross_validate = TRUE` to select among candidates
+`fit_cate()` supports `method = c("dr", "r", "t", "ep")`.
 
-Here the modifiers are `V = (W1, W2)` while the nuisance adjustment set is
-`W = (W1, W2, W3)`, so the target of interest is
-`E[Y(1) - Y(0) | V] = E[tau(W) | V]`. In the supported
-binary/categorical-treatment setting, DR-, EP-, and the default two-stage
-T-learner align with that target. The current R-learner fit warns in this
-setting because it does not generally target the same reduced-modifier
-conditional effect surface.
+- `method = "dr"` is the main difference-scale default when treatment is
+  binary or categorical and you want a target-aligned CATE fit that uses both
+  propensity and outcome nuisance estimates.
+- `method = "r"` is the residual-on-residual path and the current
+  continuous-treatment option. In reduced-modifier settings, it targets an
+  overlap-weighted projection rather than the unweighted
+  `E[Y(1) - Y(0) | V]`.
+- `method = "t"` is the baseline that fits outcome models by treatment arm and
+  subtracts them.
+- `method = "ep"` is the sieve-based plug-in path. Use it when you want the
+  EP family; see [EP-Learner Sieve Tuning](ep-learner.html) for basis-size
+  tuning and EP-DR versus EP-R details.
 
-## Cross-Validation Across Learner Families
+## Reduced-Modifier Targets
+
+When `modifiers = V` and `confounders = W` with `V` a strict subset of `W`,
+the target of interest is `E[Y(1) - Y(0) | V] = E[tau(W) | V]`.
+
+In the supported binary/categorical-treatment setting:
+
+- DR, EP, and the default two-stage T-learner align with that target
+- the current R-learner instead targets an overlap-weighted projection onto
+  functions of `V`
+
+This is why `fit_cate(..., method = "r")` warns in reduced-modifier settings.
+
+## Compare CATE Learner Families
 
 Wrapper-level CATE cross-validation is controlled by `cross_validate` and
 `cv_control`.
 
-```{r}
+```{r, warning = FALSE}
 cv_model <- fit_cate(
   task,
   method = c("dr", "r", "ep"),
@@ -82,45 +92,15 @@ cv_model
 head(predict(cv_model, data))
 ```
 
-This portfolio example evaluates:
+`summary(cv_model)` reports the selected learner. If the selected learner is
+an EP candidate, the summary also reports the selected basis size and any EP
+selection metadata.
 
-- the DR learner
-- the R learner
-- a portfolio of EP learners with different sieve basis sizes
+## Important Constraints
 
-The outer selection loss is handled by `cross_validate_cate()` using the
-DR-style CATE selector.
-
-## Low-Level Cross-Validation
-
-For explicit control over candidate learner objects, use
-`cross_validate_cate()` directly.
-
-```{r}
-cv_fit <- cross_validate_cate(
-  list(
-    Lrnr_cate_DR$new(base_learner = Lrnr_mean$new()),
-    Lrnr_cate_R$new(base_learner = Lrnr_mean$new()),
-    Lrnr_cate_EP$new(base_learner = Lrnr_mean$new(), sieve_num_basis = 4)
-  ),
-  task,
-  cv_control = list(V = 2)
-)
-
-cv_fit$coefficients
-head(cv_fit$lrnr_sl$predict(task))
-```
-
-## Notes
-
-- `cross_fit` in `hte_task()` controls nuisance estimation and is separate
-  from learner-level cross-validation.
-- Continuous-treatment CATE tasks currently support `method = "r"` only, via
-  the partially linear R-learner effect model `A * tau(X)`.
-- If `modifiers` are a strict subset of `confounders`, the package warns for
-  `method = "r"` because the current R-learner does not generally target
-  `E[Y(1) - Y(0) | V]`. In binary/categorical-treatment settings, DR, EP, and
-  the default two-stage T-learner are the target-aligned choices for that
-  reduced modifier set.
-- For EP-learner tuning and more direct `Lrnr_*` control, see the advanced
-  vignette.
+- Continuous-treatment CATE currently supports `method = "r"` only, using the
+  partially linear effect model `A * tau(X)`.
+- Use `sieve_num_basis` when you want one fixed EP basis size and
+  `sieve_basis_grid` when you want wrapper-level EP basis-size selection.
+- For direct control over candidate learner objects, see
+  [Advanced sl3 Integration](advanced-sl3.html).

@@ -10,7 +10,7 @@ An R6 class with public methods to initialize the learner, create a regression t
 This class defines a inverse probability weighted (IPW) meta-learner of the conditional relative average treatment effect (crr).
 }
 \section{Super classes}{
-\code{\link[sl3:Lrnr_base]{sl3::Lrnr_base}} -> \code{hte3::Lrnr_hte} -> \code{Lrnr_crr_IPW}
+\code{\link[sl3:Lrnr_base]{sl3::Lrnr_base}} -> \code{\link[hte3:Lrnr_hte]{hte3::Lrnr_hte}} -> \code{Lrnr_crr_IPW}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -64,7 +64,7 @@ This class defines a inverse probability weighted (IPW) meta-learner of the cond
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{base_learner}}{A \pkg{sl3} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.}
+\item{\code{base_learner}}{A \code{\link{sl3}} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.}
 }
 \if{html}{\out{</div>}}
 }

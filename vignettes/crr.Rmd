@@ -11,8 +11,9 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-This vignette shows the high-level workflow for conditional risk-ratio style
-targets using a non-negative outcome.
+Read this article if you are fitting conditional risk ratios with
+`hte_task()` and `fit_crr()` and need to choose among the supported CRR
+learner families.
 
 ```{r}
 library(hte3)
@@ -43,15 +44,23 @@ head(predict(crr_model, data))
 summary(crr_model)
 ```
 
-The wrapper pattern is the same as for CATE:
+## Choose the Wrapper Method
 
-- build an `hte3_Task` with `hte_task()`
-- choose a CRR learner family with `method`
-- optionally select among candidate learners with `cross_validate = TRUE`
+`fit_crr()` supports `method = c("ep", "ipw", "t")`.
 
-## Cross-Validation Across Learner Families
+- `method = "ep"` is the default flexible CRR path.
+- `method = "ipw"` is the weighting-based benchmark and places more emphasis
+  on the propensity model.
+- `method = "t"` is the baseline built from arm-specific outcome models on the
+  risk-ratio scale.
 
-```{r}
+The wrapper pattern is the same as for CATE: build an `hte3_Task`, choose the
+CRR learner family with `method`, and optionally compare candidates with
+`cross_validate = TRUE`.
+
+## Compare CRR Learner Families
+
+```{r, warning = FALSE}
 cv_model <- fit_crr(
   task,
   method = c("ipw", "t", "ep"),
@@ -64,38 +73,14 @@ cv_model
 head(predict(cv_model, data))
 ```
 
-This portfolio evaluates:
+If `method = "ep"` and `cross_validate = TRUE`, the wrapper also compares EP
+fits across basis sizes. Use `sieve_basis_grid` when you want to control that
+grid explicitly, and use `sieve_num_basis` for one fixed EP fit.
 
-- the IPW CRR learner
-- the T learner on the log risk-ratio scale
-- a portfolio of EP learners with different sieve basis sizes
-
-The outer selection loss is handled by `cross_validate_crr()` using the CRR
-selector.
-
-## Low-Level Cross-Validation
-
-For direct control of the learner list, use `cross_validate_crr()`.
-
-```{r}
-cv_fit <- cross_validate_crr(
-  list(
-    Lrnr_crr_IPW$new(base_learner = Lrnr_mean$new()),
-    Lrnr_crr_T$new(base_learner = Lrnr_mean$new()),
-    Lrnr_crr_EP$new(base_learner = Lrnr_mean$new(), sieve_num_basis = 4)
-  ),
-  task,
-  cv_control = list(V = 2)
-)
-
-cv_fit$coefficients
-head(cv_fit$lrnr_sl$predict(task))
-```
-
-## Notes
+## Important Constraints
 
 - CRR workflows require a non-negative outcome.
 - `cross_fit` in `hte_task()` controls nuisance estimation and is separate
-  from HTE learner selection.
-- If `method = "ep"` and `cross_validate = TRUE`, the wrapper performs
-  basis-size selection across EP candidates automatically.
+  from wrapper-level learner selection.
+- For low-level CRR learner portfolios, see
+  [Advanced sl3 Integration](advanced-sl3.html).

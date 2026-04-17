@@ -1,0 +1,16 @@
+pandoc: 3.6.4
+pkgdown: 2.2.0
+pkgdown_sha: ~
+articles:
+  advanced-sl3: advanced-sl3.html
+  cate: cate.html
+  contributing: contributing.html
+  crr: crr.html
+  ep-learner: ep-learner.html
+  extending-hte3: extending-hte3.html
+  grf: grf.html
+  quickstart: quickstart.html
+last_built: 2026-04-17T20:58Z
+urls:
+  reference: https://larsvanderlaan.github.io/hte3/reference
+  article: https://larsvanderlaan.github.io/hte3/articles

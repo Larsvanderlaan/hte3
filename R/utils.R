@@ -1,5 +1,23 @@
 hte3_warning_registry <- new.env(parent = emptyenv())
 
+is_internal_cv_fallback_warning <- function(message) {
+  grepl(
+    "is not cv-aware: self\\$predict_fold reverts to self\\$predict",
+    message
+  )
+}
+
+suppress_internal_cv_fallback_warnings <- function(expr) {
+  withCallingHandlers(
+    expr,
+    warning = function(w) {
+      if (is_internal_cv_fallback_warning(conditionMessage(w))) {
+        invokeRestart("muffleWarning")
+      }
+    }
+  )
+}
+
 call_with_args <- function(fun, args, silent = FALSE) {
   if (!is.function(fun)) {
     stop("`fun` must be a function.", call. = FALSE)
@@ -412,6 +430,40 @@ warn_rlearner_reduced_modifier_target <- function(hte3_task) {
   invisible(TRUE)
 }
 
+warn_ep_r_reduced_modifier_target <- function(hte3_task, r_targeting_basis = c("full_w", "v_plus_propensity")) {
+  r_targeting_basis <- match.arg(r_targeting_basis)
+  modifier_spec <- get_task_modifier_spec(hte3_task)
+  reduced_adjustment_set <- setdiff(modifier_spec$confounders, modifier_spec$modifiers)
+
+  if (length(reduced_adjustment_set) == 0L) {
+    return(invisible(FALSE))
+  }
+
+  warning_key <- paste(
+    "Lrnr_cate_EP_R",
+    paste(sort(modifier_spec$modifiers), collapse = ","),
+    paste(sort(modifier_spec$confounders), collapse = ","),
+    sep = "|"
+  )
+
+  if (!exists(warning_key, envir = hte3_warning_registry, inherits = FALSE)) {
+    assign(warning_key, TRUE, envir = hte3_warning_registry)
+    warning(
+      paste(
+        "The current EP-R implementation does not generally target",
+        "`E[Y(1)-Y(0) | V]` when `modifiers` are a strict subset of",
+        "`confounders`. In that setting it instead targets an",
+        "overlap-weighted projection onto functions of the modifier set.",
+        "For the unweighted `V`-conditional CATE target, prefer",
+        "`targeting_style = \"dr\"`."
+      ),
+      call. = FALSE
+    )
+  }
+
+  invisible(TRUE)
+}
+
 reset_rlearner_target_warning_registry <- function() {
   rm(list = ls(envir = hte3_warning_registry, all.names = TRUE), envir = hte3_warning_registry)
   invisible(NULL)
@@ -529,6 +581,14 @@ coerce_numeric_treatment_values <- function(treatment, learner_name) {
   treatment_numeric
 }
 
+stabilize_treatment_residual <- function(residual_treatment, tolerance = 1e-8) {
+  ifelse(
+    abs(residual_treatment) < tolerance,
+    sign(residual_treatment + (residual_treatment == 0)) * tolerance,
+    residual_treatment
+  )
+}
+
 extract_treatment_column <- function(estimates, treatment_level, label) {
   if (is.null(colnames(estimates))) {
     stop(sprintf("`%s` must have named columns for each treatment level.", label), call. = FALSE)
@@ -591,7 +651,8 @@ resolve_contrast_nuisances <- function(hte3_task, treatment_level = NULL, contro
     pi.hat.1 = pi.hat.1,
     pi.hat.0 = pi.hat.0,
     mu.hat.1 = extract_treatment_column(mu.hat, contrast$treatment_level, "mu"),
-    mu.hat.0 = extract_treatment_column(mu.hat, contrast$control_level, "mu")
+    mu.hat.0 = extract_treatment_column(mu.hat, contrast$control_level, "mu"),
+    m.hat = get_nuisance_vector(hte3_task, "m", "m")
   )
 }
 
@@ -776,8 +837,162 @@ make_sieve_basis <- function(X, basisN = NULL, interaction_order = 3) {
   )$Phi
 }
 
-make_ep_basis_grid <- function(hte3_task) {
-  d <- max(1L, length(hte3_task$npsem$modifiers$variables))
+effective_ep_interaction_order <- function(targeting_style = c("dr", "r"),
+                                           r_targeting_basis = c("v_plus_propensity", "full_w"),
+                                           interaction_order = 3) {
+  targeting_style <- match.arg(targeting_style)
+  r_targeting_basis <- match.arg(r_targeting_basis)
+
+  if (identical(targeting_style, "r") && identical(r_targeting_basis, "v_plus_propensity")) {
+    return(max(2L, as.integer(interaction_order)))
+  }
+
+  as.integer(interaction_order)
+}
+
+ep_basis_dimension <- function(hte3_task,
+                               targeting_style = c("dr", "r"),
+                               r_targeting_basis = c("v_plus_propensity", "full_w")) {
+  targeting_style <- match.arg(targeting_style)
+  r_targeting_basis <- match.arg(r_targeting_basis)
+  modifier_spec <- get_task_modifier_spec(hte3_task)
+
+  d <- if (identical(targeting_style, "r")) {
+    if (identical(r_targeting_basis, "full_w")) {
+      length(modifier_spec$confounders)
+    } else {
+      length(modifier_spec$modifiers) + 1L
+    }
+  } else {
+    length(modifier_spec$modifiers)
+  }
+
+  max(1L, as.integer(d))
+}
+
+get_ep_r_first_stage_covariates <- function(hte3_task,
+                                            e.hat,
+                                            r_targeting_basis = c("v_plus_propensity", "full_w")) {
+  r_targeting_basis <- match.arg(r_targeting_basis)
+  modifier_spec <- get_task_modifier_spec(hte3_task)
+
+  if (identical(r_targeting_basis, "full_w")) {
+    return(as.matrix(hte3_task$data[, modifier_spec$confounders, with = FALSE]))
+  }
+
+  modifier_frame <- hte3_task$data[, modifier_spec$modifiers, with = FALSE]
+  covariate_frame <- data.table::copy(modifier_frame)
+  covariate_frame[, ep_r_propensity := e.hat]
+  as.matrix(covariate_frame)
+}
+
+extract_ep_learner_metadata <- function(learner) {
+  if (inherits(learner, "Lrnr_cate_EP")) {
+    targeting_style <- learner$params$targeting_style
+    if (is.null(targeting_style)) {
+      targeting_style <- "dr"
+    }
+    r_targeting_basis <- learner$params$r_targeting_basis
+    if (is.null(r_targeting_basis)) {
+      r_targeting_basis <- "v_plus_propensity"
+    }
+    interaction_order <- effective_ep_interaction_order(
+      targeting_style = targeting_style,
+      r_targeting_basis = r_targeting_basis,
+      interaction_order = learner$params$sieve_interaction_order
+    )
+
+    return(list(
+      sieve_num_basis = learner$params$sieve_num_basis,
+      interaction_order = interaction_order,
+      targeting_style = targeting_style,
+      r_targeting_basis = if (identical(targeting_style, "r")) r_targeting_basis else NULL,
+      screen_basis_with_lasso = isTRUE(learner$params$screen_basis_with_lasso)
+    ))
+  }
+
+  if (inherits(learner, "Lrnr_crr_EP")) {
+    return(list(
+      sieve_num_basis = learner$params$sieve_num_basis,
+      interaction_order = learner$params$sieve_interaction_order,
+      targeting_style = NULL,
+      r_targeting_basis = NULL,
+      screen_basis_with_lasso = FALSE
+    ))
+  }
+
+  NULL
+}
+
+normalize_sieve_basis_grid <- function(sieve_basis_grid) {
+  if (is.null(sieve_basis_grid)) {
+    return(NULL)
+  }
+
+  if (!is.numeric(sieve_basis_grid) || length(sieve_basis_grid) == 0L) {
+    stop("`sieve_basis_grid` must be a numeric vector of positive whole numbers.", call. = FALSE)
+  }
+
+  if (anyNA(sieve_basis_grid) || any(!is.finite(sieve_basis_grid))) {
+    stop("`sieve_basis_grid` must not contain missing or infinite values.", call. = FALSE)
+  }
+
+  rounded_grid <- round(sieve_basis_grid)
+  if (any(abs(sieve_basis_grid - rounded_grid) > sqrt(.Machine$double.eps))) {
+    stop("`sieve_basis_grid` must contain whole numbers.", call. = FALSE)
+  }
+
+  grid <- unique(as.integer(rounded_grid))
+  if (length(grid) == 0L || any(grid <= 0L)) {
+    stop("`sieve_basis_grid` must contain positive basis sizes.", call. = FALSE)
+  }
+
+  grid
+}
+
+normalize_ep_targeting_styles <- function(targeting_style = "dr") {
+  if (is.null(targeting_style) || length(targeting_style) == 0L) {
+    stop("`ep_targeting_style` must contain at least one value from c(\"dr\", \"r\").", call. = FALSE)
+  }
+
+  targeting_style <- unique(as.character(targeting_style))
+  unknown <- setdiff(targeting_style, c("dr", "r"))
+  if (length(unknown) > 0L) {
+    stop(
+      sprintf(
+        "Unsupported `ep_targeting_style` value(s): %s. Choices are: dr, r.",
+        paste(unknown, collapse = ", ")
+      ),
+      call. = FALSE
+    )
+  }
+
+  intersect(c("dr", "r"), targeting_style)
+}
+
+count_cate_wrapper_candidates <- function(methods, ep_targeting_style = "dr") {
+  count <- sum(methods != "ep")
+
+  if ("ep" %in% methods) {
+    count <- count + length(normalize_ep_targeting_styles(ep_targeting_style))
+  }
+
+  max(1L, count)
+}
+
+make_ep_basis_grid <- function(hte3_task,
+                               sieve_basis_grid = NULL,
+                               targeting_style = "dr",
+                               r_targeting_basis = "v_plus_propensity") {
+  if (!is.null(sieve_basis_grid)) {
+    return(normalize_sieve_basis_grid(sieve_basis_grid))
+  }
+
+  d <- ep_basis_dimension(
+    hte3_task,
+    targeting_style = targeting_style,
+    r_targeting_basis = r_targeting_basis
+  )
   unique(as.integer(c(d, 2 * d, 4 * d, 6 * d, 8 * d)))
 }
 
@@ -785,27 +1000,48 @@ make_cate_ep_candidates <- function(base_learner,
                                     hte3_task,
                                     treatment_level,
                                     control_level,
+                                    sieve_basis_grid = NULL,
                                     sieve_interaction_order = 3,
-                                    screen_basis_with_lasso = FALSE) {
-  grid_nbasis <- make_ep_basis_grid(hte3_task)
-  lapply(grid_nbasis, function(basis_size) {
-    Lrnr_cate_EP$new(
-      base_learner = base_learner,
-      sieve_num_basis = basis_size,
-      sieve_interaction_order = sieve_interaction_order,
-      screen_basis_with_lasso = screen_basis_with_lasso,
-      treatment_level = treatment_level,
-      control_level = control_level
+                                    screen_basis_with_lasso = FALSE,
+                                    targeting_style = "dr",
+                                    r_targeting_basis = "v_plus_propensity") {
+  targeting_styles <- normalize_ep_targeting_styles(targeting_style)
+  if (isTRUE(screen_basis_with_lasso) && "r" %in% targeting_styles) {
+    stop(
+      "`screen_basis_with_lasso = TRUE` is only supported when `ep_targeting_style` does not include \"r\".",
+      call. = FALSE
     )
-  })
+  }
+
+  unlist(lapply(targeting_styles, function(style) {
+    grid_nbasis <- make_ep_basis_grid(
+      hte3_task,
+      sieve_basis_grid = sieve_basis_grid,
+      targeting_style = style,
+      r_targeting_basis = r_targeting_basis
+    )
+    lapply(grid_nbasis, function(basis_size) {
+      Lrnr_cate_EP$new(
+        base_learner = base_learner,
+        sieve_num_basis = basis_size,
+        sieve_interaction_order = sieve_interaction_order,
+        screen_basis_with_lasso = screen_basis_with_lasso,
+        targeting_style = style,
+        r_targeting_basis = r_targeting_basis,
+        treatment_level = treatment_level,
+        control_level = control_level
+      )
+    })
+  }), recursive = FALSE)
 }
 
 make_crr_ep_candidates <- function(base_learner,
                                    hte3_task,
                                    treatment_level,
                                    control_level,
+                                   sieve_basis_grid = NULL,
                                    sieve_interaction_order = 3) {
-  grid_nbasis <- make_ep_basis_grid(hte3_task)
+  grid_nbasis <- make_ep_basis_grid(hte3_task, sieve_basis_grid = sieve_basis_grid)
   lapply(grid_nbasis, function(basis_size) {
     Lrnr_crr_EP$new(
       base_learner = base_learner,

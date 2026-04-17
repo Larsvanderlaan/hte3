@@ -17,3 +17,7 @@ A \code{data.table} with columns \code{W1}, \code{W2}, \code{W3}, \code{A},
 \description{
 Convenience generator used in the package examples, tests, and vignettes.
 }
+\examples{
+data <- hte3_example_data(n = 50, seed = 1)
+head(data)
+}

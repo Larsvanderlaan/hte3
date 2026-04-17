@@ -98,13 +98,13 @@ This class serves as a general template for constructing meta-learners to estima
 \describe{
 \item{\code{params}}{A list of parameters for the meta-learning algorithm.}
 
-\item{\code{base_learner}}{A \pkg{sl3} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.}
+\item{\code{base_learner}}{A \code{\link{sl3}} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.}
 
 \item{\code{transform_function}}{A function to transform the predictions of the base learner. Default is the identity transform.}
 
 \item{\code{pseudo_outcome_type}}{The outcome type of the pseudo-outcome used by the meta-learner. Options are \code{c("continuous", "binomial", "quasibinomial")}. Default is \code{"continuous"}.
 For example, the DR-learner, EP-learner, and R-learner of the CATE involve (weighted) least-squares regression using a pseudo-outcome with \code{pseudo_outcome_type = "continuous"}.
-The CRATE EP-learner involves performing weighted logistic regression using a pseudo-outcome taking values in [0,1] with \code{pseudo_outcome_type = "quasibinomial"}.}
+The CRATE EP-learner involves performing weighted logistic regression using a pseudo-outcome taking values in \link{0,1} with \code{pseudo_outcome_type = "quasibinomial"}.}
 
 \item{\code{pseudo_family}}{A \code{\link[stats]{family}} object specifying the loss function (involving pseudo-weights and pseudo-outcomes) used to fit \code{base_learner} in the meta-learner algorithm. Default is \code{gaussian()}.}
 }

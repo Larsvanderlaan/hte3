@@ -8,20 +8,21 @@ An R6 class with public methods to initialize the learner, create a regression t
 }
 \description{
 This class defines the R-learner of Xie and Wager (2021) for estimation of the conditional average treatment effect.
-
+}
+\details{
 For continuous treatment, this implementation follows the partially linear
 effect-model view in which the outcome regression is decomposed using an
 \code{A * tau(X)} term rather than a fully general treatment-response surface.
 
 When the chosen modifier set \code{V} is a strict subset of the adjustment set
-\code{W}, the natural target is \code{E[Y(1) - Y(0) | V] = E[tau(W) | V]}. The
-current implementation does not generally target that object in the
-reduced-modifier setting. Instead, it learns the overlap-weighted projection
-\code{f_R(V) = E[Var(A|W) tau(W) | V] / E[Var(A|W) | V]}, which simplifies to
-\code{E[e(W)(1-e(W)) tau(W) | V] / E[e(W)(1-e(W)) | V]} for binary treatment.
+\code{W}, the natural target is \code{E[Y(1) - Y(0) | V] = E[tau(W) | V]}. The current
+implementation does not generally target that object in the reduced-modifier
+setting. Instead, it learns the overlap-weighted projection
+\verb{f_R(V) = E[Var(A|W) tau(W) | V] / E[Var(A|W) | V]}, which simplifies to
+\verb{E[e(W)(1-e(W)) tau(W) | V] / E[e(W)(1-e(W)) | V]} for binary treatment.
 }
 \section{Super classes}{
-\code{\link[sl3:Lrnr_base]{sl3::Lrnr_base}} -> \code{hte3::Lrnr_hte} -> \code{Lrnr_cate_R}
+\code{\link[sl3:Lrnr_base]{sl3::Lrnr_base}} -> \code{\link[hte3:Lrnr_hte]{hte3::Lrnr_hte}} -> \code{Lrnr_cate_R}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -70,7 +71,7 @@ reduced-modifier setting. Instead, it learns the overlap-weighted projection
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{base_learner}}{A \pkg{sl3} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.}
+\item{\code{base_learner}}{A \code{\link{sl3}} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.}
 }
 \if{html}{\out{</div>}}
 }

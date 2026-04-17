@@ -11,11 +11,8 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-`hte3` supports a three-step high-level workflow:
-
-1. Create example or analysis data.
-2. Build an `hte3_Task` with `hte_task()`.
-3. Fit a model with `fit_cate()` or `fit_crr()`.
+Read this article if you want one minimal end-to-end example with the
+high-level wrappers before choosing a more specific workflow.
 
 ```{r}
 library(hte3)
@@ -50,64 +47,16 @@ summary(model)
 
 Two arguments control different stages of the workflow:
 
-- `cross_fit` in `hte_task()` controls nuisance estimation. When `TRUE`,
-  nuisance learners such as the propensity score and outcome regression are
-  cross-fitted.
-- `cross_validate` in `fit_cate()` or `fit_crr()` controls model selection
-  across candidate HTE learners.
+- `cross_fit` in `hte_task()` controls nuisance estimation.
+- `cross_validate` in `fit_cate()` or `fit_crr()` controls selection across
+  candidate HTE learners.
 
-These act at different stages of the pipeline. A common analysis uses
-cross-fitting for nuisances and optionally uses HTE-level cross-validation to
-select among candidate learners.
+These are separate decisions. A common analysis cross-fits nuisances and only
+turns on wrapper-level cross-validation when comparing learner families.
 
-## Wrapper-Level Learner Portfolios
+## What to Read Next
 
-You can select among heterogeneous learner families directly from the wrapper
-API by passing a vector to `method`.
-
-```{r}
-portfolio <- fit_cate(
-  task,
-  method = c("dr", "r", "ep"),
-  base_learner = Lrnr_mean$new(),
-  cross_validate = TRUE,
-  cv_control = list(V = 2)
-)
-
-portfolio
-head(predict(portfolio, data))
-```
-
-If `method = "ep"` and `cross_validate = TRUE`, `hte3` also cross-validates
-across a portfolio of EP learners with different sieve basis sizes.
-
-## CRR Workflow
-
-The CRR wrapper uses the same pattern, but requires a non-negative outcome:
-
-```{r}
-crr_task <- hte_task(
-  data = data,
-  modifiers = c("W1", "W2", "W3"),
-  confounders = c("W1", "W2", "W3"),
-  treatment = "A",
-  outcome = "Y_binary",
-  propensity_learner = Lrnr_mean$new(),
-  outcome_learner = Lrnr_mean$new(),
-  mean_learner = Lrnr_mean$new(),
-  cross_fit = FALSE
-)
-
-crr_portfolio <- fit_crr(
-  crr_task,
-  method = c("ipw", "t", "ep"),
-  base_learner = Lrnr_mean$new(),
-  cross_validate = TRUE,
-  cv_control = list(V = 2)
-)
-
-head(predict(crr_portfolio, data))
-```
-
-See the other vignettes for CATE-specific, CRR-specific, low-level `sl3`
-integration, and legacy reproducibility material.
+- For CATE method choice, see [CATE Workflow](cate.html).
+- For relative effects with non-negative outcomes, see [CRR Workflow](crr.html).
+- For `grf_cate()` and `grf_crr()`, see [Causal Forests with GRF](grf.html).
+- For low-level `sl3` control, see [Advanced sl3 Integration](advanced-sl3.html).

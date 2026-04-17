@@ -44,10 +44,10 @@ jobs:
         shell: Rscript {0}
         run: lintr::lint_package()
 
-      - name: Check release docs and site sync
+      - name: Build pkgdown site
         if: matrix.os == 'ubuntu-latest'
         shell: Rscript {0}
-        run: source("tools/check_release_sync.R")
+        run: pkgdown::build_site()
 
       - uses: r-lib/actions/check-r-package@v2
         with:

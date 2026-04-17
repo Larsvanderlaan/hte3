@@ -23,18 +23,16 @@ jobs:
           use-public-rspm: true
           extra-repositories: https://tlverse.r-universe.dev
 
-      - name: Check custom site sync
-        shell: Rscript {0}
-        run: source("tools/check_release_sync.R")
+      - uses: r-lib/actions/setup-pandoc@v2
 
-      - name: Validate committed site assets
-        run: |
-          test -f docs/index.html
-          test -f docs/r.html
-          test -f docs/sl3.html
-          test -f docs/site.css
-          test -f docs/site.js
-          test -f docs/assets/hte3-badge-mark.svg
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::pkgdown
+          needs: website
+
+      - name: Build pkgdown site
+        shell: Rscript {0}
+        run: pkgdown::build_site()
 
       - uses: peaceiris/actions-gh-pages@v4
         if: github.ref == 'refs/heads/main'

@@ -16,7 +16,9 @@
 }
 \value{
 \code{predict()} returns model predictions. \code{summary()} returns a compact
-summary object with key training metadata.
+summary object with key training metadata, including wrapper-level
+cross-validation selection metadata when available, such as EP basis-size and
+EP targeting-style fields.
 }
 \description{
 These methods provide the default prediction and summary interface for the

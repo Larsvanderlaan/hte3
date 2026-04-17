@@ -31,6 +31,8 @@ make_hte3_Task_tx(
 \item{data}{A named data frame or data.table containing treatment effect modifiers, potential confounders, treatment, and outcome.
 Optionally, the dataset can contain weights and subject IDs. See the \code{data} argument of \code{\link{sl3_Task}} for further options.}
 
+\item{modifiers}{A character vector of variable names in \code{colnames(data)} for treatment effect moderators.}
+
 \item{confounders}{A character vector of variable names in \code{colnames(data)} for potential confounders \code{W} for which to adjust.}
 
 \item{treatment}{A character specifying the variable name in \code{colnames(data)} for the numeric treatment assignment \code{A}.}
@@ -77,15 +79,7 @@ If a \code{Stack} object, the best model is selected using cross-validation.}
 
 \item{for_prediction}{A \code{boolean} of whether to return an hte3_Task without the nuisance training and estimates. This can be useful when you wish to construct a task for predicting on a new dataset.}
 
-\item{treatment_type}{Treatment type declaration. Use \code{"default"} to infer the type from the observed treatment column or one of \code{"binomial"}, \code{"categorical"}, or \code{"continuous"} to set it explicitly.}
-
-\item{folds}{Cross-validation fold specification passed through to the constructed task.}
-
-\item{warn}{Whether to emit coercion warnings, for example when converting a categorical treatment column to a factor.}
-
-\item{...}{Additional arguments to pass to the \code{\link[sl3]{sl3_Task}} and \code{\link[tmle3]{tmle3_Task}} constructors.}
-
-\item{modifiers}{A character vector of variable names in \code{colnames(data)} for treatment effect moderators.}
+\item{...}{Additional arguments to pass to the \code{\link[sl3]{sl3_Task}} and \code{\link[tmle3]{tmle_Task}} constructors.}
 }
 \value{
 A \code{hte3_Task} object for the point-treatment data-structure

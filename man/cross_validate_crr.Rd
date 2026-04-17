@@ -32,10 +32,42 @@ group in the contrast used for selection.}
 }
 \value{
 A list containing the following elements:
-  - `lrnr_sl`: A `Lrnr_sl` object that represents the cross-validated ensemble of CRR learners.
-  - `cv_risk`: The cross-validation risk associated with the ensemble, which serves as a measure of the ensemble's predictive performance.
-  - `coefficients`: The coefficients derived from the cross-validation process, providing insights into the relative importance of different learners within the ensemble.
+\itemize{
+\item \code{lrnr_sl}: A \code{Lrnr_sl} object that represents the cross-validated ensemble of CRR learners.
+\item \code{cv_risk}: The cross-validation risk associated with the ensemble, which serves as a measure of the ensemble's predictive performance.
+\item \code{coefficients}: The coefficients derived from the cross-validation process, providing insights into the relative importance of different learners within the ensemble.
+\item \code{selection_summary}: A compact summary of candidate labels, selected candidate, selected method, and any EP basis-size metadata.
+}
 }
 \description{
 Cross-validates a collection of CRR learners using the CRR selector loss.
+}
+\examples{
+\dontrun{
+library(sl3)
+
+data <- hte3_example_data(n = 80, seed = 1)
+task <- hte_task(
+  data = data,
+  modifiers = c("W1", "W2"),
+  confounders = c("W1", "W2", "W3"),
+  treatment = "A",
+  outcome = "Y_binary",
+  propensity_learner = Lrnr_mean$new(),
+  outcome_learner = Lrnr_mean$new(),
+  mean_learner = Lrnr_mean$new(),
+  cross_fit = FALSE
+)
+
+cv_fit <- cross_validate_crr(
+  list(
+    Lrnr_crr_IPW$new(base_learner = Lrnr_mean$new()),
+    Lrnr_crr_EP$new(base_learner = Lrnr_mean$new(), sieve_num_basis = 4)
+  ),
+  task,
+  cv_control = list(V = 2)
+)
+
+cv_fit$selection_summary
+}
 }

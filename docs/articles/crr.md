@@ -1,0 +1,101 @@
+# CRR Workflow
+
+Read this article if you are fitting conditional risk ratios with
+[`hte_task()`](https://larsvanderlaan.github.io/hte3/reference/hte_task.md)
+and
+[`fit_crr()`](https://larsvanderlaan.github.io/hte3/reference/fit_crr.md)
+and need to choose among the supported CRR learner families.
+
+``` r
+library(hte3)
+library(sl3)
+
+data <- hte3_example_data(n = 150, seed = 3)
+
+task <- hte_task(
+  data = data,
+  modifiers = c("W1", "W2", "W3"),
+  confounders = c("W1", "W2", "W3"),
+  treatment = "A",
+  outcome = "Y_binary",
+  propensity_learner = Lrnr_mean$new(),
+  outcome_learner = Lrnr_mean$new(),
+  mean_learner = Lrnr_mean$new(),
+  cross_fit = FALSE
+)
+
+crr_model <- fit_crr(
+  task,
+  method = "ipw",
+  base_learner = Lrnr_mean$new(),
+  cross_validate = FALSE
+)
+
+head(predict(crr_model, data))
+#> [1] 0.1677935 0.1677935 0.1677935 0.1677935 0.1677935 0.1677935
+summary(crr_model)
+#> <summary.hte3_model>
+#>   Target: CRR
+#>   Engine: sl3
+#>   Method: ipw
+#>   Cross-validated: no
+#>   Rows: 150
+#>   Modifiers: W1, W2, W3
+#>   Treatment variable: A
+```
+
+## Choose the Wrapper Method
+
+[`fit_crr()`](https://larsvanderlaan.github.io/hte3/reference/fit_crr.md)
+supports `method = c("ep", "ipw", "t")`.
+
+- `method = "ep"` is the default flexible CRR path.
+- `method = "ipw"` is the weighting-based benchmark and places more
+  emphasis on the propensity model.
+- `method = "t"` is the baseline built from arm-specific outcome models
+  on the risk-ratio scale.
+
+The wrapper pattern is the same as for CATE: build an `hte3_Task`,
+choose the CRR learner family with `method`, and optionally compare
+candidates with `cross_validate = TRUE`.
+
+## Compare CRR Learner Families
+
+``` r
+cv_model <- fit_crr(
+  task,
+  method = c("ipw", "t", "ep"),
+  base_learner = Lrnr_mean$new(),
+  cross_validate = TRUE,
+  cv_control = list(V = 2)
+)
+
+cv_model
+#> <hte3_model>
+#>   Target: CRR
+#>   Engine: sl3
+#>   Method: portfolio(ipw, t, ep)
+#>   Cross-validated: yes
+#>   Selected candidate: ep[basis=24, interaction=3]
+#>   Selected method: ep
+#>   Selected EP basis size: 24
+#>   EP basis grid: 3, 6, 12, 18, 24
+#>   Modifiers: W1, W2, W3
+head(predict(cv_model, data))
+#> [1] 0.151008 0.151008 0.151008 0.151008 0.151008 0.151008
+```
+
+If `method = "ep"` and `cross_validate = TRUE`, the wrapper also
+compares EP fits across basis sizes. Use `sieve_basis_grid` when you
+want to control that grid explicitly, and use `sieve_num_basis` for one
+fixed EP fit.
+
+## Important Constraints
+
+- CRR workflows require a non-negative outcome.
+- `cross_fit` in
+  [`hte_task()`](https://larsvanderlaan.github.io/hte3/reference/hte_task.md)
+  controls nuisance estimation and is separate from wrapper-level
+  learner selection.
+- For low-level CRR learner portfolios, see [Advanced sl3
+  Integration](https://larsvanderlaan.github.io/hte3/articles/advanced-sl3.md).

@@ -10,7 +10,7 @@ An R6 class with public methods to initialize the learner, create a regression t
 This class defines an efficient plug-in (EP) meta-learner for the conditional relative average treatment effect (crr).
 }
 \section{Super classes}{
-\code{\link[sl3:Lrnr_base]{sl3::Lrnr_base}} -> \code{hte3::Lrnr_hte} -> \code{Lrnr_crr_EP}
+\code{\link[sl3:Lrnr_base]{sl3::Lrnr_base}} -> \code{\link[hte3:Lrnr_hte]{hte3::Lrnr_hte}} -> \code{Lrnr_crr_EP}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -66,7 +66,20 @@ This class defines an efficient plug-in (EP) meta-learner for the conditional re
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{base_learner}}{A \pkg{sl3} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.}
+\item{\code{base_learner}}{A \code{\link{sl3}} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.}
+
+\item{\code{sieve_num_basis}}{The number of trigonometric basis functions used to
+construct the CRR EP sieve space through
+\code{\link[Sieve]{sieve_preprocess}}. Use \code{sieve_num_basis} for one
+fixed EP fit and \code{sieve_basis_grid} in \code{fit_crr()} for
+wrapper-level EP basis-size selection.}
+
+\item{\code{sieve_interaction_order}}{The maximum interaction degree of
+tensor-product basis functions in the EP sieve basis.}
+
+\item{\code{treatment_level}}{Optional treated level used for the contrast.}
+
+\item{\code{control_level}}{Optional control level used for the contrast.}
 }
 \if{html}{\out{</div>}}
 }
@@ -85,6 +98,15 @@ This class defines an efficient plug-in (EP) meta-learner for the conditional re
 )}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{treatment_level}}{Optional treated level used for the contrast.}
+
+\item{\code{control_level}}{Optional control level used for the contrast.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Lrnr_crr_EP-clone"></a>}}

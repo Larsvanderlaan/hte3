@@ -14,6 +14,14 @@ supported_crr_methods <- function() {
   c("ep", "ipw", "t")
 }
 
+supported_grf_cate_methods <- function() {
+  c("dr", "r", "ep")
+}
+
+supported_grf_crr_methods <- function() {
+  c("ep", "ipw", "t")
+}
+
 default_cate_method <- function() {
   "dr"
 }

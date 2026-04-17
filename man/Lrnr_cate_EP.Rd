@@ -8,16 +8,18 @@ An R6 class with public methods to initialize the learner, create a regression t
 }
 \description{
 This class defines the EP-learner of van der Laan et al. (2023) for estimation of the conditional average treatment effect.
-
-In the supported binary/categorical-treatment setting, it targets the
-conditional mean difference over the chosen modifier set \code{V}, namely
-\code{E[Y(1) - Y(0) | V]}.
 }
 \details{
 The EP-learner is a robust and doubly-robust meta-learner that inherits desirable properties of both T-learner and DR-learner.
+The current implementation exposes two CATE EP variants through
+\code{targeting_style}: \code{"dr"} is the plug-in analogue of the
+DR-learner and \code{"r"} is the plug-in analogue of the R-learner.
+The \code{"r"} variant uses an overlap-weighted targeting objective that can
+be more stable under severe overlap violations, but it generally targets an
+overlap-weighted projection in reduced-modifier settings.
 }
 \section{Super classes}{
-\code{\link[sl3:Lrnr_base]{sl3::Lrnr_base}} -> \code{hte3::Lrnr_hte} -> \code{Lrnr_cate_EP}
+\code{\link[sl3:Lrnr_base]{sl3::Lrnr_base}} -> \code{\link[hte3:Lrnr_hte]{hte3::Lrnr_hte}} -> \code{Lrnr_cate_EP}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -65,6 +67,8 @@ The EP-learner is a robust and doubly-robust meta-learner that inherits desirabl
   sieve_num_basis = NULL,
   sieve_interaction_order = 3,
   screen_basis_with_lasso = FALSE,
+  targeting_style = c("dr", "r"),
+  r_targeting_basis = c("v_plus_propensity", "full_w"),
   treatment_level = NULL,
   control_level = NULL,
   ...
@@ -74,11 +78,15 @@ The EP-learner is a robust and doubly-robust meta-learner that inherits desirabl
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{base_learner}}{A \pkg{sl3} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.}
+\item{\code{base_learner}}{A \code{\link{sl3}} learner object inheriting from \code{\link[sl3]{Lrnr_base}} that specifies the base supervised learning algorithm used by the meta-learner.}
 
 \item{\code{sieve_num_basis}}{The number of trigonometric basis functions to construct the EP-learner sieve space.
 This argument is passed as the argument \code{basisN} to the function \code{\link[Sieve]{sieve_preprocess}}.
-By default, \code{sieve_num_basis = ceiling((n^(1/3)*d)} where \code{n} denotes the sample size and \code{d} is the number of effect modifiers.}
+By default, \code{sieve_num_basis = ceiling((n^(1/3)*d)} where \code{n}
+denotes the sample size and \code{d} is the dimension of the first-stage EP
+sieve covariates.
+For wrapper-level EP cross-validation, use \code{sieve_basis_grid} in
+\code{fit_cate()} or \code{fit_crr()} to compare multiple basis sizes.}
 
 \item{\code{sieve_interaction_order}}{The maximum interaction degree of tensor-product basis functions in the EP-learner sieve basis. Default is 3.
 \code{sieve_interaction_order = 1} corresponds to an additive sieve model and \code{sieve_interaction_order = 2} corresponds to a bi-additive sieve model.
@@ -87,6 +95,20 @@ This argument is passed as the argument \code{interaction_order} to the function
 \item{\code{screen_basis_with_lasso}}{EXPERIMENTAL. Whether to use a lasso-based DR-learner algorithm to screen sieve basis functions for EP-learner.
 There are no theoretical guarantees for EP-learner with \code{screen_basis_with_lasso = TRUE}. However, this argument may be useful in high dimensional settings.
 It also reduces the computational complexity of EP-learner, as the argument \code{sieve_num_basis} does not need to be externally cross-validated.}
+
+\item{\code{targeting_style}}{One of \code{"dr"} or \code{"r"}. The default
+\code{"dr"} path keeps the current EP debiasing update. The
+\code{"r"} path uses an R-learner-style overlap-weighted targeting update
+and currently supports binary-treatment CATE tasks only. High-level
+wrappers such as \code{fit_cate()} compare both variants by expanding
+multiple \code{Lrnr_cate_EP} fits rather than by passing a vector here.}
+
+\item{\code{r_targeting_basis}}{First-stage basis construction for
+\code{targeting_style = "r"}. The default
+\code{"v_plus_propensity"} builds the first-stage sieve on the modifier
+set \code{V} plus the treated-arm propensity score \code{e(W)};
+\code{"full_w"} builds the first-stage EP-R sieve on the full
+confounder set \code{W}.}
 
 \item{\code{...}}{Additional arguments to pass to the initialization function.}
 }

@@ -100,6 +100,36 @@ test_that("CATE EP learner and portfolio CV work end-to-end", {
   expect_length(portfolio_predictions, nrow(data))
 })
 
+test_that("CATE EP-R learner supports full-W and propensity-reduced first-stage bases", {
+  skip_if_runtime_unavailable(c("glmnet", "Sieve"))
+  data <- make_binary_cate_data(seed = 11)
+  base_learner <- make_sl3_regression_learner(stats::gaussian())
+  modifier_data <- data[, c("W1", "W2"), with = FALSE]
+  learners <- list(
+    Lrnr_cate_EP$new(
+      base_learner = base_learner,
+      sieve_num_basis = 6,
+      targeting_style = "r",
+      r_targeting_basis = "full_w"
+    ),
+    Lrnr_cate_EP$new(
+      base_learner = base_learner,
+      sieve_num_basis = 6,
+      sieve_interaction_order = 1,
+      targeting_style = "r",
+      r_targeting_basis = "v_plus_propensity"
+    )
+  )
+
+  for (learner in learners) {
+    fit <- suppress_known_runtime_warnings(learner$train(make_cate_task_for_test(data)))
+    predictions <- predict_hte3(fit, modifier_data)
+    expect_length(predictions, nrow(data))
+    expect_true(all(is.finite(predictions)))
+    expect_monotone_signal(predictions, data$W1)
+  }
+})
+
 test_that("CATE learners handle categorical treatment contrasts consistently", {
   skip_if_runtime_unavailable(c("glmnet", "Sieve"))
   data <- make_categorical_cate_data()
@@ -138,6 +168,32 @@ test_that("CATE learner validation catches unsupported treatment codings and sel
   )
   expect_true(inherits(selector_fit$lrnr_sl, "Lrnr_sl"))
   expect_true(length(selector_fit$coefficients) >= 1L)
+
+  expect_error(
+    Lrnr_cate_EP$new(
+      base_learner = base_learner,
+      targeting_style = "r",
+      screen_basis_with_lasso = TRUE
+    ),
+    "only supported"
+  )
+})
+
+test_that("EP-R rejects categorical treatment contrasts", {
+  skip_if_runtime_unavailable(c("glmnet", "Sieve"))
+  data <- make_categorical_cate_data(seed = 12)
+  base_learner <- make_sl3_regression_learner(stats::gaussian())
+
+  expect_error(
+    Lrnr_cate_EP$new(
+      base_learner = base_learner,
+      sieve_num_basis = 6,
+      targeting_style = "r",
+      treatment_level = "high",
+      control_level = "control"
+    )$train(make_cate_task_for_test(data, treatment_type = "categorical")),
+    "binary-treatment CATE tasks"
+  )
 })
 
 test_that("R-learner warns once when modifiers are a strict subset of confounders", {
@@ -190,6 +246,61 @@ test_that("fit_cate propagates the reduced-modifier-set R-learner warning", {
       cross_validate = FALSE
     ),
     "does not generally target"
+  )
+})
+
+test_that("EP-R warns once when modifiers are a strict subset of confounders", {
+  skip_if_runtime_unavailable(c("glmnet", "Sieve"))
+  data <- make_binary_cate_data(seed = 26)
+  base_learner <- make_sl3_regression_learner(stats::gaussian())
+  reset_warning_registry <- getFromNamespace("reset_rlearner_target_warning_registry", "hte3")
+  reset_warning_registry()
+
+  reduced_task <- make_cate_task_for_test(data)
+  full_task <- make_cate_task_for_test(
+    data,
+    modifiers = c("W1", "W2", "W3"),
+    confounders = c("W1", "W2", "W3")
+  )
+
+  expect_warning(
+    Lrnr_cate_EP$new(
+      base_learner = base_learner,
+      sieve_num_basis = 6,
+      targeting_style = "r",
+      r_targeting_basis = "full_w"
+    )$train(reduced_task),
+    "does not generally target"
+  )
+  expect_no_warning(
+    suppress_known_runtime_warnings(
+      Lrnr_cate_EP$new(
+        base_learner = base_learner,
+        sieve_num_basis = 6,
+        targeting_style = "r",
+        r_targeting_basis = "full_w"
+      )$train(reduced_task)
+    )
+  )
+  expect_no_warning(
+    suppress_known_runtime_warnings(
+      Lrnr_cate_EP$new(
+        base_learner = base_learner,
+        sieve_num_basis = 6,
+        targeting_style = "r",
+        r_targeting_basis = "v_plus_propensity"
+      )$train(reduced_task)
+    )
+  )
+  expect_no_warning(
+    suppress_known_runtime_warnings(
+      Lrnr_cate_EP$new(
+        base_learner = base_learner,
+        sieve_num_basis = 6,
+        targeting_style = "r",
+        r_targeting_basis = "full_w"
+      )$train(full_task)
+    )
   )
 })
 

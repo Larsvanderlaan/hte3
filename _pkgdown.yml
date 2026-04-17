@@ -1,9 +1,11 @@
+url: https://larsvanderlaan.github.io/hte3/
+
 template:
   bootstrap: 5
 
 home:
   title: hte3
-  description: Causal machine learning for heterogeneous treatment effects.
+  description: R workflows for conditional average treatment effects, conditional risk ratios, and GRF-backed causal forests.
 
 reference:
   - title: Production API
@@ -11,11 +13,23 @@ reference:
       - hte_task
       - fit_cate
       - fit_crr
+      - grf_cate
+      - grf_crr
       - predict.hte3_model
       - hte3_example_data
   - title: Advanced API
     contents:
+      - hte3_Task
       - make_hte3_Task_tx
+      - make_cross_fitted
+      - calibrate
+      - estimate_m
+      - estimate_mu
+      - estimate_pi
+      - make_ep_stack
+      - make_grf_nuisance_learners
+      - make_grf_cate_learners
+      - make_grf_crr_learners
       - matches("^Lrnr_")
       - cross_validate
       - cross_validate_cate
@@ -25,12 +39,17 @@ reference:
       - truncate_propensity
 
 articles:
-  - title: Get Started
-    navbar: ~
+  - title: Start Here
     contents:
       - quickstart
       - cate
       - crr
+      - grf
+  - title: Methods
+    contents:
       - ep-learner
       - advanced-sl3
-      - legacy-paper-repro
+  - title: Development
+    contents:
+      - extending-hte3
+      - contributing

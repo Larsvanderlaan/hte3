@@ -1,29 +1,10 @@
 # hte3
 
-`hte3` provides causal machine learning tools for heterogeneous treatment
-effects with a high-level wrapper API on top of the `sl3` and
-`tmle3` ecosystems.
-
-The package has two supported workflows:
-
-- High-level workflow: use `hte_task()`, `fit_cate()`, and `fit_crr()`.
-- Advanced workflow: use the lower-level `Lrnr_*` classes and
-  `make_hte3_Task_tx()` directly.
-
-Paper reproducibility is preserved separately through the frozen GitHub ref
-`legacy-paper-repro`. The research scripts remain in this repository, but
-they are no longer shipped in the package tarball.
-
-The production API has three main entry points:
-
-- `hte_task()` builds an `hte3_Task` and estimates nuisance functions.
-- `fit_cate()` fits conditional average treatment effect models.
-- `fit_crr()` fits conditional risk-ratio models with non-negative outcomes.
-
-In the CATE workflow, `modifiers` define the target covariate set `V` and
-`confounders` define the adjustment set `W` used for nuisance estimation.
-When `V` is smaller than `W`, the natural target is
-`E[Y(1) - Y(0) | V] = E[tau(W) | V]`.
+`hte3` provides R workflows for estimating conditional average treatment
+effects (CATE) and conditional risk ratios (CRR). Use the high-level wrappers
+for standard analyses, the GRF wrappers for forest-based fits, and the
+lower-level `sl3` interface when you need direct control over nuisance
+learners or candidate HTE models.
 
 ## Installation
 
@@ -35,14 +16,10 @@ if (!requireNamespace("remotes", quietly = TRUE)) {
 remotes::install_github("Larsvanderlaan/hte3", dependencies = TRUE)
 ```
 
-`get_autoML()` always includes a core learner stack built from
-`Lrnr_glmnet` and `Lrnr_gam`, and it adds the `earth`, `ranger`, and
-`xgboost` components when those optional runtime packages are installed.
-
-For the frozen paper workflow:
+Install `grf` separately if you want the causal-forest wrappers:
 
 ```r
-source("paper_EPlearner_experiments/install_legacy_paper_repro.R")
+install.packages("grf")
 ```
 
 ## Quickstart
@@ -65,128 +42,54 @@ task <- hte_task(
   cross_fit = FALSE
 )
 
-model <- fit_cate(
+fit <- fit_cate(
   task,
   method = "dr",
   base_learner = Lrnr_mean$new(),
   cross_validate = FALSE
 )
 
-pred <- predict(model, data)
+pred <- predict(fit, data)
 head(pred)
-summary(model)
+summary(fit)
 ```
 
-For real analyses, the most important tuning concepts are:
+## Choose Your Workflow
 
-- `cross_fit` in `hte_task()`: cross-fits nuisance learners such as the
-  propensity score and outcome regression.
-- `cross_validate` in `fit_cate()` or `fit_crr()`: cross-validates across
-  candidate HTE learners.
-- `cv_control = list(V = ...)`: sets the outer HTE cross-validation folds.
+### High-level wrappers
 
-`cross_fit` and `cross_validate` control different stages of the pipeline.
+Use `hte_task()`, `fit_cate()`, and `fit_crr()` when you want the standard
+package interface for difference-scale or risk-ratio targets.
 
-## Cross-Validation
+### GRF / causal-forest path
 
-The wrapper API supports three common cross-validation patterns.
+Use `grf_cate()` or `grf_crr()` when you want the optional `grf` engine and a
+wrapper that accepts raw data plus optional nuisance estimates.
 
-### 1. Cross-validate across learner families
+### Advanced / low-level sl3
 
-Pass multiple methods to `fit_cate()` or `fit_crr()`:
+Use `make_hte3_Task_tx()`, `cross_validate_cate()`, `cross_validate_crr()`,
+and the `Lrnr_*` classes when you want to assemble learner portfolios
+directly.
 
-```r
-cate_portfolio <- fit_cate(
-  task,
-  method = c("dr", "r", "ep"),
-  base_learner = Lrnr_mean$new(),
-  cross_validate = TRUE,
-  cv_control = list(V = 5)
-)
+## Where to Find Documentation
 
-crr_task <- hte_task(
-  data = data,
-  modifiers = c("W1", "W2", "W3"),
-  confounders = c("W1", "W2", "W3"),
-  treatment = "A",
-  outcome = "Y_binary",
-  propensity_learner = Lrnr_mean$new(),
-  outcome_learner = Lrnr_mean$new(),
-  mean_learner = Lrnr_mean$new(),
-  cross_fit = FALSE
-)
+- [Quickstart](articles/quickstart.html): one end-to-end example with the
+  high-level wrappers.
+- [CATE Workflow](articles/cate.html): choosing among `dr`, `r`, `t`, and
+  `ep` for conditional mean differences.
+- [CRR Workflow](articles/crr.html): fitting conditional risk ratios with
+  `fit_crr()`.
+- [Causal Forests with GRF](articles/grf.html): `grf_cate()`, `grf_crr()`,
+  direct nuisance inputs, and GRF-specific arguments.
+- [Advanced sl3 Integration](articles/advanced-sl3.html): low-level task
+  construction, learner control, and manual cross-validation.
+- [Reference](reference/index.html): exported functions, helper constructors,
+  and learner classes.
 
-crr_portfolio <- fit_crr(
-  crr_task,
-  method = c("ipw", "t", "ep"),
-  base_learner = Lrnr_mean$new(),
-  cross_validate = TRUE,
-  cv_control = list(V = 5)
-)
-```
+## Important Constraints
 
-### 2. Cross-validate across EP basis sizes
-
-If `method = "ep"` and `cross_validate = TRUE`, the wrapper also evaluates a
-portfolio of EP learners with different sieve basis sizes and selects among
-them with the appropriate selector loss.
-
-### 3. Cross-validate from the low-level API
-
-If you want full control over the candidate learner list, use
-`cross_validate_cate()` or `cross_validate_crr()` directly:
-
-```r
-cv_fit <- cross_validate_cate(
-  list(
-    Lrnr_cate_DR$new(base_learner = Lrnr_mean$new()),
-    Lrnr_cate_R$new(base_learner = Lrnr_mean$new()),
-    Lrnr_cate_EP$new(base_learner = Lrnr_mean$new(), sieve_num_basis = 6)
-  ),
-  task,
-  cv_control = list(V = 5)
-)
-```
-
-## Notes
-
-- Continuous-treatment CATE tasks currently support `method = "r"` only, via
-  the partially linear R-learner effect model `A * tau(X)`.
-- When `modifiers` are a strict subset of `confounders`, DR-, EP-, and the
-  default two-stage T-learner target the `V`-conditional CATE
-  `E[Y(1) - Y(0) | V]` in the supported binary/categorical-treatment setting.
-- In that same reduced-modifier setting, the current R-learner does not
-  generally target `E[Y(1) - Y(0) | V]`; it warns at fit time because it
-  instead learns an overlap-weighted projection onto functions of `V`.
-- CRR workflows require a non-negative outcome.
-- In the examples above, `cross_fit = FALSE` keeps the code lightweight. For
-  analyses beyond simple examples, nuisance cross-fitting is generally preferred.
-
-## What Changed
-
-- Added a high-level API for common CATE and CRR workflows.
-- Hardened package metadata and dependency declarations for GitHub-first
-  releases.
-- Added CI, pkgdown scaffolding, tests, and a legacy reproducibility
-  smoke-test entrypoint.
-- Kept the research code in-repo while separating it from the package build.
-
-## Documentation
-
-The documentation site is organized around:
-
-- Quickstart
-- CATE workflow
-- CRR workflow
-- EP-learner sieve tuning
-- Advanced `sl3` integration
-- Legacy paper reproduction
-
-The vignettes in `vignettes/` mirror that documentation. In particular:
-
-- [`quickstart`](vignettes/quickstart.Rmd) explains the high-level workflow and the difference between cross-fitting and cross-validation.
-- [`cate`](vignettes/cate.Rmd) shows single-learner and portfolio CV CATE workflows.
-- [`crr`](vignettes/crr.Rmd) shows the analogous CRR workflows.
-- [`ep-learner`](vignettes/ep-learner.Rmd) explains the `Sieve`-based EP construction, basis ordering, and paper-faithful sieve CV grids.
-- [`advanced-sl3`](vignettes/advanced-sl3.Rmd) shows low-level learner portfolios with `cross_validate_cate()` and `cross_validate_crr()`.
-- [`legacy-paper-repro`](vignettes/legacy-paper-repro.Rmd) points to the frozen paper-reproduction workflow and smoke-test entrypoint.
+- `fit_crr()` and `grf_crr()` require a non-negative outcome.
+- `grf_cate()` and `grf_crr()` currently support binary treatment only.
+- Continuous-treatment CATE currently goes through the R-learner path via
+  `fit_cate(..., method = "r")`.

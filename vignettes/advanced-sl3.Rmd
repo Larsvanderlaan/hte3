@@ -11,25 +11,14 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-The high-level API covers common analyses, but the original advanced `hte3`
-interfaces remain available for fine-grained control over nuisance learners
-or meta-learners.
+Read this article if you want the low-level API: explicit task construction,
+manual learner choice, or direct calls to `cross_validate_cate()` and
+`cross_validate_crr()`.
 
-Use the advanced API to:
+## Build the Task Explicitly
 
-- construct the `hte3_Task` manually
-- specify the exact low-level `Lrnr_*` candidates
-- call `cross_validate_cate()` or `cross_validate_crr()` yourself
-
-Keep the modifier target in mind when you build tasks manually. If
-`modifiers = V` and `confounders = W` with `V` a strict subset of `W`, then
-the target of interest is `E[Y(1) - Y(0) | V] = E[tau(W) | V]`. In the
-supported binary/categorical-treatment setting, DR-, EP-, and the default
-two-stage T-learner align with that target, while the current R-learner
-instead targets the overlap-weighted projection
-`f_R(V) = E[Var(A|W) tau(W) | V] / E[Var(A|W) | V]`. For binary treatment,
-this becomes
-`E[e(W)(1-e(W)) tau(W) | V] / E[e(W)(1-e(W)) | V]`.
+Use `make_hte3_Task_tx()` when you want to supply the nuisance learners
+yourself or work directly with the lower-level learner objects.
 
 ```{r}
 library(hte3)
@@ -48,21 +37,25 @@ task <- make_hte3_Task_tx(
   learner_m = Lrnr_mean$new(),
   cross_fit_and_cv = FALSE
 )
+```
 
+## Train a Learner Directly
+
+```{r, warning = FALSE}
 learner <- Lrnr_cate_DR$new(base_learner = Lrnr_mean$new())
 trained <- learner$train(task)
 
 head(predict_hte3(trained, data))
 ```
 
-For EP-learner-specific sieve construction, basis ordering, and paper-faithful
-cross-validation grids, see the separate `ep-learner` vignette.
+This is the right level when you want the exact learner object rather than the
+wrapper returned by `fit_cate()` or `fit_crr()`.
 
-## Low-Level CATE Portfolios
+## Low-Level Cross-Validation
 
-You can cross-validate across low-level CATE learners directly:
+You can cross-validate low-level learner portfolios directly.
 
-```{r}
+```{r, warning = FALSE}
 cate_cv <- cross_validate_cate(
   list(
     Lrnr_cate_DR$new(base_learner = Lrnr_mean$new()),
@@ -76,8 +69,6 @@ cate_cv <- cross_validate_cate(
 cate_cv$coefficients
 head(cate_cv$lrnr_sl$predict(task))
 ```
-
-## Low-Level CRR Portfolios
 
 The analogous CRR workflow is:
 
@@ -94,32 +85,33 @@ crr_task <- make_hte3_Task_tx(
   cross_fit_and_cv = FALSE
 )
 
-crr_cv <- cross_validate_crr(
-  list(
-    Lrnr_crr_IPW$new(base_learner = Lrnr_mean$new()),
-    Lrnr_crr_T$new(base_learner = Lrnr_mean$new()),
-    Lrnr_crr_EP$new(base_learner = Lrnr_mean$new(), sieve_num_basis = 4)
-  ),
-  crr_task,
-  cv_control = list(V = 2)
+crr_cv <- suppressWarnings(
+  cross_validate_crr(
+    list(
+      Lrnr_crr_IPW$new(base_learner = Lrnr_mean$new()),
+      Lrnr_crr_T$new(base_learner = Lrnr_mean$new()),
+      Lrnr_crr_EP$new(base_learner = Lrnr_mean$new(), sieve_num_basis = 4)
+    ),
+    crr_task,
+    cv_control = list(V = 2)
+  )
 )
 
 crr_cv$coefficients
 head(crr_cv$lrnr_sl$predict(crr_task))
 ```
 
-## How Advanced CV Fits Together
+## Important Constraints
 
-- `cross_fit_and_cv` in `make_hte3_Task_tx()` controls nuisance estimation.
-- `cross_validate_cate()` and `cross_validate_crr()` control selection among
-  HTE learners.
-- If a candidate learner itself contains a stacked `sl3` base learner, that
-  base learner can internally cross-validate as well.
+- `cross_fit_and_cv` in `make_hte3_Task_tx()` controls nuisance estimation at
+  the task stage.
+- If `modifiers = V` and `confounders = W` with `V` a strict subset of `W`,
+  the reduced-modifier target is `E[Y(1) - Y(0) | V] = E[tau(W) | V]`.
+- In that reduced-modifier setting, the current low-level R-learner targets an
+  overlap-weighted projection rather than the unweighted `V`-conditional CATE.
+- For continuous-treatment CATE, the low-level `Lrnr_cate_R` path is the one
+  currently implemented.
 
-The advanced API is lower-level and closer to the original research
-implementation. Use it when full control over candidate portfolios is
-required.
-
-For continuous-treatment CATE, the low-level `Lrnr_cate_R` path is the one
-implemented in the package. It follows the partially linear effect-model view
-with an `A * tau(X)` term.
+For EP-specific sieve construction and tuning, see
+[EP-Learner Sieve Tuning](ep-learner.html). If you are building a new learner,
+see [Extending hte3 with Custom Learners](extending-hte3.html).
