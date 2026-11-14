@@ -70,7 +70,7 @@ EP-learner paper.</p>
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://larsvanderlaan.github.io/hte3/">hte3</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tlverse.org/sl3/" class="external-link">sl3</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hte3_example_data.html">hte3_example_data</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">120</span>, seed <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
+<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hte3_example_data.html">hte3_example_data</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">400</span>, seed <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">task</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/make_hte3_Task_tx.html">make_hte3_Task_tx</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">data</span>,</span>
@@ -227,10 +227,10 @@ multiple EP candidates.</li>
 <span><span class="co">#&gt;   Engine: sl3</span></span>
 <span><span class="co">#&gt;   Method: ep</span></span>
 <span><span class="co">#&gt;   Cross-validated: yes</span></span>
-<span><span class="co">#&gt;   Rows: 120</span></span>
-<span><span class="co">#&gt;   Selected candidate: ep[style=dr, basis=8, interaction=3]</span></span>
+<span><span class="co">#&gt;   Rows: 400</span></span>
+<span><span class="co">#&gt;   Selected candidate: ep[style=dr, basis=2, interaction=3]</span></span>
 <span><span class="co">#&gt;   Selected method: ep</span></span>
-<span><span class="co">#&gt;   Selected EP basis size: 8</span></span>
+<span><span class="co">#&gt;   Selected EP basis size: 2</span></span>
 <span><span class="co">#&gt;   EP targeting style: dr</span></span>
 <span><span class="co">#&gt;   EP basis grid: 2, 4, 6, 8</span></span>
 <span><span class="co">#&gt;   Modifiers: W1, W2</span></span>
@@ -272,9 +272,9 @@ multiple EP candidates.</li>
 <span><span class="co">#&gt;   Engine: sl3</span></span>
 <span><span class="co">#&gt;   Method: ep</span></span>
 <span><span class="co">#&gt;   Cross-validated: yes</span></span>
-<span><span class="co">#&gt;   Rows: 120</span></span>
-<span><span class="co">#&gt;   Selected candidate: candidate_2</span></span>
-<span><span class="co">#&gt;   Selected method: candidate_2</span></span>
+<span><span class="co">#&gt;   Rows: 400</span></span>
+<span><span class="co">#&gt;   Selected candidate: candidate_4</span></span>
+<span><span class="co">#&gt;   Selected method: candidate_4</span></span>
 <span><span class="co">#&gt;   Modifiers: W1, W2</span></span>
 <span><span class="co">#&gt;   Treatment variable: A</span></span></code></pre></div>
 <p>If <code>sieve_basis_grid = NULL</code>, the wrapper uses the
@@ -339,16 +339,9 @@ such as <code>cos(pi x1) * cos(pi x2)</code>.</p>
 <span>  sieve_num_basis <span class="op">=</span> <span class="fl">4</span>,</span>
 <span>  sieve_interaction_order <span class="op">=</span> <span class="fl">2</span></span>
 <span><span class="op">)</span><span class="op">$</span><span class="fu">train</span><span class="op">(</span><span class="va">task</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number):</span></span>
-<span><span class="co">#&gt; Lrnr_independent_binomial is not cv-aware: self$predict_fold reverts to</span></span>
-<span><span class="co">#&gt; self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number): strat_A_Lrnr_mean</span></span>
-<span><span class="co">#&gt; is not cv-aware: self$predict_fold reverts to self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number): Lrnr_mean is not</span></span>
-<span><span class="co">#&gt; cv-aware: self$predict_fold reverts to self$predict</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="../reference/predict_hte3.html">predict_hte3</a></span><span class="op">(</span><span class="va">ep_fit</span>, <span class="va">data</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 1.429171 1.429171 1.429171 1.429171 1.429171 1.429171</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 1.085336 1.085336 1.085336 1.085336 1.085336 1.085336</span></span></code></pre></div>
 <p>This is the corresponding EP-R fit with the dimension-reduced
 first-stage basis:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
@@ -388,54 +381,12 @@ grid of <code>3d, 4d, ..., 8d</code> with
 <span>  <span class="va">task</span>,</span>
 <span>  cv_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>V <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number):</span></span>
-<span><span class="co">#&gt; Lrnr_independent_binomial is not cv-aware: self$predict_fold reverts to</span></span>
-<span><span class="co">#&gt; self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number): strat_A_Lrnr_mean</span></span>
-<span><span class="co">#&gt; is not cv-aware: self$predict_fold reverts to self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number): Lrnr_mean is not</span></span>
-<span><span class="co">#&gt; cv-aware: self$predict_fold reverts to self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number):</span></span>
-<span><span class="co">#&gt; Lrnr_independent_binomial is not cv-aware: self$predict_fold reverts to</span></span>
-<span><span class="co">#&gt; self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number): strat_A_Lrnr_mean</span></span>
-<span><span class="co">#&gt; is not cv-aware: self$predict_fold reverts to self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number): Lrnr_mean is not</span></span>
-<span><span class="co">#&gt; cv-aware: self$predict_fold reverts to self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number):</span></span>
-<span><span class="co">#&gt; Lrnr_independent_binomial is not cv-aware: self$predict_fold reverts to</span></span>
-<span><span class="co">#&gt; self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number): strat_A_Lrnr_mean</span></span>
-<span><span class="co">#&gt; is not cv-aware: self$predict_fold reverts to self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number): Lrnr_mean is not</span></span>
-<span><span class="co">#&gt; cv-aware: self$predict_fold reverts to self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number):</span></span>
-<span><span class="co">#&gt; Lrnr_independent_binomial is not cv-aware: self$predict_fold reverts to</span></span>
-<span><span class="co">#&gt; self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number): strat_A_Lrnr_mean</span></span>
-<span><span class="co">#&gt; is not cv-aware: self$predict_fold reverts to self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number): Lrnr_mean is not</span></span>
-<span><span class="co">#&gt; cv-aware: self$predict_fold reverts to self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number):</span></span>
-<span><span class="co">#&gt; Lrnr_independent_binomial is not cv-aware: self$predict_fold reverts to</span></span>
-<span><span class="co">#&gt; self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number): strat_A_Lrnr_mean</span></span>
-<span><span class="co">#&gt; is not cv-aware: self$predict_fold reverts to self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number): Lrnr_mean is not</span></span>
-<span><span class="co">#&gt; cv-aware: self$predict_fold reverts to self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number):</span></span>
-<span><span class="co">#&gt; Lrnr_independent_binomial is not cv-aware: self$predict_fold reverts to</span></span>
-<span><span class="co">#&gt; self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number): strat_A_Lrnr_mean</span></span>
-<span><span class="co">#&gt; is not cv-aware: self$predict_fold reverts to self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number): Lrnr_mean is not</span></span>
-<span><span class="co">#&gt; cv-aware: self$predict_fold reverts to self$predict</span></span>
 <span></span>
 <span><span class="va">paper_cate_basis_grid</span></span>
 <span><span class="co">#&gt; [1]  6  8 10 12 14 16</span></span>
 <span><span class="va">paper_cate_cv</span><span class="op">$</span><span class="va">coefficients</span></span>
 <span><span class="co">#&gt;  ep[style=dr, basis=6, interaction=3]  ep[style=dr, basis=8, interaction=3] </span></span>
-<span><span class="co">#&gt;                                     0                                     1 </span></span>
+<span><span class="co">#&gt;                                     1                                     0 </span></span>
 <span><span class="co">#&gt; ep[style=dr, basis=10, interaction=3] ep[style=dr, basis=12, interaction=3] </span></span>
 <span><span class="co">#&gt;                                     0                                     0 </span></span>
 <span><span class="co">#&gt; ep[style=dr, basis=14, interaction=3] ep[style=dr, basis=16, interaction=3] </span></span>
@@ -493,78 +444,16 @@ conservative additive sieve:</p>
 <span>  <span class="va">crr_task</span>,</span>
 <span>  cv_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>V <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number):</span></span>
-<span><span class="co">#&gt; Lrnr_independent_binomial is not cv-aware: self$predict_fold reverts to</span></span>
-<span><span class="co">#&gt; self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number): strat_A_Lrnr_mean</span></span>
-<span><span class="co">#&gt; is not cv-aware: self$predict_fold reverts to self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number): Lrnr_mean is not</span></span>
-<span><span class="co">#&gt; cv-aware: self$predict_fold reverts to self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number):</span></span>
-<span><span class="co">#&gt; Lrnr_independent_binomial is not cv-aware: self$predict_fold reverts to</span></span>
-<span><span class="co">#&gt; self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number): strat_A_Lrnr_mean</span></span>
-<span><span class="co">#&gt; is not cv-aware: self$predict_fold reverts to self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number): Lrnr_mean is not</span></span>
-<span><span class="co">#&gt; cv-aware: self$predict_fold reverts to self$predict</span></span>
-<span><span class="co">#&gt; Warning: from glmnet C++ code (error code -1); Convergence for 1th lambda value</span></span>
-<span><span class="co">#&gt; not reached after maxit=100000 iterations; solutions for larger lambdas</span></span>
-<span><span class="co">#&gt; returned</span></span>
-<span><span class="co">#&gt; Warning in getcoef(fit, nvars, nx, vnames): an empty model has been returned;</span></span>
-<span><span class="co">#&gt; probably a convergence issue</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number):</span></span>
-<span><span class="co">#&gt; Lrnr_independent_binomial is not cv-aware: self$predict_fold reverts to</span></span>
-<span><span class="co">#&gt; self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number): strat_A_Lrnr_mean</span></span>
-<span><span class="co">#&gt; is not cv-aware: self$predict_fold reverts to self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number): Lrnr_mean is not</span></span>
-<span><span class="co">#&gt; cv-aware: self$predict_fold reverts to self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number):</span></span>
-<span><span class="co">#&gt; Lrnr_independent_binomial is not cv-aware: self$predict_fold reverts to</span></span>
-<span><span class="co">#&gt; self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number): strat_A_Lrnr_mean</span></span>
-<span><span class="co">#&gt; is not cv-aware: self$predict_fold reverts to self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number): Lrnr_mean is not</span></span>
-<span><span class="co">#&gt; cv-aware: self$predict_fold reverts to self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number):</span></span>
-<span><span class="co">#&gt; Lrnr_independent_binomial is not cv-aware: self$predict_fold reverts to</span></span>
-<span><span class="co">#&gt; self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number): strat_A_Lrnr_mean</span></span>
-<span><span class="co">#&gt; is not cv-aware: self$predict_fold reverts to self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number): Lrnr_mean is not</span></span>
-<span><span class="co">#&gt; cv-aware: self$predict_fold reverts to self$predict</span></span>
-<span><span class="co">#&gt; Warning: from glmnet C++ code (error code -1); Convergence for 1th lambda value</span></span>
-<span><span class="co">#&gt; not reached after maxit=100000 iterations; solutions for larger lambdas</span></span>
-<span><span class="co">#&gt; returned</span></span>
-<span><span class="co">#&gt; Warning in getcoef(fit, nvars, nx, vnames): an empty model has been returned;</span></span>
-<span><span class="co">#&gt; probably a convergence issue</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number):</span></span>
-<span><span class="co">#&gt; Lrnr_independent_binomial is not cv-aware: self$predict_fold reverts to</span></span>
-<span><span class="co">#&gt; self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number): strat_A_Lrnr_mean</span></span>
-<span><span class="co">#&gt; is not cv-aware: self$predict_fold reverts to self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number): Lrnr_mean is not</span></span>
-<span><span class="co">#&gt; cv-aware: self$predict_fold reverts to self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number):</span></span>
-<span><span class="co">#&gt; Lrnr_independent_binomial is not cv-aware: self$predict_fold reverts to</span></span>
-<span><span class="co">#&gt; self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number): strat_A_Lrnr_mean</span></span>
-<span><span class="co">#&gt; is not cv-aware: self$predict_fold reverts to self$predict</span></span>
-<span><span class="co">#&gt; Warning in learner$predict_fold(learner_task, fold_number): Lrnr_mean is not</span></span>
-<span><span class="co">#&gt; cv-aware: self$predict_fold reverts to self$predict</span></span>
-<span><span class="co">#&gt; Warning in initialize(...): The supplied outcome_type (continuous) does not</span></span>
-<span><span class="co">#&gt; correspond to the detected type (categorical). Ensure outcome_type is specified</span></span>
-<span><span class="co">#&gt; appropriately.</span></span>
 <span></span>
 <span><span class="va">paper_crr_basis_grid</span></span>
 <span><span class="co">#&gt; [1]  9 12 15 18 21 24</span></span>
 <span><span class="va">paper_crr_cv</span><span class="op">$</span><span class="va">coefficients</span></span>
 <span><span class="co">#&gt;  ep[basis=9, interaction=3] ep[basis=12, interaction=3] </span></span>
-<span><span class="co">#&gt;                           0                           0 </span></span>
+<span><span class="co">#&gt;                           0                           1 </span></span>
 <span><span class="co">#&gt; ep[basis=15, interaction=3] ep[basis=18, interaction=3] </span></span>
 <span><span class="co">#&gt;                           0                           0 </span></span>
 <span><span class="co">#&gt; ep[basis=21, interaction=3] ep[basis=24, interaction=3] </span></span>
-<span><span class="co">#&gt;                           0                           1</span></span></code></pre></div>
+<span><span class="co">#&gt;                           0                           0</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="notes">Notes<a class="anchor" aria-label="anchor" href="#notes"></a>
