@@ -1,9 +1,11 @@
 # Quickstart
 
-Read this article if you want one minimal end-to-end example with the
-high-level wrappers before choosing a more specific workflow.
+Create a task, fit a DR-learner, and predict conditional average
+treatment effects. The example uses simulated data and simple mean
+learners, with cross-fitting and model selection disabled.
 
 ``` r
+
 library(hte3)
 library(sl3)
 
@@ -41,9 +43,9 @@ summary(model)
 #>   Treatment variable: A
 ```
 
-## Cross-Fit vs Cross-Validate
+## Cross-fitting and model selection
 
-Two arguments control different stages of the workflow:
+Use these arguments to control nuisance estimation and model selection:
 
 - `cross_fit` in
   [`hte_task()`](https://larsvanderlaan.github.io/hte3/reference/hte_task.md)
@@ -54,21 +56,22 @@ Two arguments control different stages of the workflow:
   [`fit_crr()`](https://larsvanderlaan.github.io/hte3/reference/fit_crr.md)
   controls selection across candidate HTE learners.
 
-These are separate decisions. A common analysis cross-fits nuisances and
-only turns on wrapper-level cross-validation when comparing learner
-families.
+Set `cross_fit = TRUE` to estimate each observation’s nuisance values
+using other folds. Set `cross_validate = TRUE` to compare candidate HTE
+learners.
 
-## What to Read Next
+## Next steps
 
-- For CATE method choice, see [CATE
-  Workflow](https://larsvanderlaan.github.io/hte3/articles/cate.md).
-- For relative effects with non-negative outcomes, see [CRR
-  Workflow](https://larsvanderlaan.github.io/hte3/articles/crr.md).
-- For
+- [Treatment
+  effects](https://larsvanderlaan.github.io/hte3/articles/cate.md):
+  choose among DR-, R-, T-, and EP-learners.
+- [Risk ratios](https://larsvanderlaan.github.io/hte3/articles/crr.md):
+  estimate relative effects for non-negative outcomes.
+- [Causal
+  forests](https://larsvanderlaan.github.io/hte3/articles/grf.md): use
   [`grf_cate()`](https://larsvanderlaan.github.io/hte3/reference/grf_cate.md)
   and
-  [`grf_crr()`](https://larsvanderlaan.github.io/hte3/reference/grf_crr.md),
-  see [Causal Forests with
-  GRF](https://larsvanderlaan.github.io/hte3/articles/grf.md).
-- For low-level `sl3` control, see [Advanced sl3
-  Integration](https://larsvanderlaan.github.io/hte3/articles/advanced-sl3.md).
+  [`grf_crr()`](https://larsvanderlaan.github.io/hte3/reference/grf_crr.md).
+- [Using sl3
+  directly](https://larsvanderlaan.github.io/hte3/articles/advanced-sl3.md):
+  construct and train custom learners.

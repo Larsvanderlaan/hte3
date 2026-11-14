@@ -1,20 +1,19 @@
 # Articles
 
-### Start Here
+### Get started
 
 - [Quickstart](https://larsvanderlaan.github.io/hte3/articles/quickstart.md):
-- [CATE
-  Workflow](https://larsvanderlaan.github.io/hte3/articles/cate.md):
-- [CRR Workflow](https://larsvanderlaan.github.io/hte3/articles/crr.md):
-- [Causal Forests with
-  GRF](https://larsvanderlaan.github.io/hte3/articles/grf.md):
+- [Treatment
+  effects](https://larsvanderlaan.github.io/hte3/articles/cate.md):
+- [Risk ratios](https://larsvanderlaan.github.io/hte3/articles/crr.md):
+- [Causal
+  forests](https://larsvanderlaan.github.io/hte3/articles/grf.md):
 
 ### Methods
 
-- [EP-Learner Sieve
-  Tuning](https://larsvanderlaan.github.io/hte3/articles/ep-learner.md):
-- [Advanced sl3
-  Integration](https://larsvanderlaan.github.io/hte3/articles/advanced-sl3.md):
+- [EP-learner](https://larsvanderlaan.github.io/hte3/articles/ep-learner.md):
+- [Using sl3
+  directly](https://larsvanderlaan.github.io/hte3/articles/advanced-sl3.md):
 
 ### Development
 

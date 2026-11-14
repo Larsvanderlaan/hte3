@@ -4,14 +4,14 @@ This guide is for researchers who want to prototype a new `hte3` learner
 and for contributors who want to add a new learner to the package
 itself.
 
-The key design idea is that `hte3` separates:
+An `hte3` learner uses three components:
 
 - data and nuisance estimates, stored in an `hte3_Task`
 - meta-learner logic, implemented as `Lrnr_*` classes
 - cross-validation and selection, handled by `cross_validate_*()` or the
   high-level wrappers
 
-## Framework Overview
+## The base class
 
 Most custom learners in `hte3` inherit from the internal base class
 `hte3:::Lrnr_hte`. That class already handles:
@@ -35,9 +35,9 @@ The minimal ingredients are:
 4.  Pseudo-outcome type and family: choose the right regression target
     for the downstream base learner.
 
-## The Data Flow
+## Training and prediction
 
-At fit time, the typical flow is:
+To fit a learner:
 
 1.  Build an `hte3_Task` with modifiers `V`, confounders `W`, treatment
     `A`, outcome `Y`, and nuisance estimates.
@@ -46,19 +46,19 @@ At fit time, the typical flow is:
 3.  Construct a pseudo-outcome and optional pseudo-weights.
 4.  Let `Lrnr_hte` build the derived `sl3_Task` and train the supplied
     `base_learner`.
-5.  Predict on the modifier set `V` through the inherited prediction
-    path.
+5.  Use the inherited prediction method to predict on the modifier set
+    `V`.
 
 When you are adding a learner to the package, try to keep the
 pseudo-data step as simple and testable as possible. Small helper
 functions are easier to test than one large learner method.
 
-## Minimal Contract
+## Learner requirements
 
 Use this checklist when you create a new learner:
 
 - The learner inherits from `hte3:::Lrnr_hte`.
-- `initialize()` stores every tuning knob in `params`.
+- `initialize()` stores every tuning parameter in `params`.
 - `get_pseudo_data()` returns a list with `pseudo_outcome` and,
   optionally, `pseudo_weights`.
 - The returned pseudo-outcome matches the declared
@@ -67,13 +67,14 @@ Use this checklist when you create a new learner:
 - Predictions only depend on the modifier variables that define the
   target.
 
-## Research Prototype Skeleton
+## Example learner
 
 The example below is intentionally minimal and is shown with
 `eval = FALSE`. It is meant as a template for a research prototype, not
 as a recommended final estimator.
 
 ``` r
+
 library(R6)
 library(hte3)
 library(sl3)
@@ -117,13 +118,6 @@ Lrnr_cate_prototype <- R6Class(
 )
 ```
 
-That is the minimum viable pattern:
-
-- parameters live in `self$params`
-- the nuisance-aware pseudo-outcome is computed inside
-  `get_pseudo_data()`
-- the base class takes care of task construction and prediction
-
 ## Choosing the Right Family
 
 Use the regression family that matches the pseudo-outcome you are
@@ -142,7 +136,7 @@ pseudo-outcome scale, not to the original observed outcome scale.
 
 ## When to Expose a New Learner in the Package
 
-Before adding a research prototype to the package API, lock down these
+Before adding a research prototype to the package API, settle these
 decisions:
 
 - What estimand does it target?
@@ -155,7 +149,7 @@ decisions:
 If any of those are still unstable, keep the learner as a research-only
 prototype first.
 
-## Promotion Checklist
+## Add a learner to the package
 
 When a learner is ready to become part of `hte3`, do all of the
 following:
@@ -164,21 +158,21 @@ following:
 - Add tests for fit/predict behavior, treatment validation, and any
   special numerical guards.
 - Add at least one end-to-end wrapper or cross-validation test if the
-  learner participates in a public workflow.
-- Document the learner in the relevant workflow vignette and on the
-  website.
+  learner is available through the public API.
+- Document the learner in the relevant guide and on the website.
 - Decide whether it belongs in the high-level wrapper API or only in the
   advanced interface.
 - Run the release checks described in the contribution guide.
 
 ## Related Guides
 
-- The `advanced-sl3` vignette shows how low-level learner portfolios
-  plug into
+- [Using sl3
+  directly](https://larsvanderlaan.github.io/hte3/articles/advanced-sl3.md)
+  shows how to compare custom sets of learners with
   [`cross_validate_cate()`](https://larsvanderlaan.github.io/hte3/reference/cross_validate_cate.md)
   and
   [`cross_validate_crr()`](https://larsvanderlaan.github.io/hte3/reference/cross_validate_crr.md).
 - The `ep-learner` vignette shows how a more complex learner uses the
   `Sieve`-based basis construction inside `hte3`.
-- The `contributing` vignette describes the repo workflow, site sync
-  commands, and release checks for package contributors.
+- The `contributing` vignette describes development, site generation,
+  and release checks for package contributors.

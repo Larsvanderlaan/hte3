@@ -1,14 +1,15 @@
 # hte3
 
-`hte3` provides R workflows for estimating conditional average treatment
-effects (CATE) and conditional risk ratios (CRR). Use the high-level
-wrappers for standard analyses, the GRF wrappers for forest-based fits,
-and the lower-level `sl3` interface when you need direct control over
-nuisance learners or candidate HTE models.
+`hte3` estimates conditional average treatment effects (CATE) and
+conditional risk ratios (CRR) in R. Fit DR-, R-, T-, and efficient
+plug-in (EP) learners, compare models by cross-validation, and predict
+effects for new observations. Use learners from `sl3` or fit forests
+with the optional `grf` package.
 
 ## Installation
 
 ``` r
+
 if (!requireNamespace("remotes", quietly = TRUE)) {
   install.packages("remotes")
 }
@@ -16,15 +17,25 @@ if (!requireNamespace("remotes", quietly = TRUE)) {
 remotes::install_github("Larsvanderlaan/hte3", dependencies = TRUE)
 ```
 
-Install `grf` separately if you want the causal-forest wrappers:
+To use
+[`grf_cate()`](https://larsvanderlaan.github.io/hte3/reference/grf_cate.md)
+or
+[`grf_crr()`](https://larsvanderlaan.github.io/hte3/reference/grf_crr.md),
+also install `grf`:
 
 ``` r
+
 install.packages("grf")
 ```
 
 ## Quickstart
 
+Create a task with your data and covariates, fit a model, and predict
+treatment effects. This example uses simulated data and simple mean
+learners.
+
 ``` r
+
 library(hte3)
 library(sl3)
 
@@ -54,60 +65,22 @@ head(pred)
 summary(fit)
 ```
 
-## Choose Your Workflow
+## Guides
 
-### High-level wrappers
+| Guide | What it covers |
+|----|----|
+| [Quickstart](https://larsvanderlaan.github.io/hte3/articles/quickstart.md) | Fit and predict with [`hte_task()`](https://larsvanderlaan.github.io/hte3/reference/hte_task.md) and [`fit_cate()`](https://larsvanderlaan.github.io/hte3/reference/fit_cate.md). |
+| [Treatment effects](https://larsvanderlaan.github.io/hte3/articles/cate.md) | Choose among DR-, R-, T-, and EP-learners for conditional mean differences. |
+| [Risk ratios](https://larsvanderlaan.github.io/hte3/articles/crr.md) | Estimate conditional risk ratios with [`fit_crr()`](https://larsvanderlaan.github.io/hte3/reference/fit_crr.md). |
+| [Causal forests](https://larsvanderlaan.github.io/hte3/articles/grf.md) | Fit models with [`grf_cate()`](https://larsvanderlaan.github.io/hte3/reference/grf_cate.md) and [`grf_crr()`](https://larsvanderlaan.github.io/hte3/reference/grf_crr.md), with optional nuisance estimates supplied by you. |
+| [EP-learner](https://larsvanderlaan.github.io/hte3/articles/ep-learner.md) | Choose a sieve basis size and compare EP-DR with EP-R. |
+| [Using sl3 directly](https://larsvanderlaan.github.io/hte3/articles/advanced-sl3.md) | Construct tasks, train learners, and compare custom sets of models. |
 
-Use
-[`hte_task()`](https://larsvanderlaan.github.io/hte3/reference/hte_task.md),
-[`fit_cate()`](https://larsvanderlaan.github.io/hte3/reference/fit_cate.md),
-and
-[`fit_crr()`](https://larsvanderlaan.github.io/hte3/reference/fit_crr.md)
-when you want the standard package interface for difference-scale or
-risk-ratio targets.
+See the [function
+reference](https://larsvanderlaan.github.io/hte3/reference/index.md) for
+arguments and return values.
 
-### GRF / causal-forest path
-
-Use
-[`grf_cate()`](https://larsvanderlaan.github.io/hte3/reference/grf_cate.md)
-or
-[`grf_crr()`](https://larsvanderlaan.github.io/hte3/reference/grf_crr.md)
-when you want the optional `grf` engine and a wrapper that accepts raw
-data plus optional nuisance estimates.
-
-### Advanced / low-level sl3
-
-Use
-[`make_hte3_Task_tx()`](https://larsvanderlaan.github.io/hte3/reference/make_hte3_Task_tx.md),
-[`cross_validate_cate()`](https://larsvanderlaan.github.io/hte3/reference/cross_validate_cate.md),
-[`cross_validate_crr()`](https://larsvanderlaan.github.io/hte3/reference/cross_validate_crr.md),
-and the `Lrnr_*` classes when you want to assemble learner portfolios
-directly.
-
-## Where to Find Documentation
-
-- [Quickstart](https://larsvanderlaan.github.io/hte3/articles/quickstart.md):
-  one end-to-end example with the high-level wrappers.
-- [CATE
-  Workflow](https://larsvanderlaan.github.io/hte3/articles/cate.md):
-  choosing among `dr`, `r`, `t`, and `ep` for conditional mean
-  differences.
-- [CRR Workflow](https://larsvanderlaan.github.io/hte3/articles/crr.md):
-  fitting conditional risk ratios with
-  [`fit_crr()`](https://larsvanderlaan.github.io/hte3/reference/fit_crr.md).
-- [Causal Forests with
-  GRF](https://larsvanderlaan.github.io/hte3/articles/grf.md):
-  [`grf_cate()`](https://larsvanderlaan.github.io/hte3/reference/grf_cate.md),
-  [`grf_crr()`](https://larsvanderlaan.github.io/hte3/reference/grf_crr.md),
-  direct nuisance inputs, and GRF-specific arguments.
-- [Advanced sl3
-  Integration](https://larsvanderlaan.github.io/hte3/articles/advanced-sl3.md):
-  low-level task construction, learner control, and manual
-  cross-validation.
-- [Reference](https://larsvanderlaan.github.io/hte3/reference/index.md):
-  exported functions, helper constructors, and learner classes.
-
-## Important Constraints
+## Supported outcomes and treatments
 
 - [`fit_crr()`](https://larsvanderlaan.github.io/hte3/reference/fit_crr.md)
   and
@@ -117,12 +90,12 @@ directly.
   and
   [`grf_crr()`](https://larsvanderlaan.github.io/hte3/reference/grf_crr.md)
   currently support binary treatment only.
-- Continuous-treatment CATE currently goes through the R-learner path
-  via `fit_cate(..., method = "r")`.
+- For continuous treatments, use `fit_cate(..., method = "r")`, which
+  assumes a partially linear effect model `A * tau(X)`.
 
 # Package index
 
-## Production API
+## Fit and predict
 
 - [`hte_task()`](https://larsvanderlaan.github.io/hte3/reference/hte_task.md)
   : Create an hte3 Task with a Production-Oriented Interface
@@ -140,7 +113,7 @@ directly.
 - [`hte3_example_data()`](https://larsvanderlaan.github.io/hte3/reference/hte3_example_data.md)
   : Simulate Tiny Example Data for hte3
 
-## Advanced API
+## Tasks and learner classes
 
 - [`hte3_Task`](https://larsvanderlaan.github.io/hte3/reference/hte3_Task.md)
   : Task object for meta-learners in causal data structures.
@@ -245,21 +218,20 @@ directly.
 
 # Articles
 
-### Start Here
+### Get started
 
 - [Quickstart](https://larsvanderlaan.github.io/hte3/articles/quickstart.md):
-- [CATE
-  Workflow](https://larsvanderlaan.github.io/hte3/articles/cate.md):
-- [CRR Workflow](https://larsvanderlaan.github.io/hte3/articles/crr.md):
-- [Causal Forests with
-  GRF](https://larsvanderlaan.github.io/hte3/articles/grf.md):
+- [Treatment
+  effects](https://larsvanderlaan.github.io/hte3/articles/cate.md):
+- [Risk ratios](https://larsvanderlaan.github.io/hte3/articles/crr.md):
+- [Causal
+  forests](https://larsvanderlaan.github.io/hte3/articles/grf.md):
 
 ### Methods
 
-- [EP-Learner Sieve
-  Tuning](https://larsvanderlaan.github.io/hte3/articles/ep-learner.md):
-- [Advanced sl3
-  Integration](https://larsvanderlaan.github.io/hte3/articles/advanced-sl3.md):
+- [EP-learner](https://larsvanderlaan.github.io/hte3/articles/ep-learner.md):
+- [Using sl3
+  directly](https://larsvanderlaan.github.io/hte3/articles/advanced-sl3.md):
 
 ### Development
 

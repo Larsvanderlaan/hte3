@@ -1,12 +1,14 @@
-# CRR Workflow
+# Risk ratios
 
-Read this article if you are fitting conditional risk ratios with
+Use
 [`hte_task()`](https://larsvanderlaan.github.io/hte3/reference/hte_task.md)
 and
 [`fit_crr()`](https://larsvanderlaan.github.io/hte3/reference/fit_crr.md)
-and need to choose among the supported CRR learner families.
+to estimate conditional risk ratios for non-negative outcomes. Choose
+among EP-, IPW-, and T-learners, or compare them by cross-validation.
 
 ``` r
+
 library(hte3)
 library(sl3)
 
@@ -44,24 +46,25 @@ summary(crr_model)
 #>   Treatment variable: A
 ```
 
-## Choose the Wrapper Method
+## Choose a method
 
 [`fit_crr()`](https://larsvanderlaan.github.io/hte3/reference/fit_crr.md)
 supports `method = c("ep", "ipw", "t")`.
 
-- `method = "ep"` is the default flexible CRR path.
-- `method = "ipw"` is the weighting-based benchmark and places more
-  emphasis on the propensity model.
-- `method = "t"` is the baseline built from arm-specific outcome models
-  on the risk-ratio scale.
+- `method = "ep"` is the default. It updates initial outcome regressions
+  using a sieve basis before fitting the risk-ratio model.
+- `method = "ipw"` uses inverse treatment probabilities to weight the
+  fit.
+- `method = "t"` estimates outcome means in each treatment arm and fits
+  a regression of their log ratio on the modifiers.
 
-The wrapper pattern is the same as for CATE: build an `hte3_Task`,
-choose the CRR learner family with `method`, and optionally compare
-candidates with `cross_validate = TRUE`.
+As with CATE, create a task, choose a method, and compare candidates
+with `cross_validate = TRUE`.
 
-## Compare CRR Learner Families
+## Compare methods
 
 ``` r
+
 cv_model <- fit_crr(
   task,
   method = c("ipw", "t", "ep"),
@@ -90,12 +93,13 @@ compares EP fits across basis sizes. Use `sieve_basis_grid` when you
 want to control that grid explicitly, and use `sieve_num_basis` for one
 fixed EP fit.
 
-## Important Constraints
+## Outcomes and cross-fitting
 
-- CRR workflows require a non-negative outcome.
+- [`fit_crr()`](https://larsvanderlaan.github.io/hte3/reference/fit_crr.md)
+  requires a non-negative outcome.
 - `cross_fit` in
   [`hte_task()`](https://larsvanderlaan.github.io/hte3/reference/hte_task.md)
-  controls nuisance estimation and is separate from wrapper-level
-  learner selection.
-- For low-level CRR learner portfolios, see [Advanced sl3
-  Integration](https://larsvanderlaan.github.io/hte3/articles/advanced-sl3.md).
+  controls nuisance estimation and is separate from model selection with
+  `cross_validate`.
+- To construct and compare your own learners, see [Using sl3
+  directly](https://larsvanderlaan.github.io/hte3/articles/advanced-sl3.md).

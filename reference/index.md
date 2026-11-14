@@ -1,6 +1,6 @@
 # Package index
 
-## Production API
+## Fit and predict
 
 - [`hte_task()`](https://larsvanderlaan.github.io/hte3/reference/hte_task.md)
   : Create an hte3 Task with a Production-Oriented Interface
@@ -18,7 +18,7 @@
 - [`hte3_example_data()`](https://larsvanderlaan.github.io/hte3/reference/hte3_example_data.md)
   : Simulate Tiny Example Data for hte3
 
-## Advanced API
+## Tasks and learner classes
 
 - [`hte3_Task`](https://larsvanderlaan.github.io/hte3/reference/hte3_Task.md)
   : Task object for meta-learners in causal data structures.

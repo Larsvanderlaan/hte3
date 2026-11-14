@@ -1,12 +1,13 @@
-# EP-Learner Sieve Tuning
+# EP-learner
 
-This vignette focuses on the EP-learner. It explains what the `Sieve`
-package is doing inside `hte3`, how the sieve basis is constructed and
-ordered, how the two CATE EP variants differ, how wrapper-level EP
-basis-size selection works, and how to reproduce the paper-style sieve
-cross-validation grids.
+The efficient plug-in (EP) learner updates initial outcome estimates
+using a sieve basis before fitting the effect regression. This guide
+explains the basis, the EP-DR and EP-R variants, and how to choose the
+basis size by cross-validation. It also includes the grids used in the
+EP-learner paper.
 
 ``` r
+
 library(hte3)
 library(sl3)
 
@@ -37,9 +38,9 @@ crr_task <- make_hte3_Task_tx(
 )
 ```
 
-## What `Sieve` Does in `hte3`
+## Construct the sieve basis
 
-For CATE, `hte3` now exposes two EP variants through
+For CATE, choose between two EP variants with
 `Lrnr_cate_EP(..., targeting_style = ...)`:
 
 - `targeting_style = "dr"` is the original EP update and acts as a
@@ -47,8 +48,7 @@ For CATE, `hte3` now exposes two EP variants through
 - `targeting_style = "r"` uses an overlap-weighted targeting objective
   and acts as a plug-in analogue of the R-learner.
 
-In both cases, the `Sieve` package is used only to build the basis
-matrix. The EP update itself is then fit by `glmnet` inside
+`Sieve` constructs the basis matrix. `glmnet` fits the EP update inside
 `Lrnr_cate_EP` and `Lrnr_crr_EP`.
 
 Before evaluating the basis, `Sieve` rescales each modifier to `[0, 1]`.
@@ -57,12 +57,11 @@ cosine basis functions, so the univariate building blocks are
 `1, cos(pi x), cos(2 pi x), ...`. Multivariate basis functions are
 tensor products of those univariate terms across modifiers.
 
-The package does not currently expose alternative `Sieve` basis families
-at the wrapper or learner level. The practical tuning knobs are:
+`hte3` currently uses only the cosine basis family. The tuning arguments
+are:
 
 - `sieve_num_basis`: sieve size for one fixed EP fit
-- `sieve_basis_grid`: basis-size grid for wrapper-level EP
-  cross-validation
+- `sieve_basis_grid`: basis sizes to compare by cross-validation
 - `sieve_interaction_order`: maximum interaction order
 - `screen_basis_with_lasso`: experimental CATE-only alternative to
   explicit sieve-grid cross-validation
@@ -76,7 +75,7 @@ dimension of the first-stage EP sieve covariates.
 
 ## EP-DR versus EP-R
 
-The important difference is the first-stage targeting objective:
+The two variants use different first-stage targeting objectives:
 
 - EP-DR uses the original inverse-propensity-weighted targeting step on
   a sieve built from the modifier set `V`.
@@ -92,40 +91,41 @@ For EP-R, you can choose between two first-stage basis constructions:
 - `r_targeting_basis = "full_w"`: build the first-stage sieve on the
   full confounder set `W`
 
-The `v_plus_propensity` option is the dimension-reduced EP-R path: it
-uses the scalar treated-arm propensity score as a 1D summary of `W`
-while still allowing the first-stage sieve to interact that score with
-the modifier set. For this mode, the effective first-stage interaction
-order is always at least 2.
+With `v_plus_propensity`, the basis depends on `V` and the scalar
+propensity score rather than all of `W`. It includes interactions
+between the modifiers and the score; the first-stage interaction order
+is always at least 2.
 
-The practical target distinction is:
+When the modifiers `V` are a subset of the adjustment covariates `W`:
 
-- EP-DR keeps the usual `V`-conditional CATE target in the supported
+- EP-DR estimates the usual `V`-conditional CATE in the supported
   binary/categorical setting.
-- EP-R can be more stable under severe overlap violations, but in
-  reduced-modifier settings it generally targets an overlap-weighted
-  projection rather than the unweighted `E[Y(1) - Y(0) | V]`.
+- EP-R generally targets an overlap-weighted projection rather than the
+  unweighted `E[Y(1) - Y(0) | V]`.
 
-EP-R currently supports binary-treatment CATE tasks only. `Lrnr_crr_EP`
-remains unchanged.
+EP-R currently supports binary-treatment CATE tasks only. For risk
+ratios, use `Lrnr_crr_EP`.
 
-## Wrapper-Level EP Tuning
+## Choose a basis size
 
-At the high-level wrapper, EP tuning now follows two simple rules:
+In
+[`fit_cate()`](https://larsvanderlaan.github.io/hte3/reference/fit_cate.md)
+and
+[`fit_crr()`](https://larsvanderlaan.github.io/hte3/reference/fit_crr.md):
 
 - Use `sieve_num_basis` when `cross_validate = FALSE` and you want one
   fixed sieve size.
 - Use `sieve_basis_grid` when `cross_validate = TRUE` and you want the
   wrapper to compare multiple EP candidates.
 
-For CATE EP learners, wrapper-level tuning still uses the DR selector
-loss from
+For CATE EP learners, cross-validation uses the DR selector loss from
 [`cross_validate_cate()`](https://larsvanderlaan.github.io/hte3/reference/cross_validate_cate.md),
 even when `targeting_style = "r"`.
 
 For example:
 
 ``` r
+
 ep_cv <- fit_cate(
   hte_task(
     data = data,
@@ -165,6 +165,7 @@ summary(ep_cv)
 You can also ask the wrapper to compare EP-DR and EP-R directly:
 
 ``` r
+
 ep_style_cv <- suppressWarnings(fit_cate(
   hte_task(
     data = data,
@@ -213,32 +214,29 @@ dimension for the chosen variant. The fitted model summary reports the
 selected candidate, the selected EP targeting style, the selected EP
 basis size, and the EP grid that was compared.
 
-## How to Choose the Grid
+## Choose the grid
 
-Use the grid to control the flexibility-compute tradeoff:
+Both the number of candidates and their basis sizes affect the fit:
 
-- Smaller grids are faster and are usually safer in moderate sample
-  sizes.
-- Larger grids give the EP correction more flexibility but can become
-  noisier in higher-dimensional modifier spaces.
+- Comparing fewer basis sizes reduces runtime.
+- Larger basis sizes allow more complex corrections but can increase
+  variability, especially with many modifiers.
 - Lower `sieve_interaction_order` values reduce complexity when the
   modifier dimension is large.
 
 In practice:
 
-- start with the default heuristic grid when you want a simple first
-  pass
+- start with the default grid
 - use `sieve_basis_grid = (3:8) * d` to match the low-dimensional paper
   grid
 - use smaller additive grids such as `(1:6) * d` with
   `sieve_interaction_order = 1` when the modifier dimension is high
 
-## How the Basis Is Ordered
+## Basis ordering and interactions
 
-`Sieve` orders the multivariate basis by increasing index-product
-complexity. In practice, this means the constant term comes first, then
-lower-frequency univariate terms, then higher-frequency and interaction
-terms.
+`Sieve` orders the multivariate basis by the product of the univariate
+basis indices. The constant comes first; higher-frequency terms and
+interactions enter as the basis size increases.
 
 The argument `sieve_interaction_order` limits how many coordinates can
 vary inside a single tensor-product basis term:
@@ -247,16 +245,16 @@ vary inside a single tensor-product basis term:
 - `sieve_interaction_order = 2` allows pairwise interactions
 - `sieve_interaction_order = 3` allows up to three-way interactions
 
-So with two modifiers, the early cosine basis terms look like the
-constant, then terms like `cos(pi x1)` and `cos(pi x2)`, then
-higher-frequency terms, then interaction terms such as
+With two modifiers, the basis includes the constant, terms such as
+`cos(pi x1)` and `cos(pi x2)`, and interactions such as
 `cos(pi x1) * cos(pi x2)`.
 
-## Fitting a Single EP-Learner
+## Fit a single EP-learner
 
-This is the most direct low-level EP fit:
+To train an EP-DR learner directly:
 
 ``` r
+
 ep_fit <- Lrnr_cate_EP$new(
   base_learner = Lrnr_mean$new(),
   sieve_num_basis = 4,
@@ -278,6 +276,7 @@ This is the corresponding EP-R fit with the dimension-reduced
 first-stage basis:
 
 ``` r
+
 ep_r_fit <- Lrnr_cate_EP$new(
   base_learner = Lrnr_mean$new(),
   sieve_num_basis = 4,
@@ -289,17 +288,17 @@ ep_r_fit <- Lrnr_cate_EP$new(
 head(predict_hte3(ep_r_fit, data))
 ```
 
-In practice, the paper often paired EP-learner with richer base-learner
-stacks. The examples below keep `Lrnr_mean$new()` so the sieve tuning
-pattern is easy to read; you can replace `base_learner` with any `sl3`
-learner or stack.
+The paper used richer base-learner stacks. These examples use
+`Lrnr_mean$new()` to keep the code short; you can replace `base_learner`
+with an `sl3` learner or stack.
 
-## Paper-Faithful CATE Sieve CV
+## CATE grids used in the paper
 
 The main low-dimensional CATE simulations in the paper used a sieve grid
 of `3d, 4d, ..., 8d` with `sieve_interaction_order = 3`.
 
 ``` r
+
 d <- length(task$npsem$modifiers$variables)
 paper_cate_basis_grid <- (3:8) * d
 
@@ -373,7 +372,7 @@ paper_cate_cv$coefficients
 The high-level wrapper
 `fit_cate(..., method = "ep", cross_validate = TRUE)` uses the heuristic
 default grid `c(d, 2d, 4d, 6d, 8d)` unless you provide
-`sieve_basis_grid` yourself. If you want paper-faithful tuning, set
+`sieve_basis_grid` yourself. To use the paper’s grid, set
 `sieve_basis_grid = (3:8) * d` or use an explicit EP stack like the one
 above. The same wrapper can compare EP-DR and EP-R directly with
 `ep_targeting_style = c("dr", "r")`.
@@ -382,6 +381,7 @@ For the high-dimensional CATE simulations, the paper used a more
 conservative additive sieve:
 
 ``` r
+
 d <- length(task$npsem$modifiers$variables)
 paper_cate_highdim_grid <- (1:6) * d
 
@@ -403,12 +403,13 @@ paper_cate_highdim_cv <- cross_validate_cate(
 )
 ```
 
-## Paper-Faithful CRR Sieve CV
+## Risk-ratio grids used in the paper
 
 The main CRR simulations used the same low-dimensional sieve grid
 `3d, 4d, ..., 8d` with `sieve_interaction_order = 3`.
 
 ``` r
+
 d_crr <- length(crr_task$npsem$modifiers$variables)
 paper_crr_basis_grid <- (3:8) * d_crr
 
@@ -501,14 +502,8 @@ paper_crr_cv$coefficients
 
 ## Notes
 
-- For wrapper-level EP selection, `sieve_basis_grid` is the user-visible
-  knob for basis-size cross-validation and `sieve_num_basis` is the
-  user-visible knob for a single fixed EP fit.
-- The paper-faithful path is explicit sieve-grid selection with
-  [`cross_validate_cate()`](https://larsvanderlaan.github.io/hte3/reference/cross_validate_cate.md)
-  or
-  [`cross_validate_crr()`](https://larsvanderlaan.github.io/hte3/reference/cross_validate_crr.md).
 - For CATE, `screen_basis_with_lasso = TRUE` is an experimental
-  alternative when explicit sieve CV is too expensive.
-- For broader low-level `sl3` portfolio control beyond EP-learner, see
-  the `advanced-sl3` vignette.
+  alternative when comparing basis sizes by cross-validation is too
+  expensive.
+- To construct and compare other `sl3` learners, see [Using sl3
+  directly](https://larsvanderlaan.github.io/hte3/articles/advanced-sl3.md).

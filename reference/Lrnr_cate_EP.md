@@ -10,14 +10,14 @@ regression task, and access the base learner.
 
 ## Details
 
-The EP-learner is a robust and doubly-robust meta-learner that inherits
-desirable properties of both T-learner and DR-learner. The current
-implementation exposes two CATE EP variants through `targeting_style`:
-`"dr"` is the plug-in analogue of the DR-learner and `"r"` is the
-plug-in analogue of the R-learner. The `"r"` variant uses an
-overlap-weighted targeting objective that can be more stable under
-severe overlap violations, but it generally targets an overlap-weighted
-projection in reduced-modifier settings.
+The EP-learner updates initial outcome estimates using a sieve basis
+before fitting the effect regression. The current implementation exposes
+two CATE EP variants through `targeting_style`: `"dr"` is the plug-in
+analogue of the DR-learner and `"r"` is the plug-in analogue of the
+R-learner. The `"r"` variant uses an overlap-weighted targeting
+objective that can be more stable under severe overlap violations, but
+it generally targets an overlap-weighted projection in reduced-modifier
+settings.
 
 ## Super classes
 
@@ -124,8 +124,8 @@ Inherited methods
 
 - `targeting_style`:
 
-  One of `"dr"` or `"r"`. The default `"dr"` path keeps the current EP
-  debiasing update. The `"r"` path uses an R-learner-style
+  One of `"dr"` or `"r"`. The default `"dr"` variant uses the original
+  EP debiasing update. The `"r"` variant uses an R-learner-style
   overlap-weighted targeting update and currently supports
   binary-treatment CATE tasks only. High-level wrappers such as
   [`fit_cate()`](https://larsvanderlaan.github.io/hte3/reference/fit_cate.md)
