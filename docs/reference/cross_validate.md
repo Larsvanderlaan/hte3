@@ -35,8 +35,8 @@ cross_validate(
 - cv_control:
 
   A list of control parameters for cross-validation passed to
-  [`Lrnr_sl`](https://tlverse.org/sl3/reference/Lrnr_sl.html). Default
-  is `NULL`.
+  [`Lrnr_sl`](https://rdrr.io/pkg/sl3/man/Lrnr_sl.html). Default is
+  `NULL`.
 
 - ...:
 

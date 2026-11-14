@@ -5,12 +5,13 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>EP-Learner Sieve Tuning • hte3</title>
+<title>EP-learner • hte3</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="EP-Learner Sieve Tuning">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
+<meta property="og:title" content="EP-learner">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -29,8 +30,9 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="../index.html">Overview</a></li>
+<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Guides</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -51,7 +53,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>EP-Learner Sieve Tuning</h1>
+      <h1>EP-learner</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/Larsvanderlaan/hte3/blob/HEAD/vignettes/ep-learner.Rmd" class="external-link"><code>vignettes/ep-learner.Rmd</code></a></small>
@@ -60,11 +62,11 @@
 
     
     
-<p>This vignette focuses on the EP-learner. It explains what the
-<code>Sieve</code> package is doing inside <code>hte3</code>, how the
-sieve basis is constructed and ordered, how the two CATE EP variants
-differ, how wrapper-level EP basis-size selection works, and how to
-reproduce the paper-style sieve cross-validation grids.</p>
+<p>The efficient plug-in (EP) learner updates initial outcome estimates
+using a sieve basis before fitting the effect regression. This guide
+explains the basis, the EP-DR and EP-R variants, and how to choose the
+basis size by cross-validation. It also includes the grids used in the
+EP-learner paper.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://larsvanderlaan.github.io/hte3/">hte3</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tlverse.org/sl3" class="external-link">sl3</a></span><span class="op">)</span></span>
@@ -77,9 +79,9 @@ reproduce the paper-style sieve cross-validation grids.</p>
 <span>  confounders <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"W1"</span>, <span class="st">"W2"</span>, <span class="st">"W3"</span><span class="op">)</span>,</span>
 <span>  treatment <span class="op">=</span> <span class="st">"A"</span>,</span>
 <span>  outcome <span class="op">=</span> <span class="st">"Y"</span>,</span>
-<span>  learner_pi <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  learner_mu <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  learner_m <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  learner_pi <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  learner_mu <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  learner_m <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  cross_fit_and_cv <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -89,15 +91,15 @@ reproduce the paper-style sieve cross-validation grids.</p>
 <span>  confounders <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"W1"</span>, <span class="st">"W2"</span>, <span class="st">"W3"</span><span class="op">)</span>,</span>
 <span>  treatment <span class="op">=</span> <span class="st">"A"</span>,</span>
 <span>  outcome <span class="op">=</span> <span class="st">"Y_binary"</span>,</span>
-<span>  learner_pi <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  learner_mu <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  learner_m <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  learner_pi <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  learner_mu <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  learner_m <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  cross_fit_and_cv <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <div class="section level2">
-<h2 id="what-sieve-does-in-hte3">What <code>Sieve</code> Does in <code>hte3</code><a class="anchor" aria-label="anchor" href="#what-sieve-does-in-hte3"></a>
+<h2 id="construct-the-sieve-basis">Construct the sieve basis<a class="anchor" aria-label="anchor" href="#construct-the-sieve-basis"></a>
 </h2>
-<p>For CATE, <code>hte3</code> now exposes two EP variants through
+<p>For CATE, choose between two EP variants with
 <code>Lrnr_cate_EP(..., targeting_style = ...)</code>:</p>
 <ul>
 <li>
@@ -108,9 +110,8 @@ acts as a plug-in analogue of the DR-learner.</li>
 targeting objective and acts as a plug-in analogue of the
 R-learner.</li>
 </ul>
-<p>In both cases, the <code>Sieve</code> package is used only to build
-the basis matrix. The EP update itself is then fit by
-<code>glmnet</code> inside <code>Lrnr_cate_EP</code> and
+<p><code>Sieve</code> constructs the basis matrix. <code>glmnet</code>
+fits the EP update inside <code>Lrnr_cate_EP</code> and
 <code>Lrnr_crr_EP</code>.</p>
 <p>Before evaluating the basis, <code>Sieve</code> rescales each
 modifier to <code>[0, 1]</code>. In the current <code>hte3</code>
@@ -119,14 +120,13 @@ the univariate building blocks are
 <code>1, cos(pi x), cos(2 pi x), ...</code>. Multivariate basis
 functions are tensor products of those univariate terms across
 modifiers.</p>
-<p>The package does not currently expose alternative <code>Sieve</code>
-basis families at the wrapper or learner level. The practical tuning
-knobs are:</p>
+<p><code>hte3</code> currently uses only the cosine basis family. The
+tuning arguments are:</p>
 <ul>
 <li>
 <code>sieve_num_basis</code>: sieve size for one fixed EP fit</li>
 <li>
-<code>sieve_basis_grid</code>: basis-size grid for wrapper-level EP
+<code>sieve_basis_grid</code>: basis sizes to compare by
 cross-validation</li>
 <li>
 <code>sieve_interaction_order</code>: maximum interaction order</li>
@@ -149,7 +149,7 @@ sieve covariates.</p>
 <div class="section level2">
 <h2 id="ep-dr-versus-ep-r">EP-DR versus EP-R<a class="anchor" aria-label="anchor" href="#ep-dr-versus-ep-r"></a>
 </h2>
-<p>The important difference is the first-stage targeting objective:</p>
+<p>The two variants use different first-stage targeting objectives:</p>
 <ul>
 <li>EP-DR uses the original inverse-propensity-weighted targeting step
 on a sieve built from the modifier set <code>V</code>.</li>
@@ -170,28 +170,25 @@ treated-arm propensity score <code>e(W)</code>
 sieve on the full confounder set <code>W</code>
 </li>
 </ul>
-<p>The <code>v_plus_propensity</code> option is the dimension-reduced
-EP-R path: it uses the scalar treated-arm propensity score as a 1D
-summary of <code>W</code> while still allowing the first-stage sieve to
-interact that score with the modifier set. For this mode, the effective
-first-stage interaction order is always at least 2.</p>
-<p>The practical target distinction is:</p>
+<p>With <code>v_plus_propensity</code>, the basis depends on
+<code>V</code> and the scalar propensity score rather than all of
+<code>W</code>. It includes interactions between the modifiers and the
+score; the first-stage interaction order is always at least 2.</p>
+<p>When the modifiers <code>V</code> are a subset of the adjustment
+covariates <code>W</code>:</p>
 <ul>
-<li>EP-DR keeps the usual <code>V</code>-conditional CATE target in the
+<li>EP-DR estimates the usual <code>V</code>-conditional CATE in the
 supported binary/categorical setting.</li>
-<li>EP-R can be more stable under severe overlap violations, but in
-reduced-modifier settings it generally targets an overlap-weighted
-projection rather than the unweighted
-<code>E[Y(1) - Y(0) | V]</code>.</li>
+<li>EP-R generally targets an overlap-weighted projection rather than
+the unweighted <code>E[Y(1) - Y(0) | V]</code>.</li>
 </ul>
-<p>EP-R currently supports binary-treatment CATE tasks only.
-<code>Lrnr_crr_EP</code> remains unchanged.</p>
+<p>EP-R currently supports binary-treatment CATE tasks only. For risk
+ratios, use <code>Lrnr_crr_EP</code>.</p>
 </div>
 <div class="section level2">
-<h2 id="wrapper-level-ep-tuning">Wrapper-Level EP Tuning<a class="anchor" aria-label="anchor" href="#wrapper-level-ep-tuning"></a>
+<h2 id="choose-a-basis-size">Choose a basis size<a class="anchor" aria-label="anchor" href="#choose-a-basis-size"></a>
 </h2>
-<p>At the high-level wrapper, EP tuning now follows two simple
-rules:</p>
+<p>In <code><a href="../reference/fit_cate.html">fit_cate()</a></code> and <code><a href="../reference/fit_crr.html">fit_crr()</a></code>:</p>
 <ul>
 <li>Use <code>sieve_num_basis</code> when
 <code>cross_validate = FALSE</code> and you want one fixed sieve
@@ -200,8 +197,8 @@ size.</li>
 <code>cross_validate = TRUE</code> and you want the wrapper to compare
 multiple EP candidates.</li>
 </ul>
-<p>For CATE EP learners, wrapper-level tuning still uses the DR selector
-loss from <code><a href="../reference/cross_validate_cate.html">cross_validate_cate()</a></code>, even when
+<p>For CATE EP learners, cross-validation uses the DR selector loss from
+<code><a href="../reference/cross_validate_cate.html">cross_validate_cate()</a></code>, even when
 <code>targeting_style = "r"</code>.</p>
 <p>For example:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
@@ -212,13 +209,13 @@ loss from <code><a href="../reference/cross_validate_cate.html">cross_validate_c
 <span>    confounders <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"W1"</span>, <span class="st">"W2"</span>, <span class="st">"W3"</span><span class="op">)</span>,</span>
 <span>    treatment <span class="op">=</span> <span class="st">"A"</span>,</span>
 <span>    outcome <span class="op">=</span> <span class="st">"Y"</span>,</span>
-<span>    propensity_learner <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
-<span>    outcome_learner <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
-<span>    mean_learner <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    propensity_learner <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    outcome_learner <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    mean_learner <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>    cross_fit <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span>  <span class="op">)</span>,</span>
 <span>  method <span class="op">=</span> <span class="st">"ep"</span>,</span>
-<span>  base_learner <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  base_learner <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  cross_validate <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  cv_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>V <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span>
 <span>  ep_targeting_style <span class="op">=</span> <span class="st">"dr"</span>,</span>
@@ -248,13 +245,13 @@ loss from <code><a href="../reference/cross_validate_cate.html">cross_validate_c
 <span>    confounders <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"W1"</span>, <span class="st">"W2"</span>, <span class="st">"W3"</span><span class="op">)</span>,</span>
 <span>    treatment <span class="op">=</span> <span class="st">"A"</span>,</span>
 <span>    outcome <span class="op">=</span> <span class="st">"Y"</span>,</span>
-<span>    propensity_learner <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
-<span>    outcome_learner <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
-<span>    mean_learner <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    propensity_learner <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    outcome_learner <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    mean_learner <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>    cross_fit <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span>  <span class="op">)</span>,</span>
 <span>  method <span class="op">=</span> <span class="st">"ep"</span>,</span>
-<span>  base_learner <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  base_learner <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  cross_validate <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  cv_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>V <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span>
 <span>  sieve_basis_grid <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">4</span>, <span class="fl">6</span>, <span class="fl">8</span><span class="op">)</span>,</span>
@@ -289,21 +286,20 @@ selected EP targeting style, the selected EP basis size, and the EP grid
 that was compared.</p>
 </div>
 <div class="section level2">
-<h2 id="how-to-choose-the-grid">How to Choose the Grid<a class="anchor" aria-label="anchor" href="#how-to-choose-the-grid"></a>
+<h2 id="choose-the-grid">Choose the grid<a class="anchor" aria-label="anchor" href="#choose-the-grid"></a>
 </h2>
-<p>Use the grid to control the flexibility-compute tradeoff:</p>
+<p>Both the number of candidates and their basis sizes affect the
+fit:</p>
 <ul>
-<li>Smaller grids are faster and are usually safer in moderate sample
-sizes.</li>
-<li>Larger grids give the EP correction more flexibility but can become
-noisier in higher-dimensional modifier spaces.</li>
+<li>Comparing fewer basis sizes reduces runtime.</li>
+<li>Larger basis sizes allow more complex corrections but can increase
+variability, especially with many modifiers.</li>
 <li>Lower <code>sieve_interaction_order</code> values reduce complexity
 when the modifier dimension is large.</li>
 </ul>
 <p>In practice:</p>
 <ul>
-<li>start with the default heuristic grid when you want a simple first
-pass</li>
+<li>start with the default grid</li>
 <li>use <code>sieve_basis_grid = (3:8) * d</code> to match the
 low-dimensional paper grid</li>
 <li>use smaller additive grids such as <code>(1:6) * d</code> with
@@ -312,12 +308,11 @@ high</li>
 </ul>
 </div>
 <div class="section level2">
-<h2 id="how-the-basis-is-ordered">How the Basis Is Ordered<a class="anchor" aria-label="anchor" href="#how-the-basis-is-ordered"></a>
+<h2 id="basis-ordering-and-interactions">Basis ordering and interactions<a class="anchor" aria-label="anchor" href="#basis-ordering-and-interactions"></a>
 </h2>
-<p><code>Sieve</code> orders the multivariate basis by increasing
-index-product complexity. In practice, this means the constant term
-comes first, then lower-frequency univariate terms, then
-higher-frequency and interaction terms.</p>
+<p><code>Sieve</code> orders the multivariate basis by the product of
+the univariate basis indices. The constant comes first; higher-frequency
+terms and interactions enter as the basis size increases.</p>
 <p>The argument <code>sieve_interaction_order</code> limits how many
 coordinates can vary inside a single tensor-product basis term:</p>
 <ul>
@@ -331,18 +326,17 @@ interactions</li>
 <code>sieve_interaction_order = 3</code> allows up to three-way
 interactions</li>
 </ul>
-<p>So with two modifiers, the early cosine basis terms look like the
-constant, then terms like <code>cos(pi x1)</code> and
-<code>cos(pi x2)</code>, then higher-frequency terms, then interaction
-terms such as <code>cos(pi x1) * cos(pi x2)</code>.</p>
+<p>With two modifiers, the basis includes the constant, terms such as
+<code>cos(pi x1)</code> and <code>cos(pi x2)</code>, and interactions
+such as <code>cos(pi x1) * cos(pi x2)</code>.</p>
 </div>
 <div class="section level2">
-<h2 id="fitting-a-single-ep-learner">Fitting a Single EP-Learner<a class="anchor" aria-label="anchor" href="#fitting-a-single-ep-learner"></a>
+<h2 id="fit-a-single-ep-learner">Fit a single EP-learner<a class="anchor" aria-label="anchor" href="#fit-a-single-ep-learner"></a>
 </h2>
-<p>This is the most direct low-level EP fit:</p>
+<p>To train an EP-DR learner directly:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ep_fit</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/Lrnr_cate_EP.html">Lrnr_cate_EP</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>  base_learner <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  base_learner <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  sieve_num_basis <span class="op">=</span> <span class="fl">4</span>,</span>
 <span>  sieve_interaction_order <span class="op">=</span> <span class="fl">2</span></span>
 <span><span class="op">)</span><span class="op">$</span><span class="fu">train</span><span class="op">(</span><span class="va">task</span><span class="op">)</span></span>
@@ -360,7 +354,7 @@ terms such as <code>cos(pi x1) * cos(pi x2)</code>.</p>
 first-stage basis:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ep_r_fit</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/Lrnr_cate_EP.html">Lrnr_cate_EP</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>  base_learner <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  base_learner <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  sieve_num_basis <span class="op">=</span> <span class="fl">4</span>,</span>
 <span>  sieve_interaction_order <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  targeting_style <span class="op">=</span> <span class="st">"r"</span>,</span>
@@ -368,14 +362,12 @@ first-stage basis:</p>
 <span><span class="op">)</span><span class="op">$</span><span class="fu">train</span><span class="op">(</span><span class="va">task</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="../reference/predict_hte3.html">predict_hte3</a></span><span class="op">(</span><span class="va">ep_r_fit</span>, <span class="va">data</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>In practice, the paper often paired EP-learner with richer
-base-learner stacks. The examples below keep
-<code>Lrnr_mean$new()</code> so the sieve tuning pattern is easy to
-read; you can replace <code>base_learner</code> with any
-<code>sl3</code> learner or stack.</p>
+<p>The paper used richer base-learner stacks. These examples use
+<code>Lrnr_mean$new()</code> to keep the code short; you can replace
+<code>base_learner</code> with an <code>sl3</code> learner or stack.</p>
 </div>
 <div class="section level2">
-<h2 id="paper-faithful-cate-sieve-cv">Paper-Faithful CATE Sieve CV<a class="anchor" aria-label="anchor" href="#paper-faithful-cate-sieve-cv"></a>
+<h2 id="cate-grids-used-in-the-paper">CATE grids used in the paper<a class="anchor" aria-label="anchor" href="#cate-grids-used-in-the-paper"></a>
 </h2>
 <p>The main low-dimensional CATE simulations in the paper used a sieve
 grid of <code>3d, 4d, ..., 8d</code> with
@@ -386,7 +378,7 @@ grid of <code>3d, 4d, ..., 8d</code> with
 <span></span>
 <span><span class="va">paper_cate_ep_stack</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">paper_cate_basis_grid</span>, <span class="kw">function</span><span class="op">(</span><span class="va">basis_size</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va"><a href="../reference/Lrnr_cate_EP.html">Lrnr_cate_EP</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>    base_learner <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    base_learner <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>    sieve_num_basis <span class="op">=</span> <span class="va">basis_size</span>,</span>
 <span>    sieve_interaction_order <span class="op">=</span> <span class="fl">3</span></span>
 <span>  <span class="op">)</span></span>
@@ -452,11 +444,10 @@ grid of <code>3d, 4d, ..., 8d</code> with
 <p>The high-level wrapper
 <code>fit_cate(..., method = "ep", cross_validate = TRUE)</code> uses
 the heuristic default grid <code>c(d, 2d, 4d, 6d, 8d)</code> unless you
-provide <code>sieve_basis_grid</code> yourself. If you want
-paper-faithful tuning, set <code>sieve_basis_grid = (3:8) * d</code> or
-use an explicit EP stack like the one above. The same wrapper can
-compare EP-DR and EP-R directly with
-<code>ep_targeting_style = c("dr", "r")</code>.</p>
+provide <code>sieve_basis_grid</code> yourself. To use the paper’s grid,
+set <code>sieve_basis_grid = (3:8) * d</code> or use an explicit EP
+stack like the one above. The same wrapper can compare EP-DR and EP-R
+directly with <code>ep_targeting_style = c("dr", "r")</code>.</p>
 <p>For the high-dimensional CATE simulations, the paper used a more
 conservative additive sieve:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
@@ -467,7 +458,7 @@ conservative additive sieve:</p>
 <span>  <span class="va">paper_cate_highdim_grid</span>,</span>
 <span>  <span class="kw">function</span><span class="op">(</span><span class="va">basis_size</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="va"><a href="../reference/Lrnr_cate_EP.html">Lrnr_cate_EP</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>      base_learner <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>      base_learner <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>      sieve_num_basis <span class="op">=</span> <span class="va">basis_size</span>,</span>
 <span>      sieve_interaction_order <span class="op">=</span> <span class="fl">1</span></span>
 <span>    <span class="op">)</span></span>
@@ -481,7 +472,7 @@ conservative additive sieve:</p>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="paper-faithful-crr-sieve-cv">Paper-Faithful CRR Sieve CV<a class="anchor" aria-label="anchor" href="#paper-faithful-crr-sieve-cv"></a>
+<h2 id="risk-ratio-grids-used-in-the-paper">Risk-ratio grids used in the paper<a class="anchor" aria-label="anchor" href="#risk-ratio-grids-used-in-the-paper"></a>
 </h2>
 <p>The main CRR simulations used the same low-dimensional sieve grid
 <code>3d, 4d, ..., 8d</code> with
@@ -492,7 +483,7 @@ conservative additive sieve:</p>
 <span></span>
 <span><span class="va">paper_crr_ep_stack</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">paper_crr_basis_grid</span>, <span class="kw">function</span><span class="op">(</span><span class="va">basis_size</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va"><a href="../reference/Lrnr_crr_EP.html">Lrnr_crr_EP</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>    base_learner <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    base_learner <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>    sieve_num_basis <span class="op">=</span> <span class="va">basis_size</span>,</span>
 <span>    sieve_interaction_order <span class="op">=</span> <span class="fl">3</span></span>
 <span>  <span class="op">)</span></span>
@@ -580,17 +571,10 @@ conservative additive sieve:</p>
 <h2 id="notes">Notes<a class="anchor" aria-label="anchor" href="#notes"></a>
 </h2>
 <ul>
-<li>For wrapper-level EP selection, <code>sieve_basis_grid</code> is the
-user-visible knob for basis-size cross-validation and
-<code>sieve_num_basis</code> is the user-visible knob for a single fixed
-EP fit.</li>
-<li>The paper-faithful path is explicit sieve-grid selection with
-<code><a href="../reference/cross_validate_cate.html">cross_validate_cate()</a></code> or
-<code><a href="../reference/cross_validate_crr.html">cross_validate_crr()</a></code>.</li>
 <li>For CATE, <code>screen_basis_with_lasso = TRUE</code> is an
-experimental alternative when explicit sieve CV is too expensive.</li>
-<li>For broader low-level <code>sl3</code> portfolio control beyond
-EP-learner, see the <code>advanced-sl3</code> vignette.</li>
+experimental alternative when comparing basis sizes by cross-validation
+is too expensive.</li>
+<li>To construct and compare other <code>sl3</code> learners, see <a href="advanced-sl3.html">Using sl3 directly</a>.</li>
 </ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

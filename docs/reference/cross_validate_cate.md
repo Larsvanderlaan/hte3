@@ -31,8 +31,8 @@ cross_validate_cate(
 - cv_control:
 
   A list of control parameters for cross-validation passed to
-  [`Lrnr_sl`](https://tlverse.org/sl3/reference/Lrnr_sl.html). Default
-  is `NULL`.
+  [`Lrnr_sl`](https://rdrr.io/pkg/sl3/man/Lrnr_sl.html). Default is
+  `NULL`.
 
 - treatment_level:
 

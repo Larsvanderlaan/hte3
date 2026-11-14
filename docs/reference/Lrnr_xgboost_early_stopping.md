@@ -8,7 +8,7 @@ data with the selected iteration count.
 ## Format
 
 An R6 class inheriting from
-[`sl3::Lrnr_base`](https://tlverse.org/sl3/reference/Lrnr_base.html).
+[`sl3::Lrnr_base`](https://rdrr.io/pkg/sl3/man/Lrnr_base.html).
 
 ## Arguments
 
@@ -40,7 +40,7 @@ An R6 class inheriting from
 
 ## Value
 
-An [`sl3::Lrnr_base`](https://tlverse.org/sl3/reference/Lrnr_base.html)
+An [`sl3::Lrnr_base`](https://rdrr.io/pkg/sl3/man/Lrnr_base.html)
 learner that selects the number of boosting rounds by early stopping and
 then refits on the full training sample.
 

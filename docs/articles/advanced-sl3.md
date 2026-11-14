@@ -1,17 +1,15 @@
-# Advanced sl3 Integration
+# Using sl3 directly
 
-Read this article if you want the low-level API: explicit task
-construction, manual learner choice, or direct calls to
+Construct an `hte3_Task`, train individual `sl3` learners, and compare
+them with
 [`cross_validate_cate()`](https://larsvanderlaan.github.io/hte3/reference/cross_validate_cate.md)
-and
+or
 [`cross_validate_crr()`](https://larsvanderlaan.github.io/hte3/reference/cross_validate_crr.md).
 
-## Build the Task Explicitly
+## Create a task
 
-Use
-[`make_hte3_Task_tx()`](https://larsvanderlaan.github.io/hte3/reference/make_hte3_Task_tx.md)
-when you want to supply the nuisance learners yourself or work directly
-with the lower-level learner objects.
+Pass your nuisance learners to
+[`make_hte3_Task_tx()`](https://larsvanderlaan.github.io/hte3/reference/make_hte3_Task_tx.md):
 
 ``` r
 library(hte3)
@@ -32,7 +30,7 @@ task <- make_hte3_Task_tx(
 )
 ```
 
-## Train a Learner Directly
+## Train a learner
 
 ``` r
 learner <- Lrnr_cate_DR$new(base_learner = Lrnr_mean$new())
@@ -42,15 +40,13 @@ head(predict_hte3(trained, data))
 #> [1] 1.553732 1.553732 1.553732 1.553732 1.553732 1.553732
 ```
 
-This is the right level when you want the exact learner object rather
-than the wrapper returned by
-[`fit_cate()`](https://larsvanderlaan.github.io/hte3/reference/fit_cate.md)
-or
-[`fit_crr()`](https://larsvanderlaan.github.io/hte3/reference/fit_crr.md).
+`trained` is an `sl3` learner object. Use
+[`predict_hte3()`](https://larsvanderlaan.github.io/hte3/reference/predict_hte3.md)
+to predict effects on new data.
 
-## Low-Level Cross-Validation
+## Compare learners
 
-You can cross-validate low-level learner portfolios directly.
+Pass a list of learners to compare by cross-validation:
 
 ``` r
 cate_cv <- cross_validate_cate(
@@ -72,7 +68,7 @@ head(cate_cv$lrnr_sl$predict(task))
 #> [1] 1.547718 1.547718 1.547718 1.547718 1.547718 1.547718
 ```
 
-The analogous CRR workflow is:
+For conditional risk ratios:
 
 ``` r
 crr_task <- make_hte3_Task_tx(
@@ -108,7 +104,7 @@ head(crr_cv$lrnr_sl$predict(crr_task))
 #> [1] 0.1634243 0.1634243 0.1634243 0.1634243 0.1634243 0.1634243
 ```
 
-## Important Constraints
+## Targets and treatment types
 
 - `cross_fit_and_cv` in
   [`make_hte3_Task_tx()`](https://larsvanderlaan.github.io/hte3/reference/make_hte3_Task_tx.md)
@@ -119,10 +115,9 @@ head(crr_cv$lrnr_sl$predict(crr_task))
 - In that reduced-modifier setting, the current low-level R-learner
   targets an overlap-weighted projection rather than the unweighted
   `V`-conditional CATE.
-- For continuous-treatment CATE, the low-level `Lrnr_cate_R` path is the
-  one currently implemented.
+- For continuous-treatment CATE, use `Lrnr_cate_R`.
 
-For EP-specific sieve construction and tuning, see [EP-Learner Sieve
-Tuning](https://larsvanderlaan.github.io/hte3/articles/ep-learner.md).
+For EP-specific sieve construction and tuning, see
+[EP-learner](https://larsvanderlaan.github.io/hte3/articles/ep-learner.md).
 If you are building a new learner, see [Extending hte3 with Custom
 Learners](https://larsvanderlaan.github.io/hte3/articles/extending-hte3.md).

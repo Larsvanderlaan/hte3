@@ -10,7 +10,8 @@
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Quickstart">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
+<meta property="og:title" content="Quickstart">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -29,8 +30,9 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="../index.html">Overview</a></li>
+<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Guides</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -60,8 +62,9 @@
 
     
     
-<p>Read this article if you want one minimal end-to-end example with the
-high-level wrappers before choosing a more specific workflow.</p>
+<p>Create a task, fit a DR-learner, and predict conditional average
+treatment effects. The example uses simulated data and simple mean
+learners, with cross-fitting and model selection disabled.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://larsvanderlaan.github.io/hte3/">hte3</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tlverse.org/sl3" class="external-link">sl3</a></span><span class="op">)</span></span>
@@ -74,16 +77,16 @@ high-level wrappers before choosing a more specific workflow.</p>
 <span>  confounders <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"W1"</span>, <span class="st">"W2"</span>, <span class="st">"W3"</span><span class="op">)</span>,</span>
 <span>  treatment <span class="op">=</span> <span class="st">"A"</span>,</span>
 <span>  outcome <span class="op">=</span> <span class="st">"Y"</span>,</span>
-<span>  propensity_learner <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  outcome_learner <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  mean_learner <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  propensity_learner <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  outcome_learner <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  mean_learner <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  cross_fit <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_cate.html">fit_cate</a></span><span class="op">(</span></span>
 <span>  <span class="va">task</span>,</span>
 <span>  method <span class="op">=</span> <span class="st">"dr"</span>,</span>
-<span>  base_learner <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  base_learner <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  cross_validate <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -99,9 +102,10 @@ high-level wrappers before choosing a more specific workflow.</p>
 <span><span class="co">#&gt;   Modifiers: W1, W2, W3</span></span>
 <span><span class="co">#&gt;   Treatment variable: A</span></span></code></pre></div>
 <div class="section level2">
-<h2 id="cross-fit-vs-cross-validate">Cross-Fit vs Cross-Validate<a class="anchor" aria-label="anchor" href="#cross-fit-vs-cross-validate"></a>
+<h2 id="cross-fitting-and-model-selection">Cross-fitting and model selection<a class="anchor" aria-label="anchor" href="#cross-fitting-and-model-selection"></a>
 </h2>
-<p>Two arguments control different stages of the workflow:</p>
+<p>Use these arguments to control nuisance estimation and model
+selection:</p>
 <ul>
 <li>
 <code>cross_fit</code> in <code><a href="../reference/hte_task.html">hte_task()</a></code> controls nuisance
@@ -111,19 +115,27 @@ estimation.</li>
 <code><a href="../reference/fit_crr.html">fit_crr()</a></code> controls selection across candidate HTE
 learners.</li>
 </ul>
-<p>These are separate decisions. A common analysis cross-fits nuisances
-and only turns on wrapper-level cross-validation when comparing learner
-families.</p>
+<p>Set <code>cross_fit = TRUE</code> to estimate each observation’s
+nuisance values using other folds. Set
+<code>cross_validate = TRUE</code> to compare candidate HTE
+learners.</p>
 </div>
 <div class="section level2">
-<h2 id="what-to-read-next">What to Read Next<a class="anchor" aria-label="anchor" href="#what-to-read-next"></a>
+<h2 id="next-steps">Next steps<a class="anchor" aria-label="anchor" href="#next-steps"></a>
 </h2>
 <ul>
-<li>For CATE method choice, see <a href="cate.html">CATE
-Workflow</a>.</li>
-<li>For relative effects with non-negative outcomes, see <a href="crr.html">CRR Workflow</a>.</li>
-<li>For <code><a href="../reference/grf_cate.html">grf_cate()</a></code> and <code><a href="../reference/grf_crr.html">grf_crr()</a></code>, see <a href="grf.html">Causal Forests with GRF</a>.</li>
-<li>For low-level <code>sl3</code> control, see <a href="advanced-sl3.html">Advanced sl3 Integration</a>.</li>
+<li>
+<a href="cate.html">Treatment effects</a>: choose among DR-, R-, T-,
+and EP-learners.</li>
+<li>
+<a href="crr.html">Risk ratios</a>: estimate relative effects for
+non-negative outcomes.</li>
+<li>
+<a href="grf.html">Causal forests</a>: use <code><a href="../reference/grf_cate.html">grf_cate()</a></code>
+and <code><a href="../reference/grf_crr.html">grf_crr()</a></code>.</li>
+<li>
+<a href="advanced-sl3.html">Using sl3 directly</a>: construct and
+train custom learners.</li>
 </ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -24,6 +24,6 @@ get_autoML()
 
 ## Value
 
-A [`sl3::Stack`](https://tlverse.org/sl3/reference/Stack.html) object
+A [`sl3::Stack`](https://rdrr.io/pkg/sl3/man/Stack.html) object
 containing the available safe subset of the predefined default learner
 library.

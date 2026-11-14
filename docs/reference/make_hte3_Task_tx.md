@@ -37,9 +37,8 @@ make_hte3_Task_tx(
   A named data frame or data.table containing treatment effect
   modifiers, potential confounders, treatment, and outcome. Optionally,
   the dataset can contain weights and subject IDs. See the `data`
-  argument of
-  [`sl3_Task`](https://tlverse.org/sl3/reference/sl3_Task.html) for
-  further options.
+  argument of [`sl3_Task`](https://rdrr.io/pkg/sl3/man/sl3_Task.html)
+  for further options.
 
 - modifiers:
 
@@ -156,7 +155,7 @@ make_hte3_Task_tx(
 - ...:
 
   Additional arguments to pass to the
-  [`sl3_Task`](https://tlverse.org/sl3/reference/sl3_Task.html) and
+  [`sl3_Task`](https://rdrr.io/pkg/sl3/man/sl3_Task.html) and
   `tmle_Task` constructors.
 
 ## Value

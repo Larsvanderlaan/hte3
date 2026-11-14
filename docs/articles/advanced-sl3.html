@@ -5,12 +5,13 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Advanced sl3 Integration • hte3</title>
+<title>Using sl3 directly • hte3</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Advanced sl3 Integration">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
+<meta property="og:title" content="Using sl3 directly">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -29,8 +30,9 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="../index.html">Overview</a></li>
+<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Guides</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -51,7 +53,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>Advanced sl3 Integration</h1>
+      <h1>Using sl3 directly</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/Larsvanderlaan/hte3/blob/HEAD/vignettes/advanced-sl3.Rmd" class="external-link"><code>vignettes/advanced-sl3.Rmd</code></a></small>
@@ -60,16 +62,14 @@
 
     
     
-<p>Read this article if you want the low-level API: explicit task
-construction, manual learner choice, or direct calls to
-<code><a href="../reference/cross_validate_cate.html">cross_validate_cate()</a></code> and
+<p>Construct an <code>hte3_Task</code>, train individual
+<code>sl3</code> learners, and compare them with
+<code><a href="../reference/cross_validate_cate.html">cross_validate_cate()</a></code> or
 <code><a href="../reference/cross_validate_crr.html">cross_validate_crr()</a></code>.</p>
 <div class="section level2">
-<h2 id="build-the-task-explicitly">Build the Task Explicitly<a class="anchor" aria-label="anchor" href="#build-the-task-explicitly"></a>
+<h2 id="create-a-task">Create a task<a class="anchor" aria-label="anchor" href="#create-a-task"></a>
 </h2>
-<p>Use <code><a href="../reference/make_hte3_Task_tx.html">make_hte3_Task_tx()</a></code> when you want to supply the
-nuisance learners yourself or work directly with the lower-level learner
-objects.</p>
+<p>Pass your nuisance learners to <code><a href="../reference/make_hte3_Task_tx.html">make_hte3_Task_tx()</a></code>:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://larsvanderlaan.github.io/hte3/">hte3</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tlverse.org/sl3" class="external-link">sl3</a></span><span class="op">)</span></span>
@@ -82,35 +82,34 @@ objects.</p>
 <span>  confounders <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"W1"</span>, <span class="st">"W2"</span>, <span class="st">"W3"</span><span class="op">)</span>,</span>
 <span>  treatment <span class="op">=</span> <span class="st">"A"</span>,</span>
 <span>  outcome <span class="op">=</span> <span class="st">"Y"</span>,</span>
-<span>  learner_pi <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  learner_mu <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  learner_m <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  learner_pi <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  learner_mu <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  learner_m <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  cross_fit_and_cv <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="train-a-learner-directly">Train a Learner Directly<a class="anchor" aria-label="anchor" href="#train-a-learner-directly"></a>
+<h2 id="train-a-learner">Train a learner<a class="anchor" aria-label="anchor" href="#train-a-learner"></a>
 </h2>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">learner</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/Lrnr_cate_DR.html">Lrnr_cate_DR</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>base_learner <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">learner</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/Lrnr_cate_DR.html">Lrnr_cate_DR</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>base_learner <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">trained</span> <span class="op">&lt;-</span> <span class="va">learner</span><span class="op">$</span><span class="fu">train</span><span class="op">(</span><span class="va">task</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="../reference/predict_hte3.html">predict_hte3</a></span><span class="op">(</span><span class="va">trained</span>, <span class="va">data</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 1.553732 1.553732 1.553732 1.553732 1.553732 1.553732</span></span></code></pre></div>
-<p>This is the right level when you want the exact learner object rather
-than the wrapper returned by <code><a href="../reference/fit_cate.html">fit_cate()</a></code> or
-<code><a href="../reference/fit_crr.html">fit_crr()</a></code>.</p>
+<p><code>trained</code> is an <code>sl3</code> learner object. Use
+<code><a href="../reference/predict_hte3.html">predict_hte3()</a></code> to predict effects on new data.</p>
 </div>
 <div class="section level2">
-<h2 id="low-level-cross-validation">Low-Level Cross-Validation<a class="anchor" aria-label="anchor" href="#low-level-cross-validation"></a>
+<h2 id="compare-learners">Compare learners<a class="anchor" aria-label="anchor" href="#compare-learners"></a>
 </h2>
-<p>You can cross-validate low-level learner portfolios directly.</p>
+<p>Pass a list of learners to compare by cross-validation:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cate_cv</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cross_validate_cate.html">cross_validate_cate</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    <span class="va"><a href="../reference/Lrnr_cate_DR.html">Lrnr_cate_DR</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>base_learner <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>    <span class="va"><a href="../reference/Lrnr_cate_R.html">Lrnr_cate_R</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>base_learner <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>    <span class="va"><a href="../reference/Lrnr_cate_EP.html">Lrnr_cate_EP</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>base_learner <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>, sieve_num_basis <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
+<span>    <span class="va"><a href="../reference/Lrnr_cate_DR.html">Lrnr_cate_DR</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>base_learner <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    <span class="va"><a href="../reference/Lrnr_cate_R.html">Lrnr_cate_R</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>base_learner <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    <span class="va"><a href="../reference/Lrnr_cate_EP.html">Lrnr_cate_EP</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>base_learner <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>, sieve_num_basis <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
 <span>  <span class="op">)</span>,</span>
 <span>  <span class="va">task</span>,</span>
 <span>  cv_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>V <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
@@ -123,7 +122,7 @@ than the wrapper returned by <code><a href="../reference/fit_cate.html">fit_cate
 <span><span class="co">#&gt;                                    1</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">cate_cv</span><span class="op">$</span><span class="va">lrnr_sl</span><span class="op">$</span><span class="fu">predict</span><span class="op">(</span><span class="va">task</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 1.547718 1.547718 1.547718 1.547718 1.547718 1.547718</span></span></code></pre></div>
-<p>The analogous CRR workflow is:</p>
+<p>For conditional risk ratios:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">crr_task</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/make_hte3_Task_tx.html">make_hte3_Task_tx</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">data</span>,</span>
@@ -131,18 +130,18 @@ than the wrapper returned by <code><a href="../reference/fit_cate.html">fit_cate
 <span>  confounders <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"W1"</span>, <span class="st">"W2"</span>, <span class="st">"W3"</span><span class="op">)</span>,</span>
 <span>  treatment <span class="op">=</span> <span class="st">"A"</span>,</span>
 <span>  outcome <span class="op">=</span> <span class="st">"Y_binary"</span>,</span>
-<span>  learner_pi <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  learner_mu <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  learner_m <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  learner_pi <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  learner_mu <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  learner_m <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  cross_fit_and_cv <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">crr_cv</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/warning.html" class="external-link">suppressWarnings</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="../reference/cross_validate_crr.html">cross_validate_crr</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>      <span class="va"><a href="../reference/Lrnr_crr_IPW.html">Lrnr_crr_IPW</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>base_learner <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>      <span class="va"><a href="../reference/Lrnr_crr_T.html">Lrnr_crr_T</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>base_learner <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>      <span class="va"><a href="../reference/Lrnr_crr_EP.html">Lrnr_crr_EP</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>base_learner <span class="op">=</span> <span class="va"><a href="https://tlverse.org/sl3/reference/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>, sieve_num_basis <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
+<span>      <span class="va"><a href="../reference/Lrnr_crr_IPW.html">Lrnr_crr_IPW</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>base_learner <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>      <span class="va"><a href="../reference/Lrnr_crr_T.html">Lrnr_crr_T</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>base_learner <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>      <span class="va"><a href="../reference/Lrnr_crr_EP.html">Lrnr_crr_EP</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>base_learner <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/sl3/man/Lrnr_mean.html" class="external-link">Lrnr_mean</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>, sieve_num_basis <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
 <span>    <span class="op">)</span>,</span>
 <span>    <span class="va">crr_task</span>,</span>
 <span>    cv_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>V <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
@@ -158,7 +157,7 @@ than the wrapper returned by <code><a href="../reference/fit_cate.html">fit_cate
 <span><span class="co">#&gt; [1] 0.1634243 0.1634243 0.1634243 0.1634243 0.1634243 0.1634243</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="important-constraints">Important Constraints<a class="anchor" aria-label="anchor" href="#important-constraints"></a>
+<h2 id="targets-and-treatment-types">Targets and treatment types<a class="anchor" aria-label="anchor" href="#targets-and-treatment-types"></a>
 </h2>
 <ul>
 <li>
@@ -170,12 +169,11 @@ target is <code>E[Y(1) - Y(0) | V] = E[tau(W) | V]</code>.</li>
 <li>In that reduced-modifier setting, the current low-level R-learner
 targets an overlap-weighted projection rather than the unweighted
 <code>V</code>-conditional CATE.</li>
-<li>For continuous-treatment CATE, the low-level
-<code>Lrnr_cate_R</code> path is the one currently implemented.</li>
+<li>For continuous-treatment CATE, use <code>Lrnr_cate_R</code>.</li>
 </ul>
-<p>For EP-specific sieve construction and tuning, see <a href="ep-learner.html">EP-Learner Sieve Tuning</a>. If you are building
-a new learner, see <a href="extending-hte3.html">Extending hte3 with
-Custom Learners</a>.</p>
+<p>For EP-specific sieve construction and tuning, see <a href="ep-learner.html">EP-learner</a>. If you are building a new
+learner, see <a href="extending-hte3.html">Extending hte3 with Custom
+Learners</a>.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

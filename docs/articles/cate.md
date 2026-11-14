@@ -1,11 +1,12 @@
-# CATE Workflow
+# Treatment effects
 
-Read this article if you are fitting conditional average treatment
-effects with
+Use
 [`hte_task()`](https://larsvanderlaan.github.io/hte3/reference/hte_task.md)
 and
 [`fit_cate()`](https://larsvanderlaan.github.io/hte3/reference/fit_cate.md)
-and need to choose among the supported CATE learner families.
+to estimate conditional average treatment effects. Choose the covariates
+to adjust for with `confounders` and the covariates to condition the
+effect on with `modifiers`.
 
 ``` r
 library(hte3)
@@ -45,43 +46,45 @@ summary(dr_model)
 #>   Treatment variable: A
 ```
 
-## Choose the Wrapper Method
+## Choose a method
 
 [`fit_cate()`](https://larsvanderlaan.github.io/hte3/reference/fit_cate.md)
 supports `method = c("dr", "r", "t", "ep")`.
 
-- `method = "dr"` is the main difference-scale default when treatment is
-  binary or categorical and you want a target-aligned CATE fit that uses
-  both propensity and outcome nuisance estimates.
-- `method = "r"` is the residual-on-residual path and the current
-  continuous-treatment option. In reduced-modifier settings, it targets
-  an overlap-weighted projection rather than the unweighted
-  `E[Y(1) - Y(0) | V]`.
-- `method = "t"` is the baseline that fits outcome models by treatment
-  arm and subtracts them.
-- `method = "ep"` is the sieve-based plug-in path. Use it when you want
-  the EP family; see [EP-Learner Sieve
-  Tuning](https://larsvanderlaan.github.io/hte3/articles/ep-learner.md)
-  for basis-size tuning and EP-DR versus EP-R details.
+- `method = "dr"` is the default for binary or categorical treatments.
+  It uses estimated treatment probabilities and outcome regressions to
+  construct a doubly robust pseudo-outcome, then regresses it on the
+  modifiers.
+- `method = "r"` regresses outcome residuals on treatment residuals and
+  also supports continuous treatments. When the modifiers are a subset
+  of the adjustment covariates, it targets an overlap-weighted
+  projection rather than the unweighted `E[Y(1) - Y(0) | V]`.
+- `method = "t"` fits outcome models by treatment arm, takes their
+  difference, and regresses that difference on the modifiers.
+- `method = "ep"` updates the initial outcome estimates using a sieve
+  basis before fitting the effect regression. See
+  [EP-learner](https://larsvanderlaan.github.io/hte3/articles/ep-learner.md)
+  for basis-size selection and the differences between EP-DR and EP-R.
 
-## Reduced-Modifier Targets
+## Conditioning on fewer covariates
 
 When `modifiers = V` and `confounders = W` with `V` a strict subset of
 `W`, the target of interest is `E[Y(1) - Y(0) | V] = E[tau(W) | V]`.
 
 In the supported binary/categorical-treatment setting:
 
-- DR, EP, and the default two-stage T-learner align with that target
+- DR, EP-DR, and the default two-stage T-learner estimate this target
 - the current R-learner instead targets an overlap-weighted projection
   onto functions of `V`
 
-This is why `fit_cate(..., method = "r")` warns in reduced-modifier
-settings.
+EP-R generally also targets an overlap-weighted projection in this
+setting. Both R and EP-R issue a warning when the modifiers are a strict
+subset of the adjustment covariates.
 
-## Compare CATE Learner Families
+## Compare methods
 
-Wrapper-level CATE cross-validation is controlled by `cross_validate`
-and `cv_control`.
+Set `cross_validate = TRUE` to compare methods and use `cv_control` to
+set the number of validation folds.
 
 ``` r
 cv_model <- fit_cate(
@@ -107,15 +110,14 @@ head(predict(cv_model, data))
 ```
 
 `summary(cv_model)` reports the selected learner. If the selected
-learner is an EP candidate, the summary also reports the selected basis
-size and any EP selection metadata.
+learner is an EP candidate, the summary also reports its targeting
+style, basis size, and the grid of basis sizes compared.
 
-## Important Constraints
+## Treatment types and tuning
 
 - Continuous-treatment CATE currently supports `method = "r"` only,
   using the partially linear effect model `A * tau(X)`.
 - Use `sieve_num_basis` when you want one fixed EP basis size and
-  `sieve_basis_grid` when you want wrapper-level EP basis-size
-  selection.
-- For direct control over candidate learner objects, see [Advanced sl3
-  Integration](https://larsvanderlaan.github.io/hte3/articles/advanced-sl3.md).
+  `sieve_basis_grid` to compare EP basis sizes by cross-validation.
+- For direct control over candidate learner objects, see [Using sl3
+  directly](https://larsvanderlaan.github.io/hte3/articles/advanced-sl3.md).

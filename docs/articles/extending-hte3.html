@@ -10,7 +10,8 @@
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Extending hte3 with Custom Learners">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
+<meta property="og:title" content="Extending hte3 with Custom Learners">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -29,8 +30,9 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="../index.html">Overview</a></li>
+<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Guides</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -63,7 +65,7 @@
 <p>This guide is for researchers who want to prototype a new
 <code>hte3</code> learner and for contributors who want to add a new
 learner to the package itself.</p>
-<p>The key design idea is that <code>hte3</code> separates:</p>
+<p>An <code>hte3</code> learner uses three components:</p>
 <ul>
 <li>data and nuisance estimates, stored in an
 <code>hte3_Task</code>
@@ -73,7 +75,7 @@ learner to the package itself.</p>
 <code>cross_validate_*()</code> or the high-level wrappers</li>
 </ul>
 <div class="section level2">
-<h2 id="framework-overview">Framework Overview<a class="anchor" aria-label="anchor" href="#framework-overview"></a>
+<h2 id="the-base-class">The base class<a class="anchor" aria-label="anchor" href="#the-base-class"></a>
 </h2>
 <p>Most custom learners in <code>hte3</code> inherit from the internal
 base class <code>hte3:::Lrnr_hte</code>. That class already handles:</p>
@@ -102,9 +104,9 @@ for the downstream base learner.</li>
 </ol>
 </div>
 <div class="section level2">
-<h2 id="the-data-flow">The Data Flow<a class="anchor" aria-label="anchor" href="#the-data-flow"></a>
+<h2 id="training-and-prediction">Training and prediction<a class="anchor" aria-label="anchor" href="#training-and-prediction"></a>
 </h2>
-<p>At fit time, the typical flow is:</p>
+<p>To fit a learner:</p>
 <ol style="list-style-type: decimal">
 <li>Build an <code>hte3_Task</code> with modifiers <code>V</code>,
 confounders <code>W</code>, treatment <code>A</code>, outcome
@@ -114,21 +116,21 @@ you need from the task.</li>
 <li>Construct a pseudo-outcome and optional pseudo-weights.</li>
 <li>Let <code>Lrnr_hte</code> build the derived <code>sl3_Task</code>
 and train the supplied <code>base_learner</code>.</li>
-<li>Predict on the modifier set <code>V</code> through the inherited
-prediction path.</li>
+<li>Use the inherited prediction method to predict on the modifier set
+<code>V</code>.</li>
 </ol>
 <p>When you are adding a learner to the package, try to keep the
 pseudo-data step as simple and testable as possible. Small helper
 functions are easier to test than one large learner method.</p>
 </div>
 <div class="section level2">
-<h2 id="minimal-contract">Minimal Contract<a class="anchor" aria-label="anchor" href="#minimal-contract"></a>
+<h2 id="learner-requirements">Learner requirements<a class="anchor" aria-label="anchor" href="#learner-requirements"></a>
 </h2>
 <p>Use this checklist when you create a new learner:</p>
 <ul>
 <li>The learner inherits from <code>hte3:::Lrnr_hte</code>.</li>
 <li>
-<code>initialize()</code> stores every tuning knob in
+<code>initialize()</code> stores every tuning parameter in
 <code>params</code>.</li>
 <li>
 <code>get_pseudo_data()</code> returns a list with
@@ -142,7 +144,7 @@ target.</li>
 </ul>
 </div>
 <div class="section level2">
-<h2 id="research-prototype-skeleton">Research Prototype Skeleton<a class="anchor" aria-label="anchor" href="#research-prototype-skeleton"></a>
+<h2 id="example-learner">Example learner<a class="anchor" aria-label="anchor" href="#example-learner"></a>
 </h2>
 <p>The example below is intentionally minimal and is shown with
 <code>eval = FALSE</code>. It is meant as a template for a research
@@ -152,7 +154,7 @@ prototype, not as a recommended final estimator.</p>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://larsvanderlaan.github.io/hte3/">hte3</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tlverse.org/sl3" class="external-link">sl3</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">Lrnr_cate_prototype</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://r6.r-lib.org/reference/R6Class.html" class="external-link">R6Class</a></span><span class="op">(</span></span>
+<span><span class="va">Lrnr_cate_prototype</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/pkg/R6/man/R6Class.html" class="external-link">R6Class</a></span><span class="op">(</span></span>
 <span>  classname <span class="op">=</span> <span class="st">"Lrnr_cate_prototype"</span>,</span>
 <span>  inherit <span class="op">=</span> <span class="fu">hte3</span><span class="fu">:::</span><span class="va"><a href="../reference/Lrnr_hte.html">Lrnr_hte</a></span>,</span>
 <span>  portable <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -189,15 +191,6 @@ prototype, not as a recommended final estimator.</p>
 <span>    .properties <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cate"</span>, <span class="st">"prototype"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>That is the minimum viable pattern:</p>
-<ul>
-<li>parameters live in <code>self$params</code>
-</li>
-<li>the nuisance-aware pseudo-outcome is computed inside
-<code>get_pseudo_data()</code>
-</li>
-<li>the base class takes care of task construction and prediction</li>
-</ul>
 </div>
 <div class="section level2">
 <h2 id="choosing-the-right-family">Choosing the Right Family<a class="anchor" aria-label="anchor" href="#choosing-the-right-family"></a>
@@ -220,8 +213,8 @@ observed outcome scale.</p>
 <div class="section level2">
 <h2 id="when-to-expose-a-new-learner-in-the-package">When to Expose a New Learner in the Package<a class="anchor" aria-label="anchor" href="#when-to-expose-a-new-learner-in-the-package"></a>
 </h2>
-<p>Before adding a research prototype to the package API, lock down
-these decisions:</p>
+<p>Before adding a research prototype to the package API, settle these
+decisions:</p>
 <ul>
 <li>What estimand does it target?</li>
 <li>Which treatment types does it support?</li>
@@ -234,7 +227,7 @@ these decisions:</p>
 research-only prototype first.</p>
 </div>
 <div class="section level2">
-<h2 id="promotion-checklist">Promotion Checklist<a class="anchor" aria-label="anchor" href="#promotion-checklist"></a>
+<h2 id="add-a-learner-to-the-package">Add a learner to the package<a class="anchor" aria-label="anchor" href="#add-a-learner-to-the-package"></a>
 </h2>
 <p>When a learner is ready to become part of <code>hte3</code>, do all
 of the following:</p>
@@ -243,9 +236,8 @@ of the following:</p>
 <li>Add tests for fit/predict behavior, treatment validation, and any
 special numerical guards.</li>
 <li>Add at least one end-to-end wrapper or cross-validation test if the
-learner participates in a public workflow.</li>
-<li>Document the learner in the relevant workflow vignette and on the
-website.</li>
+learner is available through the public API.</li>
+<li>Document the learner in the relevant guide and on the website.</li>
 <li>Decide whether it belongs in the high-level wrapper API or only in
 the advanced interface.</li>
 <li>Run the release checks described in the contribution guide.</li>
@@ -255,14 +247,15 @@ the advanced interface.</li>
 <h2 id="related-guides">Related Guides<a class="anchor" aria-label="anchor" href="#related-guides"></a>
 </h2>
 <ul>
-<li>The <code>advanced-sl3</code> vignette shows how low-level learner
-portfolios plug into <code><a href="../reference/cross_validate_cate.html">cross_validate_cate()</a></code> and
-<code><a href="../reference/cross_validate_crr.html">cross_validate_crr()</a></code>.</li>
+<li>
+<a href="advanced-sl3.html">Using sl3 directly</a> shows how to
+compare custom sets of learners with <code><a href="../reference/cross_validate_cate.html">cross_validate_cate()</a></code>
+and <code><a href="../reference/cross_validate_crr.html">cross_validate_crr()</a></code>.</li>
 <li>The <code>ep-learner</code> vignette shows how a more complex
 learner uses the <code>Sieve</code>-based basis construction inside
 <code>hte3</code>.</li>
-<li>The <code>contributing</code> vignette describes the repo workflow,
-site sync commands, and release checks for package contributors.</li>
+<li>The <code>contributing</code> vignette describes development, site
+generation, and release checks for package contributors.</li>
 </ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

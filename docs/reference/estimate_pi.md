@@ -58,4 +58,4 @@ estimate_pi(
 - ...:
 
   Additional arguments forwarded to
-  [`sl3_Task`](https://tlverse.org/sl3/reference/sl3_Task.html).
+  [`sl3_Task`](https://rdrr.io/pkg/sl3/man/sl3_Task.html).

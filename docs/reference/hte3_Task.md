@@ -17,19 +17,19 @@ Class for Storing Data, NPSEM, and Nuisance Function Estimators for hte3
 Learners
 
 This class inherits from
-[`sl3_Task`](https://tlverse.org/sl3/reference/sl3_Task.html) and
-[`tmle3_Task`](http://tlverse.org/tmle3/reference/tmle3_Task.md). In
+[`sl3_Task`](https://rdrr.io/pkg/sl3/man/sl3_Task.html) and
+[`tmle3_Task`](https://rdrr.io/pkg/tmle3/man/tmle3_Task.html). In
 addition to all the methods supported by
-[`sl3_Task`](https://tlverse.org/sl3/reference/sl3_Task.html) and
-[`tmle3_Task`](http://tlverse.org/tmle3/reference/tmle3_Task.md), it
+[`sl3_Task`](https://rdrr.io/pkg/sl3/man/sl3_Task.html) and
+[`tmle3_Task`](https://rdrr.io/pkg/tmle3/man/tmle3_Task.html), it
 supports the following functionalities specific to the heterogeneous
 treatment effect estimation (hte3) framework.
 
 ## Super classes
 
-[`sl3::sl3_Task`](https://tlverse.org/sl3/reference/sl3_Task.html) -\>
-[`tmle3::tmle3_Task`](http://tlverse.org/tmle3/reference/tmle3_Task.md)
--\> `hte3_Task`
+[`sl3::sl3_Task`](https://rdrr.io/pkg/sl3/man/sl3_Task.html) -\>
+[`tmle3::tmle3_Task`](https://rdrr.io/pkg/tmle3/man/tmle3_Task.html) -\>
+`hte3_Task`
 
 ## Methods
 
@@ -49,21 +49,21 @@ treatment effect estimation (hte3) framework.
 
 Inherited methods
 
-- [`sl3::sl3_Task$add_columns()`](https://tlverse.org/sl3/reference/sl3_Task.html#method-add_columns)
-- [`sl3::sl3_Task$add_interactions()`](https://tlverse.org/sl3/reference/sl3_Task.html#method-add_interactions)
-- [`sl3::sl3_Task$get_data()`](https://tlverse.org/sl3/reference/sl3_Task.html#method-get_data)
-- [`sl3::sl3_Task$get_folds()`](https://tlverse.org/sl3/reference/sl3_Task.html#method-get_folds)
-- [`sl3::sl3_Task$get_node()`](https://tlverse.org/sl3/reference/sl3_Task.html#method-get_node)
-- [`sl3::sl3_Task$has_node()`](https://tlverse.org/sl3/reference/sl3_Task.html#method-has_node)
-- [`sl3::sl3_Task$offset_transformed()`](https://tlverse.org/sl3/reference/sl3_Task.html#method-offset_transformed)
-- [`sl3::sl3_Task$revere_fold_task()`](https://tlverse.org/sl3/reference/sl3_Task.html#method-revere_fold_task)
-- [`tmle3::tmle3_Task$generate_counterfactual_task()`](http://tlverse.org/tmle3/reference/tmle3_Task.html#method-generate_counterfactual_task)
-- [`tmle3::tmle3_Task$get_node_bounds()`](http://tlverse.org/tmle3/reference/tmle3_Task.html#method-get_node_bounds)
-- [`tmle3::tmle3_Task$get_regression_task()`](http://tlverse.org/tmle3/reference/tmle3_Task.html#method-get_regression_task)
-- [`tmle3::tmle3_Task$get_tmle_node()`](http://tlverse.org/tmle3/reference/tmle3_Task.html#method-get_tmle_node)
-- [`tmle3::tmle3_Task$print()`](http://tlverse.org/tmle3/reference/tmle3_Task.html#method-print)
-- [`tmle3::tmle3_Task$scale()`](http://tlverse.org/tmle3/reference/tmle3_Task.html#method-scale)
-- [`tmle3::tmle3_Task$unscale()`](http://tlverse.org/tmle3/reference/tmle3_Task.html#method-unscale)
+- [`sl3::sl3_Task$add_columns()`](https://rdrr.io/pkg/sl3/man/sl3_Task.html#method-add_columns)
+- [`sl3::sl3_Task$add_interactions()`](https://rdrr.io/pkg/sl3/man/sl3_Task.html#method-add_interactions)
+- [`sl3::sl3_Task$get_data()`](https://rdrr.io/pkg/sl3/man/sl3_Task.html#method-get_data)
+- [`sl3::sl3_Task$get_folds()`](https://rdrr.io/pkg/sl3/man/sl3_Task.html#method-get_folds)
+- [`sl3::sl3_Task$get_node()`](https://rdrr.io/pkg/sl3/man/sl3_Task.html#method-get_node)
+- [`sl3::sl3_Task$has_node()`](https://rdrr.io/pkg/sl3/man/sl3_Task.html#method-has_node)
+- [`sl3::sl3_Task$offset_transformed()`](https://rdrr.io/pkg/sl3/man/sl3_Task.html#method-offset_transformed)
+- [`sl3::sl3_Task$revere_fold_task()`](https://rdrr.io/pkg/sl3/man/sl3_Task.html#method-revere_fold_task)
+- [`tmle3::tmle3_Task$generate_counterfactual_task()`](https://rdrr.io/pkg/tmle3/man/tmle3_Task.html#method-generate_counterfactual_task)
+- [`tmle3::tmle3_Task$get_node_bounds()`](https://rdrr.io/pkg/tmle3/man/tmle3_Task.html#method-get_node_bounds)
+- [`tmle3::tmle3_Task$get_regression_task()`](https://rdrr.io/pkg/tmle3/man/tmle3_Task.html#method-get_regression_task)
+- [`tmle3::tmle3_Task$get_tmle_node()`](https://rdrr.io/pkg/tmle3/man/tmle3_Task.html#method-get_tmle_node)
+- [`tmle3::tmle3_Task$print()`](https://rdrr.io/pkg/tmle3/man/tmle3_Task.html#method-print)
+- [`tmle3::tmle3_Task$scale()`](https://rdrr.io/pkg/tmle3/man/tmle3_Task.html#method-scale)
+- [`tmle3::tmle3_Task$unscale()`](https://rdrr.io/pkg/tmle3/man/tmle3_Task.html#method-unscale)
 
 ------------------------------------------------------------------------
 
@@ -80,20 +80,20 @@ Inherited methods
   A named data frame or data.table containing treatment effect
   modifiers, potential confounders, treatment, outcome, and optionally
   weights and subject IDs. See the
-  [`sl3_Task`](https://tlverse.org/sl3/reference/sl3_Task.html)
-  documentation for further options.
+  [`sl3_Task`](https://rdrr.io/pkg/sl3/man/sl3_Task.html) documentation
+  for further options.
 
 - `npsem`:
 
   A list containing
-  [`tmle3_Node`](http://tlverse.org/tmle3/reference/tmle3_Node.md)
-  objects containing the non-parametric structural equation model
-  (NPSEM) specifying the relationship between variables in the treatment
-  effect estimation framework.
+  [`tmle3_Node`](https://rdrr.io/pkg/tmle3/man/tmle3_Node.html) objects
+  containing the non-parametric structural equation model (NPSEM)
+  specifying the relationship between variables in the treatment effect
+  estimation framework.
 
 - `likelihood`:
 
-  An [`Likelihood`](http://tlverse.org/tmle3/reference/Likelihood.md)
+  An [`Likelihood`](https://rdrr.io/pkg/tmle3/man/Likelihood.html)
   object specifying the relevant likelihood/nuisance estimators for the
   meta-learner. used for estimating the parameters of the NPSEM.
 
