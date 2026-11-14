@@ -36,7 +36,8 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.1" id="hte3-011">hte3 0.1.1<a class="anchor" aria-label="anchor" href="#hte3-011"></a></h2>
-<ul><li>Hardened the default <code><a href="../reference/get_autoML.html">get_autoML()</a></code> stack so the high-level API uses the available safe subset of learners and warns once when optional runtime packages are missing.</li>
+<ul><li>Removed internal fold-prediction and pseudo-outcome type warnings, and avoided unused <code>family</code> arguments for forest and earth learners. Cross-fitted predictions and warnings about model fitting or target changes are unchanged.</li>
+<li>Hardened the default <code><a href="../reference/get_autoML.html">get_autoML()</a></code> stack so the high-level API uses the available safe subset of learners and warns once when optional runtime packages are missing.</li>
 <li>Finished the two-stage T-learner update for reduced-modifier settings so first-stage regressions use the confounder set <code>W</code> and the default second stage projects onto the modifier set <code>V</code>.</li>
 <li>Tightened task validation for folds, weights, treatment values, and user-supplied nuisance estimates.</li>
 <li>Added release checks for the custom website, vignette inventory, and package/docs sync, while excluding deployed site assets from package builds.</li>

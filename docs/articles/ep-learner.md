@@ -10,7 +10,7 @@ EP-learner paper.
 library(hte3)
 library(sl3)
 
-data <- hte3_example_data(n = 120, seed = 4)
+data <- hte3_example_data(n = 400, seed = 4)
 
 task <- make_hte3_Task_tx(
   data = data,
@@ -150,10 +150,10 @@ summary(ep_cv)
 #>   Engine: sl3
 #>   Method: ep
 #>   Cross-validated: yes
-#>   Rows: 120
-#>   Selected candidate: ep[style=dr, basis=8, interaction=3]
+#>   Rows: 400
+#>   Selected candidate: ep[style=dr, basis=2, interaction=3]
 #>   Selected method: ep
-#>   Selected EP basis size: 8
+#>   Selected EP basis size: 2
 #>   EP targeting style: dr
 #>   EP basis grid: 2, 4, 6, 8
 #>   Modifiers: W1, W2
@@ -198,9 +198,9 @@ summary(ep_style_cv)
 #>   Engine: sl3
 #>   Method: ep
 #>   Cross-validated: yes
-#>   Rows: 120
-#>   Selected candidate: candidate_2
-#>   Selected method: candidate_2
+#>   Rows: 400
+#>   Selected candidate: candidate_4
+#>   Selected method: candidate_4
 #>   Modifiers: W1, W2
 #>   Treatment variable: A
 ```
@@ -256,16 +256,9 @@ ep_fit <- Lrnr_cate_EP$new(
   sieve_num_basis = 4,
   sieve_interaction_order = 2
 )$train(task)
-#> Warning in learner$predict_fold(learner_task, fold_number):
-#> Lrnr_independent_binomial is not cv-aware: self$predict_fold reverts to
-#> self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number): strat_A_Lrnr_mean
-#> is not cv-aware: self$predict_fold reverts to self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number): Lrnr_mean is not
-#> cv-aware: self$predict_fold reverts to self$predict
 
 head(predict_hte3(ep_fit, data))
-#> [1] 1.429171 1.429171 1.429171 1.429171 1.429171 1.429171
+#> [1] 1.085336 1.085336 1.085336 1.085336 1.085336 1.085336
 ```
 
 This is the corresponding EP-R fit with the dimension-reduced
@@ -309,54 +302,12 @@ paper_cate_cv <- cross_validate_cate(
   task,
   cv_control = list(V = 5)
 )
-#> Warning in learner$predict_fold(learner_task, fold_number):
-#> Lrnr_independent_binomial is not cv-aware: self$predict_fold reverts to
-#> self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number): strat_A_Lrnr_mean
-#> is not cv-aware: self$predict_fold reverts to self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number): Lrnr_mean is not
-#> cv-aware: self$predict_fold reverts to self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number):
-#> Lrnr_independent_binomial is not cv-aware: self$predict_fold reverts to
-#> self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number): strat_A_Lrnr_mean
-#> is not cv-aware: self$predict_fold reverts to self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number): Lrnr_mean is not
-#> cv-aware: self$predict_fold reverts to self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number):
-#> Lrnr_independent_binomial is not cv-aware: self$predict_fold reverts to
-#> self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number): strat_A_Lrnr_mean
-#> is not cv-aware: self$predict_fold reverts to self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number): Lrnr_mean is not
-#> cv-aware: self$predict_fold reverts to self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number):
-#> Lrnr_independent_binomial is not cv-aware: self$predict_fold reverts to
-#> self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number): strat_A_Lrnr_mean
-#> is not cv-aware: self$predict_fold reverts to self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number): Lrnr_mean is not
-#> cv-aware: self$predict_fold reverts to self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number):
-#> Lrnr_independent_binomial is not cv-aware: self$predict_fold reverts to
-#> self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number): strat_A_Lrnr_mean
-#> is not cv-aware: self$predict_fold reverts to self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number): Lrnr_mean is not
-#> cv-aware: self$predict_fold reverts to self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number):
-#> Lrnr_independent_binomial is not cv-aware: self$predict_fold reverts to
-#> self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number): strat_A_Lrnr_mean
-#> is not cv-aware: self$predict_fold reverts to self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number): Lrnr_mean is not
-#> cv-aware: self$predict_fold reverts to self$predict
 
 paper_cate_basis_grid
 #> [1]  6  8 10 12 14 16
 paper_cate_cv$coefficients
 #>  ep[style=dr, basis=6, interaction=3]  ep[style=dr, basis=8, interaction=3] 
-#>                                     0                                     1 
+#>                                     1                                     0 
 #> ep[style=dr, basis=10, interaction=3] ep[style=dr, basis=12, interaction=3] 
 #>                                     0                                     0 
 #> ep[style=dr, basis=14, interaction=3] ep[style=dr, basis=16, interaction=3] 
@@ -418,78 +369,16 @@ paper_crr_cv <- cross_validate_crr(
   crr_task,
   cv_control = list(V = 5)
 )
-#> Warning in learner$predict_fold(learner_task, fold_number):
-#> Lrnr_independent_binomial is not cv-aware: self$predict_fold reverts to
-#> self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number): strat_A_Lrnr_mean
-#> is not cv-aware: self$predict_fold reverts to self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number): Lrnr_mean is not
-#> cv-aware: self$predict_fold reverts to self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number):
-#> Lrnr_independent_binomial is not cv-aware: self$predict_fold reverts to
-#> self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number): strat_A_Lrnr_mean
-#> is not cv-aware: self$predict_fold reverts to self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number): Lrnr_mean is not
-#> cv-aware: self$predict_fold reverts to self$predict
-#> Warning: from glmnet C++ code (error code -1); Convergence for 1th lambda value
-#> not reached after maxit=100000 iterations; solutions for larger lambdas
-#> returned
-#> Warning in getcoef(fit, nvars, nx, vnames): an empty model has been returned;
-#> probably a convergence issue
-#> Warning in learner$predict_fold(learner_task, fold_number):
-#> Lrnr_independent_binomial is not cv-aware: self$predict_fold reverts to
-#> self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number): strat_A_Lrnr_mean
-#> is not cv-aware: self$predict_fold reverts to self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number): Lrnr_mean is not
-#> cv-aware: self$predict_fold reverts to self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number):
-#> Lrnr_independent_binomial is not cv-aware: self$predict_fold reverts to
-#> self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number): strat_A_Lrnr_mean
-#> is not cv-aware: self$predict_fold reverts to self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number): Lrnr_mean is not
-#> cv-aware: self$predict_fold reverts to self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number):
-#> Lrnr_independent_binomial is not cv-aware: self$predict_fold reverts to
-#> self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number): strat_A_Lrnr_mean
-#> is not cv-aware: self$predict_fold reverts to self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number): Lrnr_mean is not
-#> cv-aware: self$predict_fold reverts to self$predict
-#> Warning: from glmnet C++ code (error code -1); Convergence for 1th lambda value
-#> not reached after maxit=100000 iterations; solutions for larger lambdas
-#> returned
-#> Warning in getcoef(fit, nvars, nx, vnames): an empty model has been returned;
-#> probably a convergence issue
-#> Warning in learner$predict_fold(learner_task, fold_number):
-#> Lrnr_independent_binomial is not cv-aware: self$predict_fold reverts to
-#> self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number): strat_A_Lrnr_mean
-#> is not cv-aware: self$predict_fold reverts to self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number): Lrnr_mean is not
-#> cv-aware: self$predict_fold reverts to self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number):
-#> Lrnr_independent_binomial is not cv-aware: self$predict_fold reverts to
-#> self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number): strat_A_Lrnr_mean
-#> is not cv-aware: self$predict_fold reverts to self$predict
-#> Warning in learner$predict_fold(learner_task, fold_number): Lrnr_mean is not
-#> cv-aware: self$predict_fold reverts to self$predict
-#> Warning in initialize(...): The supplied outcome_type (continuous) does not
-#> correspond to the detected type (categorical). Ensure outcome_type is specified
-#> appropriately.
 
 paper_crr_basis_grid
 #> [1]  9 12 15 18 21 24
 paper_crr_cv$coefficients
 #>  ep[basis=9, interaction=3] ep[basis=12, interaction=3] 
-#>                           0                           0 
+#>                           0                           1 
 #> ep[basis=15, interaction=3] ep[basis=18, interaction=3] 
 #>                           0                           0 
 #> ep[basis=21, interaction=3] ep[basis=24, interaction=3] 
-#>                           0                           1
+#>                           0                           0
 ```
 
 ## Notes
