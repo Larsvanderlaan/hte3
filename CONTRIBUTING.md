@@ -2,18 +2,11 @@
 
 Thanks for contributing to `hte3`.
 
-The repo has two documentation tracks:
+See the [contributing guide](https://larsvanderlaan.github.io/hte3/articles/contributing.html) for setup, tests,
+documentation, and release checks. To add a custom learner, see
+[Extending hte3](https://larsvanderlaan.github.io/hte3/articles/extending-hte3.html).
 
-- Standard contributor workflow: setup, tests, docs generation, and release checks
-- Learner extension workflow: how to prototype or package a custom `hte3`
-  learner
-
-Start with these guides:
-
-- [Contributing vignette](vignettes/contributing.Rmd)
-- [Extending hte3 vignette](vignettes/extending-hte3.Rmd)
-
-## Local workflow
+## Local checks
 
 Most changes should update code, tests, and docs together. The usual local
 loop is:
@@ -35,7 +28,7 @@ R CMD build .
 R CMD check --no-manual hte3_<version>.tar.gz
 ```
 
-Use [dev/release-checklist.md](dev/release-checklist.md) as the source of
+Use [dev/release-checklist.md](https://github.com/Larsvanderlaan/hte3/blob/main/dev/release-checklist.md) as the source of
 truth for the full release sequence.
 
 ## Website note
@@ -57,9 +50,9 @@ point.
 
 ## Learner contributions
 
-If you are adding a new `Lrnr_*` class or a new public workflow, also update:
+If you are adding a new `Lrnr_*` class or a public fitting function, also update:
 
 - tests for fit/predict and validation behavior
-- the relevant workflow vignette
+- the relevant guide
 - `README.md`
 - `_pkgdown.yml` when article navigation changes

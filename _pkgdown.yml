@@ -2,13 +2,31 @@ url: https://larsvanderlaan.github.io/hte3/
 
 template:
   bootstrap: 5
+  bslib:
+    bg: "#f5f2e9"
+    fg: "#263b3e"
+    primary: "#39776c"
+    code-bg: "#edf0e9"
+    border-color: "#dcded4"
 
 home:
   title: hte3
-  description: R workflows for conditional average treatment effects, conditional risk ratios, and GRF-backed causal forests.
+  description: Estimate conditional average treatment effects and risk ratios in R with DR-, R-, T-, and EP-learners.
+
+navbar:
+  structure:
+    left: [intro, articles, reference, news]
+    right: [search, github]
+  components:
+    intro:
+      text: Overview
+      href: index.html
+    articles:
+      text: Guides
+      href: articles/index.html
 
 reference:
-  - title: Production API
+  - title: Fit and predict
     contents:
       - hte_task
       - fit_cate
@@ -17,7 +35,7 @@ reference:
       - grf_crr
       - predict.hte3_model
       - hte3_example_data
-  - title: Advanced API
+  - title: Tasks and learner classes
     contents:
       - hte3_Task
       - make_hte3_Task_tx
@@ -39,7 +57,7 @@ reference:
       - truncate_propensity
 
 articles:
-  - title: Start Here
+  - title: Get started
     contents:
       - quickstart
       - cate

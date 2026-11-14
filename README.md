@@ -1,10 +1,9 @@
 # hte3
 
-`hte3` provides R workflows for estimating conditional average treatment
-effects (CATE) and conditional risk ratios (CRR). Use the high-level wrappers
-for standard analyses, the GRF wrappers for forest-based fits, and the
-lower-level `sl3` interface when you need direct control over nuisance
-learners or candidate HTE models.
+`hte3` estimates conditional average treatment effects (CATE) and conditional
+risk ratios (CRR) in R. Fit DR-, R-, T-, and efficient plug-in (EP) learners,
+compare models by cross-validation, and predict effects for new observations.
+Use learners from `sl3` or fit forests with the optional `grf` package.
 
 ## Installation
 
@@ -16,13 +15,16 @@ if (!requireNamespace("remotes", quietly = TRUE)) {
 remotes::install_github("Larsvanderlaan/hte3", dependencies = TRUE)
 ```
 
-Install `grf` separately if you want the causal-forest wrappers:
+To use `grf_cate()` or `grf_crr()`, also install `grf`:
 
 ```r
 install.packages("grf")
 ```
 
 ## Quickstart
+
+Create a task with your data and covariates, fit a model, and predict treatment
+effects. This example uses simulated data and simple mean learners.
 
 ```r
 library(hte3)
@@ -54,42 +56,22 @@ head(pred)
 summary(fit)
 ```
 
-## Choose Your Workflow
+## Guides
 
-### High-level wrappers
+| Guide | What it covers |
+| --- | --- |
+| [Quickstart](articles/quickstart.html) | Fit and predict with `hte_task()` and `fit_cate()`. |
+| [Treatment effects](articles/cate.html) | Choose among DR-, R-, T-, and EP-learners for conditional mean differences. |
+| [Risk ratios](articles/crr.html) | Estimate conditional risk ratios with `fit_crr()`. |
+| [Causal forests](articles/grf.html) | Fit models with `grf_cate()` and `grf_crr()`, with optional nuisance estimates supplied by you. |
+| [EP-learner](articles/ep-learner.html) | Choose a sieve basis size and compare EP-DR with EP-R. |
+| [Using sl3 directly](articles/advanced-sl3.html) | Construct tasks, train learners, and compare custom sets of models. |
 
-Use `hte_task()`, `fit_cate()`, and `fit_crr()` when you want the standard
-package interface for difference-scale or risk-ratio targets.
+See the [function reference](reference/index.html) for arguments and return values.
 
-### GRF / causal-forest path
-
-Use `grf_cate()` or `grf_crr()` when you want the optional `grf` engine and a
-wrapper that accepts raw data plus optional nuisance estimates.
-
-### Advanced / low-level sl3
-
-Use `make_hte3_Task_tx()`, `cross_validate_cate()`, `cross_validate_crr()`,
-and the `Lrnr_*` classes when you want to assemble learner portfolios
-directly.
-
-## Where to Find Documentation
-
-- [Quickstart](articles/quickstart.html): one end-to-end example with the
-  high-level wrappers.
-- [CATE Workflow](articles/cate.html): choosing among `dr`, `r`, `t`, and
-  `ep` for conditional mean differences.
-- [CRR Workflow](articles/crr.html): fitting conditional risk ratios with
-  `fit_crr()`.
-- [Causal Forests with GRF](articles/grf.html): `grf_cate()`, `grf_crr()`,
-  direct nuisance inputs, and GRF-specific arguments.
-- [Advanced sl3 Integration](articles/advanced-sl3.html): low-level task
-  construction, learner control, and manual cross-validation.
-- [Reference](reference/index.html): exported functions, helper constructors,
-  and learner classes.
-
-## Important Constraints
+## Supported outcomes and treatments
 
 - `fit_crr()` and `grf_crr()` require a non-negative outcome.
 - `grf_cate()` and `grf_crr()` currently support binary treatment only.
-- Continuous-treatment CATE currently goes through the R-learner path via
-  `fit_cate(..., method = "r")`.
+- For continuous treatments, use `fit_cate(..., method = "r")`, which assumes
+  a partially linear effect model `A * tau(X)`.

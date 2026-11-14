@@ -1,0 +1,72 @@
+/* A quiet palette and readable type, shared by all documentation pages. */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.7;
+}
+
+.navbar {
+  background: #faf9f4 !important;
+  border-bottom: 1px solid #dcded4;
+}
+
+.navbar-brand {
+  color: #39776c;
+  font-weight: 700;
+}
+
+h1, h2, h3 {
+  color: #263b3e;
+  line-height: 1.2;
+}
+
+h1, h2 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 500;
+}
+
+.page-header {
+  border-bottom: 1px solid #dcded4;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+}
+
+.page-header h1 {
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.template-home .page-header + p {
+  font-size: 1.15rem;
+  max-width: 46rem;
+}
+
+main h2 {
+  margin-top: 2.25rem;
+}
+
+main h3 {
+  margin-top: 1.75rem;
+  font-size: 1.2rem;
+}
+
+pre {
+  border: 1px solid #dcded4;
+  border-radius: 0.5rem;
+}
+
+pre, code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+
+table {
+  background: #faf9f4;
+}
+
+footer {
+  border-top: 1px solid #dcded4;
+}
+
+@media (max-width: 767.98px) {
+  .template-home .page-header + p {
+    font-size: 1.05rem;
+  }
+}

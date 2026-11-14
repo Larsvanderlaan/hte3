@@ -11,12 +11,12 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-This guide covers the standard repo workflow for `hte3`: local setup, tests,
+This guide covers development of `hte3`: local setup, tests,
 documentation, and pkgdown site generation.
 
 If you want to add a new learner or estimand, read
 [Extending hte3 with Custom Learners](extending-hte3.html) first and then come
-back here for the repo workflow.
+back here for setup and checks.
 
 ## Local Setup
 
@@ -30,7 +30,7 @@ The main prerequisites are:
 - `testthat` for the test suite
 - `pkgdown` and `roxygen2` when you are updating docs
 
-## Typical Change Loop
+## Make and check a change
 
 For most changes, the development loop is:
 
@@ -53,14 +53,14 @@ User-facing documentation lives in these layers:
 
 - `README.md` for installation and entry-point navigation
 - `man/` for help-page level function docs
-- `vignettes/` for workflow articles
+- `vignettes/` for guides and examples
 - `docs/` for generated pkgdown output
 
 Do not hand-edit generated files in `docs/`. Update the source material and
 rebuild the site instead.
 
 If you add or rename a vignette, also update `_pkgdown.yml` so the article
-navigation stays organized by workflow.
+navigation includes the updated guide.
 
 ## Testing Expectations
 
@@ -68,7 +68,7 @@ At minimum, a contribution should include:
 
 - targeted tests for the changed behavior
 - validation tests for new error paths
-- documentation updates for user-visible API or workflow changes
+- documentation updates for changes to the public API or its use
 
 For learner changes, include fit/predict tests and method-specific guards.
 For wrapper changes, include at least one end-to-end test through the public
@@ -77,7 +77,7 @@ API.
 ## Legacy Paper Reproducibility
 
 The EP-learner paper reproduction is kept in the repository, but it is not
-part of the main pkgdown workflow. Use the scripts under
+part of the package website. Use the scripts under
 `paper_EPlearner_experiments/` and the frozen install helper:
 
 ```r
@@ -110,7 +110,7 @@ estimand-specific learner:
 - define the estimand and treatment support clearly
 - add or update tests before exposing it through a wrapper
 - document tuning arguments and default behavior explicitly
-- update the relevant workflow article if the learner is public
+- update the relevant guide if the learner is public
 
-Use the extending guide for the learner-specific design contract and promotion
-checklist.
+See [Extending hte3 with Custom Learners](extending-hte3.html) for learner
+requirements and the steps for adding one to the package.

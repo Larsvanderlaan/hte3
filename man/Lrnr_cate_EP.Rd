@@ -10,7 +10,8 @@ An R6 class with public methods to initialize the learner, create a regression t
 This class defines the EP-learner of van der Laan et al. (2023) for estimation of the conditional average treatment effect.
 }
 \details{
-The EP-learner is a robust and doubly-robust meta-learner that inherits desirable properties of both T-learner and DR-learner.
+The EP-learner updates initial outcome estimates using a sieve basis before
+fitting the effect regression.
 The current implementation exposes two CATE EP variants through
 \code{targeting_style}: \code{"dr"} is the plug-in analogue of the
 DR-learner and \code{"r"} is the plug-in analogue of the R-learner.
@@ -97,8 +98,8 @@ There are no theoretical guarantees for EP-learner with \code{screen_basis_with_
 It also reduces the computational complexity of EP-learner, as the argument \code{sieve_num_basis} does not need to be externally cross-validated.}
 
 \item{\code{targeting_style}}{One of \code{"dr"} or \code{"r"}. The default
-\code{"dr"} path keeps the current EP debiasing update. The
-\code{"r"} path uses an R-learner-style overlap-weighted targeting update
+\code{"dr"} variant uses the original EP debiasing update. The
+\code{"r"} variant uses an R-learner-style overlap-weighted targeting update
 and currently supports binary-treatment CATE tasks only. High-level
 wrappers such as \code{fit_cate()} compare both variants by expanding
 multiple \code{Lrnr_cate_EP} fits rather than by passing a vector here.}

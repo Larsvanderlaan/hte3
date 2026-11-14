@@ -1,8 +1,8 @@
 ---
-title: "Advanced sl3 Integration"
+title: "Using sl3 directly"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Advanced sl3 Integration}
+  %\VignetteIndexEntry{Using sl3 directly}
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---
@@ -11,14 +11,12 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-Read this article if you want the low-level API: explicit task construction,
-manual learner choice, or direct calls to `cross_validate_cate()` and
-`cross_validate_crr()`.
+Construct an `hte3_Task`, train individual `sl3` learners, and compare them
+with `cross_validate_cate()` or `cross_validate_crr()`.
 
-## Build the Task Explicitly
+## Create a task
 
-Use `make_hte3_Task_tx()` when you want to supply the nuisance learners
-yourself or work directly with the lower-level learner objects.
+Pass your nuisance learners to `make_hte3_Task_tx()`:
 
 ```{r}
 library(hte3)
@@ -39,7 +37,7 @@ task <- make_hte3_Task_tx(
 )
 ```
 
-## Train a Learner Directly
+## Train a learner
 
 ```{r, warning = FALSE}
 learner <- Lrnr_cate_DR$new(base_learner = Lrnr_mean$new())
@@ -48,12 +46,12 @@ trained <- learner$train(task)
 head(predict_hte3(trained, data))
 ```
 
-This is the right level when you want the exact learner object rather than the
-wrapper returned by `fit_cate()` or `fit_crr()`.
+`trained` is an `sl3` learner object. Use `predict_hte3()` to predict effects
+on new data.
 
-## Low-Level Cross-Validation
+## Compare learners
 
-You can cross-validate low-level learner portfolios directly.
+Pass a list of learners to compare by cross-validation:
 
 ```{r, warning = FALSE}
 cate_cv <- cross_validate_cate(
@@ -70,7 +68,7 @@ cate_cv$coefficients
 head(cate_cv$lrnr_sl$predict(task))
 ```
 
-The analogous CRR workflow is:
+For conditional risk ratios:
 
 ```{r}
 crr_task <- make_hte3_Task_tx(
@@ -101,7 +99,7 @@ crr_cv$coefficients
 head(crr_cv$lrnr_sl$predict(crr_task))
 ```
 
-## Important Constraints
+## Targets and treatment types
 
 - `cross_fit_and_cv` in `make_hte3_Task_tx()` controls nuisance estimation at
   the task stage.
@@ -109,9 +107,8 @@ head(crr_cv$lrnr_sl$predict(crr_task))
   the reduced-modifier target is `E[Y(1) - Y(0) | V] = E[tau(W) | V]`.
 - In that reduced-modifier setting, the current low-level R-learner targets an
   overlap-weighted projection rather than the unweighted `V`-conditional CATE.
-- For continuous-treatment CATE, the low-level `Lrnr_cate_R` path is the one
-  currently implemented.
+- For continuous-treatment CATE, use `Lrnr_cate_R`.
 
 For EP-specific sieve construction and tuning, see
-[EP-Learner Sieve Tuning](ep-learner.html). If you are building a new learner,
+[EP-learner](ep-learner.html). If you are building a new learner,
 see [Extending hte3 with Custom Learners](extending-hte3.html).

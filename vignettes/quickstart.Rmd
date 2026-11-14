@@ -11,8 +11,9 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-Read this article if you want one minimal end-to-end example with the
-high-level wrappers before choosing a more specific workflow.
+Create a task, fit a DR-learner, and predict conditional average treatment
+effects. The example uses simulated data and simple mean learners, with
+cross-fitting and model selection disabled.
 
 ```{r}
 library(hte3)
@@ -43,20 +44,20 @@ head(predict(model, data))
 summary(model)
 ```
 
-## Cross-Fit vs Cross-Validate
+## Cross-fitting and model selection
 
-Two arguments control different stages of the workflow:
+Use these arguments to control nuisance estimation and model selection:
 
 - `cross_fit` in `hte_task()` controls nuisance estimation.
 - `cross_validate` in `fit_cate()` or `fit_crr()` controls selection across
   candidate HTE learners.
 
-These are separate decisions. A common analysis cross-fits nuisances and only
-turns on wrapper-level cross-validation when comparing learner families.
+Set `cross_fit = TRUE` to estimate each observation's nuisance values using
+other folds. Set `cross_validate = TRUE` to compare candidate HTE learners.
 
-## What to Read Next
+## Next steps
 
-- For CATE method choice, see [CATE Workflow](cate.html).
-- For relative effects with non-negative outcomes, see [CRR Workflow](crr.html).
-- For `grf_cate()` and `grf_crr()`, see [Causal Forests with GRF](grf.html).
-- For low-level `sl3` control, see [Advanced sl3 Integration](advanced-sl3.html).
+- [Treatment effects](cate.html): choose among DR-, R-, T-, and EP-learners.
+- [Risk ratios](crr.html): estimate relative effects for non-negative outcomes.
+- [Causal forests](grf.html): use `grf_cate()` and `grf_crr()`.
+- [Using sl3 directly](advanced-sl3.html): construct and train custom learners.
