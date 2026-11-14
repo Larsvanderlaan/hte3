@@ -1,5 +1,8 @@
 # hte3 0.1.1
 
+- Removed internal fold-prediction and pseudo-outcome type warnings, and
+  avoided unused `family` arguments for forest and earth learners. Cross-fitted
+  predictions and warnings about model fitting or target changes are unchanged.
 - Hardened the default `get_autoML()` stack so the high-level API uses the
   available safe subset of learners and warns once when optional runtime
   packages are missing.

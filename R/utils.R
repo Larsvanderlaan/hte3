@@ -791,6 +791,9 @@ make_tlearner_projection_task <- function(hte3_task,
                                           outcome_values,
                                           outcome_name = paste0("projection_outcome_", uuid::UUIDgenerate()),
                                           outcome_type = "continuous") {
+  if (identical(outcome_type, "continuous")) {
+    outcome_type <- sl3::variable_type(type = "continuous")
+  }
   new_data <- data.table::data.table(outcome_values)
   names(new_data) <- outcome_name
   column_names <- hte3_task$add_columns(new_data)
@@ -803,6 +806,15 @@ make_tlearner_projection_task <- function(hte3_task,
   )
 }
 
+set_hte_learner_family <- function(learner, family) {
+  # These sl3 learners determine the regression family from the task and
+  # otherwise pass an unused family argument to their underlying R functions.
+  if (class(learner)[[1L]] %in% c("Lrnr_ranger", "Lrnr_earth")) {
+    return(learner)
+  }
+  learner$reparameterize(list(family = family))
+}
+
 fit_tlearner_projection <- function(base_learner,
                                     hte3_task,
                                     outcome_values,
@@ -813,7 +825,7 @@ fit_tlearner_projection <- function(base_learner,
     outcome_values = outcome_values,
     outcome_type = outcome_type
   )
-  learner <- base_learner$reparameterize(list(family = family))
+  learner <- set_hte_learner_family(base_learner, family)
   learner$train(projection_task)
 }
 

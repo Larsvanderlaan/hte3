@@ -101,6 +101,11 @@ Lrnr_hte <- R6Class(
       pseudo_weights <- pseudo_data$pseudo_weights
       outcome_type <- self$pseudo_outcome_info$outcome_type
       if(is.null(outcome_type)) outcome_type <- "continuous"
+      # These are numeric regression targets even when a small sample has
+      # only a few distinct pseudo-outcome values.
+      if (identical(outcome_type, "continuous")) {
+        outcome_type <- sl3::variable_type(type = "continuous")
+      }
       # incorporate observational weights into pseudo_weights
       if(is.null(pseudo_weights)) {
         pseudo_weights <- hte3_task$weights
@@ -159,7 +164,7 @@ Lrnr_hte <- R6Class(
       base_learner <- self$base_learner
       # make sure right family is being used.
       family <- self$pseudo_outcome_info$family
-      base_learner <- base_learner$reparameterize(list(family = family))
+      base_learner <- set_hte_learner_family(base_learner, family)
       # some learners dont handle zero weights well for training
       learner_trained <- base_learner$train(learner_task)
       private$.base_learner <- learner_trained

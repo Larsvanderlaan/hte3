@@ -20,7 +20,7 @@ cross-validation. It also includes the grids used in the EP-learner paper.
 library(hte3)
 library(sl3)
 
-data <- hte3_example_data(n = 120, seed = 4)
+data <- hte3_example_data(n = 400, seed = 4)
 
 task <- make_hte3_Task_tx(
   data = data,
